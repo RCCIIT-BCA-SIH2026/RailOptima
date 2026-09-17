@@ -1,0 +1,72 @@
+[
+  {
+    "feature": "season",
+    "importance_score": 0.76477,
+    "importance_std": 0.00424,
+    "category": "Environmental",
+    "importance_pct": 98.94
+  },
+  {
+    "feature": "humidity_percent",
+    "importance_score": 0.0043,
+    "importance_std": 0.002,
+    "category": "Environmental",
+    "importance_pct": 0.56
+  },
+  {
+    "feature": "last_maintenance_days",
+    "importance_score": 0.00173,
+    "importance_std": 0.00068,
+    "category": "Operational",
+    "importance_pct": 0.22
+  },
+  {
+    "feature": "ambient_temperature_c",
+    "importance_score": 0.00105,
+    "importance_std": 0.0003,
+    "category": "Environmental",
+    "importance_pct": 0.14
+  },
+  {
+    "feature": "average_speed_kmph",
+    "importance_score": 0.00038,
+    "importance_std": 0.00058,
+    "category": "Operational",
+    "importance_pct": 0.05
+  },
+  {
+    "feature": "distance_travelled_km",
+    "importance_score": 0.00026,
+    "importance_std": 0.00034,
+    "category": "Operational",
+    "importance_pct": 0.03
+  },
+  {
+    "feature": "train_age_years",
+    "importance_score": 0.00025,
+    "importance_std": 0.00062,
+    "category": "Operational",
+    "importance_pct": 0.03
+  },
+  {
+    "feature": "region",
+    "importance_score": 0.0002,
+    "importance_std": 0.00023,
+    "category": "Environmental",
+    "importance_pct": 0.03
+  },
+  {
+    "feature": "rainfall_mm",
+    "importance_score": 6e-05,
+    "importance_std": 0.00035,
+    "category": "Environmental",
+    "importance_pct": 0.01
+  },
+  {
+    "feature": "train_type",
+    "importance_score": 0.0,
+    "importance_std": 0.00033,
+    "category": "Operational",
+    "importance_pct": 0.0
+  }
+]

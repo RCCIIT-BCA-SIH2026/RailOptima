@@ -1,0 +1,205 @@
+{
+  "dataset_name": "indian_railway_failure_detection_maintenance_v2.csv",
+  "total_records": 100000,
+  "target_column": "delay_minutes",
+  "feature_names": [
+    "rainfall_mm",
+    "humidity_percent",
+    "ambient_temperature_c",
+    "average_speed_kmph",
+    "distance_travelled_km",
+    "train_age_years",
+    "last_maintenance_days",
+    "season",
+    "region",
+    "train_type"
+  ],
+  "numerical_features": [
+    "rainfall_mm",
+    "humidity_percent",
+    "ambient_temperature_c",
+    "average_speed_kmph",
+    "distance_travelled_km",
+    "train_age_years",
+    "last_maintenance_days"
+  ],
+  "categorical_features": [
+    "season",
+    "region",
+    "train_type"
+  ],
+  "excluded_columns": [
+    "train_id",
+    "risk_score",
+    "failure_type",
+    "failure_severity",
+    "maintenance_required",
+    "rail_wear_mm",
+    "track_vibration_level",
+    "wheel_wear_percent",
+    "brake_pad_wear_percent",
+    "brake_pressure_psi",
+    "axle_temperature_c",
+    "bearing_temperature_c",
+    "battery_voltage",
+    "sensor_health_index",
+    "inspection_score"
+  ],
+  "train_records": 80000,
+  "validation_records": 10000,
+  "test_records": 10000,
+  "primary_model": "HistGradientBoostingRegressor",
+  "models_evaluated": {
+    "HistGradientBoostingRegressor": {
+      "val_mae_minutes": 6.3431,
+      "val_rmse_minutes": 9.1395,
+      "val_r2": 0.3989
+    },
+    "RandomForestRegressor": {
+      "val_mae_minutes": 6.3326,
+      "val_rmse_minutes": 9.123,
+      "val_r2": 0.4011
+    }
+  },
+  "test_metrics": {
+    "mae_minutes": 6.3638,
+    "rmse_minutes": 9.035,
+    "r2_score": 0.3946,
+    "smape_pct": 54.28,
+    "mape_delayed_trains_pct": 42.56,
+    "mape_note": "Standard MAPE is mathematically undefined due to exact on-time records (delay=0m). Reported MAPE applies to delayed trains (delay >= 5m). sMAPE is symmetric and bounded.",
+    "baseline_median_mae_minutes": 7.9626,
+    "baseline_mean_mae_minutes": 8.5102,
+    "improvement_over_baseline_pct": 20.08,
+    "average_error_minutes": 6.36
+  },
+  "error_percentiles_minutes": {
+    "p25": 2.309,
+    "p50_median": 4.691,
+    "p75": 7.691,
+    "p90": 14.222,
+    "p95": 18.479,
+    "p99": 31.278,
+    "max_error": 83.043
+  },
+  "error_distribution": {
+    "within_2_mins_pct": 21.34,
+    "within_5_mins_pct": 53.35,
+    "within_10_mins_pct": 81.86,
+    "within_15_mins_pct": 91.27,
+    "exceeding_15_mins_pct": 8.73
+  },
+  "actual_vs_predicted_examples": [
+    {
+      "sample_index": 0,
+      "actual_delay_minutes": 37.8,
+      "predicted_delay_minutes": 24.59,
+      "absolute_error_minutes": 13.21,
+      "season": "Monsoon",
+      "region": "Northern Railway",
+      "train_type": "Express",
+      "rainfall_mm": 21.3,
+      "humidity_percent": 84.1
+    },
+    {
+      "sample_index": 10,
+      "actual_delay_minutes": 8.1,
+      "predicted_delay_minutes": 8.19,
+      "absolute_error_minutes": 0.09,
+      "season": "Winter",
+      "region": "South Central Railway",
+      "train_type": "Express",
+      "rainfall_mm": 7.4,
+      "humidity_percent": 48.3
+    },
+    {
+      "sample_index": 25,
+      "actual_delay_minutes": 2.7,
+      "predicted_delay_minutes": 8.19,
+      "absolute_error_minutes": 5.49,
+      "season": "Winter",
+      "region": "South Central Railway",
+      "train_type": "Express",
+      "rainfall_mm": 2.7,
+      "humidity_percent": 42.0
+    },
+    {
+      "sample_index": 50,
+      "actual_delay_minutes": 11.2,
+      "predicted_delay_minutes": 8.08,
+      "absolute_error_minutes": 3.12,
+      "season": "Summer",
+      "region": "Western Railway",
+      "train_type": "Express",
+      "rainfall_mm": NaN,
+      "humidity_percent": 55.0
+    },
+    {
+      "sample_index": 100,
+      "actual_delay_minutes": 5.6,
+      "predicted_delay_minutes": 8.19,
+      "absolute_error_minutes": 2.59,
+      "season": "Summer",
+      "region": "Eastern Railway",
+      "train_type": "Freight",
+      "rainfall_mm": 5.7,
+      "humidity_percent": 44.7
+    },
+    {
+      "sample_index": 250,
+      "actual_delay_minutes": 6.3,
+      "predicted_delay_minutes": 8.19,
+      "absolute_error_minutes": 1.89,
+      "season": "Summer",
+      "region": "Western Railway",
+      "train_type": "Passenger",
+      "rainfall_mm": 2.2,
+      "humidity_percent": NaN
+    },
+    {
+      "sample_index": 500,
+      "actual_delay_minutes": 1.3,
+      "predicted_delay_minutes": 8.19,
+      "absolute_error_minutes": 6.89,
+      "season": "Summer",
+      "region": "Eastern Railway",
+      "train_type": "Passenger",
+      "rainfall_mm": 7.1,
+      "humidity_percent": 45.7
+    },
+    {
+      "sample_index": 1000,
+      "actual_delay_minutes": 24.8,
+      "predicted_delay_minutes": 25.12,
+      "absolute_error_minutes": 0.32,
+      "season": "Monsoon",
+      "region": "Eastern Railway",
+      "train_type": "Passenger",
+      "rainfall_mm": 66.4,
+      "humidity_percent": 82.4
+    },
+    {
+      "sample_index": 2500,
+      "actual_delay_minutes": 67.2,
+      "predicted_delay_minutes": 23.93,
+      "absolute_error_minutes": 43.27,
+      "season": "Monsoon",
+      "region": "Central Railway",
+      "train_type": "Passenger",
+      "rainfall_mm": 29.7,
+      "humidity_percent": 99.0
+    },
+    {
+      "sample_index": 5000,
+      "actual_delay_minutes": 7.3,
+      "predicted_delay_minutes": 8.14,
+      "absolute_error_minutes": 0.84,
+      "season": "Summer",
+      "region": "Southern Railway",
+      "train_type": "Freight",
+      "rainfall_mm": 0.8,
+      "humidity_percent": 75.5
+    }
+  ],
+  "training_timestamp": "2026-09-17T20:45:12.540800Z"
+}

@@ -1,0 +1,82 @@
+[
+  {
+    "feature": "season",
+    "category": "Environmental",
+    "hgb_permutation_score": 0.75527,
+    "hgb_importance_pct": 99.5,
+    "rf_permutation_score": 0.79608,
+    "rf_importance_pct": 99.7
+  },
+  {
+    "feature": "humidity_percent",
+    "category": "Environmental",
+    "hgb_permutation_score": 0.00242,
+    "hgb_importance_pct": 0.32,
+    "rf_permutation_score": 0.00115,
+    "rf_importance_pct": 0.14
+  },
+  {
+    "feature": "ambient_temperature_c",
+    "category": "Environmental",
+    "hgb_permutation_score": 0.00077,
+    "hgb_importance_pct": 0.1,
+    "rf_permutation_score": 0.00092,
+    "rf_importance_pct": 0.12
+  },
+  {
+    "feature": "average_speed_kmph",
+    "category": "Operational",
+    "hgb_permutation_score": 0.0006,
+    "hgb_importance_pct": 0.08,
+    "rf_permutation_score": -0.00046,
+    "rf_importance_pct": 0.0
+  },
+  {
+    "feature": "rainfall_mm",
+    "category": "Environmental",
+    "hgb_permutation_score": -0.00034,
+    "hgb_importance_pct": 0.0,
+    "rf_permutation_score": -0.00051,
+    "rf_importance_pct": 0.0
+  },
+  {
+    "feature": "distance_travelled_km",
+    "category": "Operational",
+    "hgb_permutation_score": -0.0014,
+    "hgb_importance_pct": 0.0,
+    "rf_permutation_score": -0.00027,
+    "rf_importance_pct": 0.0
+  },
+  {
+    "feature": "train_age_years",
+    "category": "Operational",
+    "hgb_permutation_score": -0.00118,
+    "hgb_importance_pct": 0.0,
+    "rf_permutation_score": -0.00038,
+    "rf_importance_pct": 0.0
+  },
+  {
+    "feature": "last_maintenance_days",
+    "category": "Operational",
+    "hgb_permutation_score": -0.00187,
+    "hgb_importance_pct": 0.0,
+    "rf_permutation_score": -0.00105,
+    "rf_importance_pct": 0.0
+  },
+  {
+    "feature": "region",
+    "category": "Environmental",
+    "hgb_permutation_score": -0.00026,
+    "hgb_importance_pct": 0.0,
+    "rf_permutation_score": 0.00028,
+    "rf_importance_pct": 0.04
+  },
+  {
+    "feature": "train_type",
+    "category": "Operational",
+    "hgb_permutation_score": -0.0001,
+    "hgb_importance_pct": 0.0,
+    "rf_permutation_score": -1e-05,
+    "rf_importance_pct": 0.0
+  }
+]

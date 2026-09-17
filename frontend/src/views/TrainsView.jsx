@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { 
   Train, 
   Search, 
@@ -21,7 +22,11 @@ import {
   Gauge,
   Calendar,
   Layers,
-  Sparkles
+  Sparkles,
+  Cpu,
+  ShieldCheck,
+  Wrench,
+  Info
 } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import apiClient from '../api/client';
@@ -31,6 +36,9 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 
 export default function TrainsView() {
+  const { activeUser } = useOutletContext() || {};
+  const currentRole = (activeUser?.canonical_role || activeUser?.role || localStorage.getItem('ir_user_role') || 'CONTROL_OFFICE').toUpperCase();
+
   // Data state
   const [trains, setTrains] = useState([]);
   const [stats, setStats] = useState(null);
@@ -60,6 +68,26 @@ export default function TrainsView() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionMessage, setActionMessage] = useState(null);
+
+  // Train Delay ML Predictor Modal state
+  const [isDelayModalOpen, setIsDelayModalOpen] = useState(false);
+  const [delayLoading, setDelayLoading] = useState(false);
+  const [delayResult, setDelayResult] = useState(null);
+  const [delayError, setDelayError] = useState(null);
+  const [delaySelectedTrain, setDelaySelectedTrain] = useState(null);
+  const [delayFormData, setDelayFormData] = useState({
+    rainfall_mm: 15.0,
+    humidity_percent: 65.0,
+    ambient_temperature_c: 30.0,
+    average_speed_kmph: 75.0,
+    distance_travelled_km: 350000,
+    train_age_years: 8,
+    last_maintenance_days: 45,
+    season: 'Monsoon',
+    region: 'Northern Railway',
+    train_type: 'Express',
+    scheduled_arrival: ''
+  });
 
   // Form states
   const initialFormState = {
@@ -242,6 +270,71 @@ export default function TrainsView() {
     }
   };
 
+  const handleOpenDelayPredictor = (train = null) => {
+    setDelaySelectedTrain(train);
+    if (train) {
+      const mappedType = train.is_freight 
+        ? 'Freight' 
+        : (train.train_type?.includes('Vande') || train.train_type?.includes('Rajdhani') || train.train_type?.includes('Shatabdi')) 
+        ? 'Express' 
+        : (train.train_type || 'Express');
+      
+      const schedArr = train.scheduled_arrival ? new Date(train.scheduled_arrival).toISOString().slice(0, 16) : '';
+      setDelayFormData({
+        rainfall_mm: 15.0,
+        humidity_percent: 65.0,
+        ambient_temperature_c: 30.0,
+        average_speed_kmph: train.max_speed ? Math.round(train.max_speed * 0.75) : 75.0,
+        distance_travelled_km: 350000,
+        train_age_years: 8,
+        last_maintenance_days: 45,
+        season: 'Monsoon',
+        region: 'Northern Railway',
+        train_type: mappedType,
+        scheduled_arrival: schedArr
+      });
+    }
+    setDelayResult(null);
+    setDelayError(null);
+    setIsDelayModalOpen(true);
+  };
+
+  const handleRunDelayPrediction = async (e) => {
+    if (e) e.preventDefault();
+    try {
+      setDelayLoading(true);
+      setDelayError(null);
+      
+      const payload = {
+        rainfall_mm: delayFormData.rainfall_mm !== '' ? parseFloat(delayFormData.rainfall_mm) : null,
+        humidity_percent: delayFormData.humidity_percent !== '' ? parseFloat(delayFormData.humidity_percent) : null,
+        ambient_temperature_c: delayFormData.ambient_temperature_c !== '' ? parseFloat(delayFormData.ambient_temperature_c) : null,
+        average_speed_kmph: delayFormData.average_speed_kmph !== '' ? parseFloat(delayFormData.average_speed_kmph) : null,
+        distance_travelled_km: delayFormData.distance_travelled_km !== '' ? parseFloat(delayFormData.distance_travelled_km) : null,
+        train_age_years: delayFormData.train_age_years !== '' ? parseFloat(delayFormData.train_age_years) : null,
+        last_maintenance_days: delayFormData.last_maintenance_days !== '' ? parseFloat(delayFormData.last_maintenance_days) : null,
+        season: delayFormData.season || 'Monsoon',
+        region: delayFormData.region || 'Northern Railway',
+        train_type: delayFormData.train_type || 'Express',
+        scheduled_arrival: delayFormData.scheduled_arrival ? new Date(delayFormData.scheduled_arrival).toISOString() : null
+      };
+
+      if (delaySelectedTrain) {
+        payload.train_no = delaySelectedTrain.train_no;
+        payload.train_id = delaySelectedTrain.id;
+      }
+
+      const res = await apiClient.post('/ai/train-delay-prediction', payload);
+      setDelayResult(res.data);
+    } catch (err) {
+      console.error("Train delay prediction failed:", err);
+      const detail = err.response?.data?.detail || err.message || "Failed to execute train delay ML prediction";
+      setDelayError(detail);
+    } finally {
+      setDelayLoading(false);
+    }
+  };
+
   // Badge helpers
   const getDelayBadge = (delay) => {
     if (delay === 0 || delay <= 5) {
@@ -331,10 +424,20 @@ export default function TrainsView() {
           </div>
 
           <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => handleOpenDelayPredictor()}
+            className="flex items-center space-x-1.5 border-purple-300 text-purple-700 bg-purple-50 hover:bg-purple-100 shadow-xs cursor-pointer"
+          >
+            <Sparkles className="w-4 h-4 text-purple-600" />
+            <span>AI Delay / ETA Predictor</span>
+          </Button>
+
+          <Button 
             variant="primary" 
             size="sm" 
             onClick={handleOpenCreate}
-            className="flex items-center space-x-1.5 shadow-md shadow-blue-600/20"
+            className="flex items-center space-x-1.5 shadow-md shadow-blue-600/20 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Add Train Schedule</span>
@@ -608,6 +711,13 @@ export default function TrainsView() {
                           <td className="px-3 py-3 text-right whitespace-nowrap">
                             <div className="flex items-center justify-end space-x-1">
                               <button
+                                onClick={() => handleOpenDelayPredictor(train)}
+                                className="p-1 rounded text-purple-600 hover:text-purple-800 hover:bg-purple-50 transition cursor-pointer"
+                                title="Predict Delay & ETA via ML"
+                              >
+                                <Sparkles className="w-4 h-4" />
+                              </button>
+                              <button
                                 onClick={() => handleOpenDetail(train)}
                                 className="p-1 rounded text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition"
                                 title="View Details"
@@ -818,6 +928,18 @@ export default function TrainsView() {
             <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex justify-end space-x-2">
               <Button variant="outline" size="sm" onClick={() => setIsDetailModalOpen(false)}>
                 Close
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setIsDetailModalOpen(false);
+                  handleOpenDelayPredictor(selectedTrain);
+                }}
+                className="border-purple-300 text-purple-700 bg-purple-50 hover:bg-purple-100 cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5 mr-1 text-purple-600" />
+                Predict Delay / ETA
               </Button>
               <Button
                 variant="primary"
@@ -1076,6 +1198,392 @@ export default function TrainsView() {
               </Button>
               <Button variant="critical" size="sm" disabled={actionLoading} onClick={handleDeleteConfirm}>
                 {actionLoading ? 'Deleting...' : 'Confirm Remove'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODAL 5: AI TRAIN DELAY & ETA PREDICTOR ================= */}
+      {isDelayModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-3xl w-full overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+              <div className="flex items-center space-x-2.5">
+                <div className="p-2 bg-purple-600 rounded-lg">
+                  <Sparkles className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-white flex items-center gap-2">
+                    <span>AI Train Delay & ETA Predictor</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-purple-500/30 text-purple-200 font-mono border border-purple-400/30">
+                      Real ML Pipeline
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-400 font-mono mt-0.5">
+                    {delaySelectedTrain ? `${delaySelectedTrain.train_no} • ${delaySelectedTrain.train_name}` : 'Multi-Factor Corridor Operational & Environmental Inference'}
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsDelayModalOpen(false)} 
+                className="p-1 text-slate-400 hover:text-white rounded-lg transition hover:bg-slate-800"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-5 max-h-[75vh] overflow-y-auto text-xs">
+              {/* Input Form */}
+              <form onSubmit={handleRunDelayPrediction} className="space-y-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                  <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                    <Navigation className="w-3.5 h-3.5 text-blue-600" />
+                    Input Environmental & Operational Parameters
+                  </span>
+                  <span className="text-[10px] text-slate-500 font-mono">
+                    POST /api/v1/ai/train-delay-prediction
+                  </span>
+                </div>
+
+                {/* Grid 1: Environmental & Context */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Season</label>
+                    <select
+                      value={delayFormData.season}
+                      onChange={(e) => setDelayFormData({ ...delayFormData, season: e.target.value })}
+                      className="w-full border border-slate-300 bg-white rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-purple-500 focus:outline-hidden"
+                    >
+                      <option value="Monsoon">Monsoon (Heavy Rain)</option>
+                      <option value="Summer">Summer</option>
+                      <option value="Winter">Winter (Foggy)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Zonal Region</label>
+                    <select
+                      value={delayFormData.region}
+                      onChange={(e) => setDelayFormData({ ...delayFormData, region: e.target.value })}
+                      className="w-full border border-slate-300 bg-white rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-purple-500 focus:outline-hidden"
+                    >
+                      <option value="Northern Railway">Northern Railway (NR)</option>
+                      <option value="Western Railway">Western Railway (WR)</option>
+                      <option value="Central Railway">Central Railway (CR)</option>
+                      <option value="Eastern Railway">Eastern Railway (ER)</option>
+                      <option value="Southern Railway">Southern Railway (SR)</option>
+                      <option value="South Central Railway">South Central Railway (SCR)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Rainfall (mm)</label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      value={delayFormData.rainfall_mm}
+                      onChange={(e) => setDelayFormData({ ...delayFormData, rainfall_mm: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Humidity (%)</label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      max="100"
+                      value={delayFormData.humidity_percent}
+                      onChange={(e) => setDelayFormData({ ...delayFormData, humidity_percent: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                {/* Grid 2: Operational & Rolling Stock */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Train Classification</label>
+                    <select
+                      value={delayFormData.train_type}
+                      onChange={(e) => setDelayFormData({ ...delayFormData, train_type: e.target.value })}
+                      className="w-full border border-slate-300 bg-white rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-purple-500 focus:outline-hidden"
+                    >
+                      <option value="Express">Express / Superfast</option>
+                      <option value="Passenger">Passenger Ordinary</option>
+                      <option value="Freight">Freight Rake (Goods)</option>
+                      <option value="Metro">Suburban / Metro</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Avg Speed (km/h)</label>
+                    <Input
+                      type="number"
+                      step="1"
+                      min="10"
+                      max="160"
+                      value={delayFormData.average_speed_kmph}
+                      onChange={(e) => setDelayFormData({ ...delayFormData, average_speed_kmph: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Ambient Temp (°C)</label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      value={delayFormData.ambient_temperature_c}
+                      onChange={(e) => setDelayFormData({ ...delayFormData, ambient_temperature_c: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Trip Distance (km)</label>
+                    <Input
+                      type="number"
+                      step="1000"
+                      min="0"
+                      value={delayFormData.distance_travelled_km}
+                      onChange={(e) => setDelayFormData({ ...delayFormData, distance_travelled_km: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                {/* Grid 3: Maintenance & Optional Timetable */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Train Age (years)</label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="35"
+                      value={delayFormData.train_age_years}
+                      onChange={(e) => setDelayFormData({ ...delayFormData, train_age_years: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Days Since Overhaul</label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="365"
+                      value={delayFormData.last_maintenance_days}
+                      onChange={(e) => setDelayFormData({ ...delayFormData, last_maintenance_days: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1 flex items-center justify-between">
+                      <span>Scheduled Arrival</span>
+                      <span className="text-[10px] text-slate-400 font-normal">(Optional for ETA)</span>
+                    </label>
+                    <Input
+                      type="datetime-local"
+                      value={delayFormData.scheduled_arrival}
+                      onChange={(e) => setDelayFormData({ ...delayFormData, scheduled_arrival: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                {/* Form Action Button */}
+                <div className="flex items-center justify-end pt-1">
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="sm"
+                    disabled={delayLoading}
+                    className="flex items-center space-x-1.5 bg-purple-700 hover:bg-purple-800 text-white font-bold"
+                  >
+                    <Sparkles className={`w-4 h-4 ${delayLoading ? 'animate-spin' : ''}`} />
+                    <span>{delayLoading ? 'Evaluating Model...' : 'Calculate Predicted Delay & ETA'}</span>
+                  </Button>
+                </div>
+              </form>
+
+              {/* Loading State */}
+              {delayLoading && (
+                <div className="py-8 text-center space-y-3 bg-white p-6 rounded-xl border border-slate-200">
+                  <div className="w-8 h-8 border-3 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                  <p className="text-xs font-semibold text-slate-700">
+                    Executing real-time inference via HistGradientBoostingRegressor pipeline...
+                  </p>
+                  <p className="text-[11px] text-slate-400 font-mono">
+                    POST /api/v1/ai/train-delay-prediction
+                  </p>
+                </div>
+              )}
+
+              {/* Error State */}
+              {!delayLoading && delayError && (
+                <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 space-y-2">
+                  <div className="flex items-center space-x-2 font-bold text-xs">
+                    <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                    <span>Delay Inference Error</span>
+                  </div>
+                  <p className="text-xs text-rose-700">{delayError}</p>
+                </div>
+              )}
+
+              {/* Result State */}
+              {!delayLoading && delayResult && (
+                <div className="space-y-4 animate-in fade-in duration-200">
+                  {/* Primary Stats Grid */}
+                  <div className={`p-4 rounded-xl border-2 transition-all ${
+                    delayResult.delay_severity_tier === 'Major Delay'
+                      ? 'bg-rose-50/80 border-rose-500 text-rose-950 shadow-sm'
+                      : delayResult.delay_severity_tier === 'Moderate Delay'
+                      ? 'bg-amber-50/80 border-amber-500 text-amber-950 shadow-sm'
+                      : delayResult.delay_severity_tier === 'Minor Delay'
+                      ? 'bg-yellow-50/80 border-yellow-400 text-yellow-950'
+                      : 'bg-emerald-50/80 border-emerald-400 text-emerald-950'
+                  }`}>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      {/* Stat 1: Predicted Delay */}
+                      <div>
+                        <span className="text-[10px] uppercase font-black tracking-wider text-slate-500 block">
+                          Predicted Train Delay
+                        </span>
+                        <div className="text-3xl font-black mt-0.5 font-mono tracking-tight">
+                          {delayResult.predicted_delay_minutes.toFixed(2)} mins
+                        </div>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold mt-1.5 ${
+                          delayResult.is_delayed ? 'bg-amber-200 text-amber-900' : 'bg-emerald-200 text-emerald-900'
+                        }`}>
+                          {delayResult.is_delayed ? 'DELAYED' : 'RIGHT TIME / ON TIME'}
+                        </span>
+                      </div>
+
+                      {/* Stat 2: Severity Tier */}
+                      <div>
+                        <span className="text-[10px] uppercase font-black tracking-wider text-slate-500 block">
+                          Delay Severity Tier
+                        </span>
+                        <div className="text-xl font-bold mt-1 text-slate-800">
+                          {delayResult.delay_severity_tier}
+                        </div>
+                        <span className="text-[11px] text-slate-500 block mt-1">
+                          Threshold: {delayResult.predicted_delay_minutes <= 5 ? '≤ 5m (Right Time)' : delayResult.predicted_delay_minutes <= 15 ? '5-15m (Minor)' : delayResult.predicted_delay_minutes <= 30 ? '15-30m (Moderate)' : '> 30m (Major)'}
+                        </span>
+                      </div>
+
+                      {/* Stat 3: ETA Comparison */}
+                      <div className="bg-white/80 p-3 rounded-lg border border-slate-200/80 text-xs">
+                        <span className="text-[10px] uppercase font-black tracking-wider text-slate-500 block mb-1">
+                          Arrival Timings & ETA
+                        </span>
+                        {delayResult.predicted_eta ? (
+                          <div className="space-y-1 font-mono">
+                            <div className="flex justify-between">
+                              <span className="text-slate-500">Sched:</span>
+                              <span className="font-semibold text-slate-800">
+                                {new Date(delayResult.scheduled_arrival).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-500">Predicted ETA:</span>
+                              <span className="font-bold text-purple-700">
+                                {new Date(delayResult.predicted_eta).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
+                            <div className="text-[10px] text-amber-700 pt-0.5 border-t border-slate-100 flex justify-between">
+                              <span>Delay Shift:</span>
+                              <span>+{delayResult.predicted_delay_minutes}m</span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-slate-500 text-[11px] space-y-1">
+                            <p><strong>Scheduled Arrival:</strong> Not specified</p>
+                            <p><strong>Predicted ETA:</strong> Not calculated</p>
+                            <p className="text-[10px] text-slate-400 italic">Enter a scheduled arrival time to compute the exact station ETA.</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Operational Recommendation */}
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1.5">
+                    <div className="flex items-center space-x-2 text-xs font-bold text-slate-900">
+                      <Wrench className="w-4 h-4 text-purple-600" />
+                      <span>Recommended Operating Directive:</span>
+                    </div>
+                    <p className="text-xs text-slate-700 font-medium pl-6">
+                      {delayResult.recommended_action || "Maintain regular dispatch priority."}
+                    </p>
+                  </div>
+
+                  {/* Top Contributing Factors */}
+                  {delayResult.top_contributing_factors && delayResult.top_contributing_factors.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-xs font-bold text-slate-900">
+                        <span className="flex items-center gap-1.5">
+                          <Layers className="w-3.5 h-3.5 text-purple-600" />
+                          Top Delay Drivers (Model Feature Contribution)
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-normal">
+                          Permutation Importance on Test Partition
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {delayResult.top_contributing_factors.map((factor, idx) => (
+                          <div
+                            key={factor.feature || idx}
+                            className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-800 font-mono font-bold text-[10px] flex items-center justify-center">
+                                #{idx + 1}
+                              </span>
+                              <div>
+                                <span className="font-semibold text-slate-800 block">
+                                  {factor.feature.replace(/_/g, ' ')}
+                                </span>
+                                <span className="text-[10px] text-slate-400 font-mono">
+                                  {factor.category} • {factor.importance_pct}% weight
+                                </span>
+                              </div>
+                            </div>
+                            <div className="font-mono font-bold text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200 text-xs">
+                              {factor.feature_value !== null && factor.feature_value !== undefined ? String(factor.feature_value) : 'Default'}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Model Metadata Footer */}
+                  <div className="p-3 bg-slate-100/80 rounded-lg text-[11px] text-slate-500 font-mono flex flex-col sm:flex-row sm:items-center justify-between gap-2 border border-slate-200">
+                    <div className="flex items-center space-x-2">
+                      <Cpu className="w-3.5 h-3.5 text-slate-600" />
+                      <span>Model: <strong className="text-slate-800">{delayResult.model_type}</strong></span>
+                    </div>
+                    <div>
+                      <span>Trained Artifact: <strong className="text-slate-800">{delayResult.model_version || 'v1.0.0'}</strong></span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
+              <span className="text-[11px] text-slate-400 font-mono">
+                Formula: ETA = Scheduled Arrival + Predicted Delay
+              </span>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => setIsDelayModalOpen(false)}
+                className="text-xs"
+              >
+                Close
               </Button>
             </div>
           </div>

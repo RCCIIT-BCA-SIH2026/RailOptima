@@ -21,6 +21,7 @@ import ApprovalsView from './views/ApprovalsView';
 import AlertsView from './views/AlertsView';
 import ReportsView from './views/ReportsView';
 import SettingsView from './views/SettingsView';
+import AIReviewView from './views/AIReviewView';
 
 export default function App() {
   const [activeUser, setActiveUser] = useState(() => {
@@ -62,6 +63,7 @@ export default function App() {
           <Route path="/alerts" element={<RouteGuard path="/alerts" activeUser={activeUser}><AlertsView /></RouteGuard>} />
           <Route path="/reports" element={<RouteGuard path="/reports" activeUser={activeUser}><ReportsView /></RouteGuard>} />
           <Route path="/settings" element={<RouteGuard path="/settings" activeUser={activeUser}><SettingsView /></RouteGuard>} />
+          <Route path="/ai-review" element={<RouteGuard path="/ai-review" activeUser={activeUser}><AIReviewView /></RouteGuard>} />
 
           {/* Catch-all Fallback */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

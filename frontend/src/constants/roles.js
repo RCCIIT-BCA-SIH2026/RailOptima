@@ -161,7 +161,8 @@ export function isRouteAllowed(path, role) {
       return ['DRM', 'CONTROL_OFFICE', 'SR_DOM'].includes(norm);
 
     case '/settings':
-      return ['ADMIN'].includes(norm);
+    case '/ai-review':
+      return ['ADMIN', 'ADMINISTRATOR'].includes(norm);
 
     default:
       return true;

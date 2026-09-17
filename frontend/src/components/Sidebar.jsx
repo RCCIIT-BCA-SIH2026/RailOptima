@@ -69,6 +69,7 @@ export default function Sidebar() {
     {
       title: "GOVERNANCE & ANALYTICS",
       items: [
+        { path: "/ai-review", label: "AI Review Center", icon: Sparkles, badge: "ADMIN", isAi: true },
         { path: "/approvals", label: "Officer Approvals", icon: CheckCircle2, badge: "DRM" },
         { path: "/alerts", label: "Safety Alerts", icon: AlertTriangle },
         { path: "/reports", label: "Analytics & Reports", icon: BarChart3 },

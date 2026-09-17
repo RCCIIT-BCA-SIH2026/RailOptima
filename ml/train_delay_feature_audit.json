@@ -1,0 +1,236 @@
+[
+  {
+    "feature": "train_id",
+    "data_type": "int64",
+    "missing_percentage": 0.0,
+    "prediction_time_available": "AVAILABLE BEFORE PREDICTION",
+    "leakage_risk": "Low",
+    "reason": "Arbitrary entity identifier. Does not leak target, but causes memorization/overfitting without operational generalizability.",
+    "decision": "EXCLUDE"
+  },
+  {
+    "feature": "region",
+    "data_type": "str",
+    "missing_percentage": 0.0,
+    "prediction_time_available": "AVAILABLE BEFORE PREDICTION",
+    "leakage_risk": "None",
+    "reason": "Geographical railway zone is fixed and established in the operational timetable prior to dispatch.",
+    "decision": "RETAIN"
+  },
+  {
+    "feature": "season",
+    "data_type": "str",
+    "missing_percentage": 0.0,
+    "prediction_time_available": "AVAILABLE BEFORE PREDICTION",
+    "leakage_risk": "None",
+    "reason": "Environmental calendar season is known indefinitely in advance; strongly influences weather patterns and corridor running times.",
+    "decision": "RETAIN"
+  },
+  {
+    "feature": "train_type",
+    "data_type": "str",
+    "missing_percentage": 0.0,
+    "prediction_time_available": "AVAILABLE BEFORE PREDICTION",
+    "leakage_risk": "None",
+    "reason": "Rake classification (Express, Passenger, Freight, Metro) and dispatch priority are scheduled in the working timetable prior to dispatch.",
+    "decision": "RETAIN"
+  },
+  {
+    "feature": "train_age_years",
+    "data_type": "int64",
+    "missing_percentage": 0.0,
+    "prediction_time_available": "AVAILABLE BEFORE PREDICTION",
+    "leakage_risk": "None",
+    "reason": "Rolling stock metadata from asset register; known prior to train journey.",
+    "decision": "RETAIN"
+  },
+  {
+    "feature": "average_speed_kmph",
+    "data_type": "float64",
+    "missing_percentage": 0.0,
+    "prediction_time_available": "AVAILABLE BEFORE PREDICTION",
+    "leakage_risk": "None",
+    "reason": "Planned sectional average speed from working timetable schedule; established before dispatch.",
+    "decision": "RETAIN"
+  },
+  {
+    "feature": "distance_travelled_km",
+    "data_type": "int64",
+    "missing_percentage": 0.0,
+    "prediction_time_available": "AVAILABLE BEFORE PREDICTION",
+    "leakage_risk": "None",
+    "reason": "Odometer accumulated mileage / route length known prior to corridor run.",
+    "decision": "RETAIN"
+  },
+  {
+    "feature": "ambient_temperature_c",
+    "data_type": "float64",
+    "missing_percentage": 0.0,
+    "prediction_time_available": "AVAILABLE BEFORE PREDICTION",
+    "leakage_risk": "None",
+    "reason": "Forecasted ambient temperature / sectional thermometer reading available at or before dispatch.",
+    "decision": "RETAIN"
+  },
+  {
+    "feature": "humidity_percent",
+    "data_type": "float64",
+    "missing_percentage": 5.0,
+    "prediction_time_available": "AVAILABLE BEFORE PREDICTION",
+    "leakage_risk": "None",
+    "reason": "Forecasted relative humidity from meteorological services available at dispatch time.",
+    "decision": "RETAIN"
+  },
+  {
+    "feature": "rainfall_mm",
+    "data_type": "float64",
+    "missing_percentage": 8.0,
+    "prediction_time_available": "AVAILABLE BEFORE PREDICTION",
+    "leakage_risk": "None",
+    "reason": "Corridor precipitation forecast / live rain gauge data available at dispatch time.",
+    "decision": "RETAIN"
+  },
+  {
+    "feature": "wheel_wear_percent",
+    "data_type": "float64",
+    "missing_percentage": 3.0,
+    "prediction_time_available": "AVAILABLE ONLY AFTER EVENT",
+    "leakage_risk": "High",
+    "reason": "Physical mechanical rolling-stock measurement obtained during depot pit inspection, not available in live dispatch; correlation with delay is -0.0011.",
+    "decision": "EXCLUDE"
+  },
+  {
+    "feature": "track_vibration_level",
+    "data_type": "float64",
+    "missing_percentage": 6.0,
+    "prediction_time_available": "AVAILABLE ONLY AFTER EVENT",
+    "leakage_risk": "High",
+    "reason": "Track recording car measurement recorded post-run or during track inspection; not available at train dispatch; correlation with delay is -0.0002.",
+    "decision": "EXCLUDE"
+  },
+  {
+    "feature": "rail_wear_mm",
+    "data_type": "float64",
+    "missing_percentage": 0.0,
+    "prediction_time_available": "AVAILABLE ONLY AFTER EVENT",
+    "leakage_risk": "High",
+    "reason": "Physical track measurement taken during periodic track maintenance inspections; correlation with delay is 0.0013.",
+    "decision": "EXCLUDE"
+  },
+  {
+    "feature": "bearing_temperature_c",
+    "data_type": "float64",
+    "missing_percentage": 7.0,
+    "prediction_time_available": "AVAILABLE ONLY AFTER EVENT",
+    "leakage_risk": "High",
+    "reason": "Axle-box thermal telemetry recorded dynamically while running or at post-trip terminal; not known before departure; correlation with delay is -0.0004.",
+    "decision": "EXCLUDE"
+  },
+  {
+    "feature": "axle_temperature_c",
+    "data_type": "float64",
+    "missing_percentage": 0.0,
+    "prediction_time_available": "AVAILABLE ONLY AFTER EVENT",
+    "leakage_risk": "High",
+    "reason": "Dynamic axle thermal telemetry recorded during train movement; not known before departure; correlation with delay is 0.0025.",
+    "decision": "EXCLUDE"
+  },
+  {
+    "feature": "brake_pad_wear_percent",
+    "data_type": "float64",
+    "missing_percentage": 0.0,
+    "prediction_time_available": "AVAILABLE ONLY AFTER EVENT",
+    "leakage_risk": "High",
+    "reason": "Mechanical wear measured during depot overhaul; not available in live operations; correlation with delay is -0.0007.",
+    "decision": "EXCLUDE"
+  },
+  {
+    "feature": "brake_pressure_psi",
+    "data_type": "float64",
+    "missing_percentage": 0.0,
+    "prediction_time_available": "AVAILABLE ONLY AFTER EVENT",
+    "leakage_risk": "High",
+    "reason": "Dynamic pneumatic brake pipe pressure during train operation; not available before run; correlation with delay is -0.0016.",
+    "decision": "EXCLUDE"
+  },
+  {
+    "feature": "battery_voltage",
+    "data_type": "float64",
+    "missing_percentage": 4.0,
+    "prediction_time_available": "AVAILABLE ONLY AFTER EVENT",
+    "leakage_risk": "High",
+    "reason": "Locomotive electrical sensor recorded during operation/depot checks; correlation with delay is 0.0035.",
+    "decision": "EXCLUDE"
+  },
+  {
+    "feature": "last_maintenance_days",
+    "data_type": "int64",
+    "missing_percentage": 0.0,
+    "prediction_time_available": "AVAILABLE BEFORE PREDICTION",
+    "leakage_risk": "None",
+    "reason": "Asset maintenance history logged in depot maintenance management system; known prior to dispatch.",
+    "decision": "RETAIN"
+  },
+  {
+    "feature": "sensor_health_index",
+    "data_type": "float64",
+    "missing_percentage": 0.0,
+    "prediction_time_available": "AVAILABLE ONLY AFTER EVENT",
+    "leakage_risk": "High",
+    "reason": "Synthetic diagnostic score computed for maintenance scheduling; not available in timetable dispatch.",
+    "decision": "EXCLUDE"
+  },
+  {
+    "feature": "inspection_score",
+    "data_type": "float64",
+    "missing_percentage": 0.0,
+    "prediction_time_available": "AVAILABLE ONLY AFTER EVENT",
+    "leakage_risk": "High",
+    "reason": "Score from manual depot maintenance inspection; not available at timetable dispatch.",
+    "decision": "EXCLUDE"
+  },
+  {
+    "feature": "delay_minutes",
+    "data_type": "float64",
+    "missing_percentage": 0.0,
+    "prediction_time_available": "AVAILABLE ONLY AFTER EVENT",
+    "leakage_risk": "Target Variable",
+    "reason": "Exact ground truth target variable to be predicted. Must be strictly excluded from input features.",
+    "decision": "TARGET"
+  },
+  {
+    "feature": "failure_type",
+    "data_type": "str",
+    "missing_percentage": 69.22,
+    "prediction_time_available": "AVAILABLE ONLY AFTER EVENT",
+    "leakage_risk": "Severe",
+    "reason": "Post-incident failure classification. Missing in 69.2% of rows; populated only after an incident occurs. Massive data leakage if used.",
+    "decision": "EXCLUDE"
+  },
+  {
+    "feature": "maintenance_required",
+    "data_type": "int64",
+    "missing_percentage": 0.0,
+    "prediction_time_available": "AVAILABLE ONLY AFTER EVENT",
+    "leakage_risk": "Severe",
+    "reason": "Separate machine learning target for predictive maintenance; represents whether asset needs depot intervention. Not a pre-dispatch input.",
+    "decision": "EXCLUDE"
+  },
+  {
+    "feature": "failure_severity",
+    "data_type": "str",
+    "missing_percentage": 69.22,
+    "prediction_time_available": "AVAILABLE ONLY AFTER EVENT",
+    "leakage_risk": "Severe",
+    "reason": "Post-incident severity ranking (Critical, High, Medium, Low). Missing in 69.2% of rows; populated only after incident assessment.",
+    "decision": "EXCLUDE"
+  },
+  {
+    "feature": "risk_score",
+    "data_type": "float64",
+    "missing_percentage": 0.0,
+    "prediction_time_available": "AVAILABLE ONLY AFTER EVENT",
+    "leakage_risk": "Severe",
+    "reason": "Synthetic composite maintenance risk index created as an engineered proxy. Contains post-hoc information.",
+    "decision": "EXCLUDE"
+  }
+]

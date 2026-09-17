@@ -675,3 +675,159 @@ class MonthlySummaryResponse(BaseModel):
     calendar_days: List[MonthlyDaySummary]
     data_mode: str = "SIMULATED DEMO DATA"
 
+
+# -------------------------------------------------------------------
+# Predictive Maintenance Machine Learning Schemas
+# -------------------------------------------------------------------
+class RiskFactorDetail(BaseModel):
+    feature: str
+    importance: float
+    value: Optional[Any] = None
+
+class PredictiveMaintenanceRequest(BaseModel):
+    # Optional Asset & RBAC Context
+    asset_id: Optional[int] = None
+    asset_code: Optional[str] = None
+    department_code: Optional[str] = None
+
+    # Sensors & Telemetry (10)
+    rail_wear_mm: Optional[float] = None
+    track_vibration_level: Optional[float] = None
+    wheel_wear_percent: Optional[float] = None
+    brake_pad_wear_percent: Optional[float] = None
+    brake_pressure_psi: Optional[float] = None
+    axle_temperature_c: Optional[float] = None
+    bearing_temperature_c: Optional[float] = None
+    battery_voltage: Optional[float] = None
+    sensor_health_index: Optional[float] = None
+    inspection_score: Optional[float] = None
+
+    # Asset & Operational (5)
+    train_age_years: Optional[float] = None
+    distance_travelled_km: Optional[float] = None
+    average_speed_kmph: Optional[float] = None
+    delay_minutes: Optional[float] = None
+    last_maintenance_days: Optional[float] = None
+
+    # Environmental & Context (6)
+    ambient_temperature_c: Optional[float] = None
+    humidity_percent: Optional[float] = None
+    rainfall_mm: Optional[float] = None
+    region: Optional[str] = None
+    season: Optional[str] = None
+    train_type: Optional[str] = None
+
+class PredictiveMaintenanceResponse(BaseModel):
+    maintenance_required: bool
+    maintenance_probability: float
+    risk_level: str
+    top_risk_factors: List[RiskFactorDetail] = []
+    model_version: str
+    model_type: str = "RandomForestClassifier"
+    recommended_action: Optional[str] = None
+    status: str = "success"
+    recommendation_id: Optional[int] = None
+    recommendation_code: Optional[str] = None
+    recommendation_status: Optional[str] = "PENDING_REVIEW"
+    is_official_update: Optional[bool] = False
+
+
+# -------------------------------------------------------------------
+# Train Delay Prediction Machine Learning Schemas
+# -------------------------------------------------------------------
+class DelayFactorDetail(BaseModel):
+    feature: str
+    importance_pct: float
+    feature_value: Optional[Any] = None
+    category: Optional[str] = "Environmental"
+
+class TrainDelayPredictionRequest(BaseModel):
+    # Environmental & Weather (3)
+    rainfall_mm: Optional[float] = None
+    humidity_percent: Optional[float] = None
+    ambient_temperature_c: Optional[float] = None
+
+    # Train Operational (4)
+    average_speed_kmph: Optional[float] = None
+    distance_travelled_km: Optional[float] = None
+    train_age_years: Optional[float] = None
+    last_maintenance_days: Optional[float] = None
+
+    # Environmental & Operational Context (3)
+    season: Optional[str] = None
+    region: Optional[str] = None
+    train_type: Optional[str] = None
+
+    # Optional Operational / Timetable Identifiers
+    train_no: Optional[str] = None
+    train_id: Optional[int] = None
+    scheduled_arrival: Optional[Union[datetime, str]] = None
+
+class TrainDelayPredictionResponse(BaseModel):
+    predicted_delay_minutes: float
+    scheduled_arrival: Optional[str] = None
+    predicted_eta: Optional[str] = None
+    delay_severity_tier: Optional[str] = None
+    is_delayed: Optional[bool] = False
+    top_contributing_factors: List[DelayFactorDetail] = []
+    model_version: Optional[str] = None
+    model_type: str = "HistGradientBoostingRegressor"
+    recommended_action: Optional[str] = None
+    eta_calculation_formula: Optional[str] = None
+    eta_design_note: Optional[str] = None
+    status: str = "success"
+
+
+# -------------------------------------------------------------------
+# AI Recommendation Governance & Approval Schemas
+# -------------------------------------------------------------------
+class AIRecommendationActionRequest(BaseModel):
+    approval_comment: Optional[str] = None
+    rejection_reason: Optional[str] = None
+
+class AIRecommendationItemResponse(BaseModel):
+    id: int
+    recommendation_code: Optional[str] = None
+    recommendation_type: str = "PREDICTIVE_MAINTENANCE"
+    source_module: Optional[str] = "ai_predictive_maintenance"
+    entity_type: str = "ASSET"
+    entity_id: Optional[str] = None
+    asset_id: Optional[int] = None
+    asset_code: Optional[str] = None
+    task_id: Optional[int] = None
+    department_code: str = "ENG"
+    title: Optional[str] = None
+    description: Optional[str] = None
+    location: Optional[str] = None
+    prediction: Optional[str] = None
+    probability: Optional[float] = None
+    maintenance_probability: Optional[float] = None
+    maintenance_required: Optional[bool] = None
+    risk_level: Optional[str] = "Medium"
+    top_risk_factors: Optional[Any] = None
+    recommended_action: Optional[str] = None
+    model_type: Optional[str] = None
+    model_version: Optional[str] = None
+    predicted_delay_minutes: Optional[float] = None
+    predicted_eta: Optional[str] = None
+    scheduled_arrival: Optional[str] = None
+    status: str = "PENDING_REVIEW"
+    created_at: Optional[str] = None
+    reviewed_at: Optional[str] = None
+    reviewed_by: Optional[int] = None
+    reviewer_name: Optional[str] = None
+    approval_comment: Optional[str] = None
+    rejection_reason: Optional[str] = None
+
+class AIRecommendationsListResponse(BaseModel):
+    total_count: int
+    pending_count: int = 0
+    approved_count: int = 0
+    rejected_count: int = 0
+    critical_count: int = 0
+    recommendations: List[AIRecommendationItemResponse] = []
+    data_mode: str = "OFFICIAL RAILWAY AI GOVERNANCE"
+
+
+
+
