@@ -18,6 +18,7 @@ from backend.app.api.v1.endpoints import (
     alerts,
     reports,
     ai_priority,
+    ai_recommendations,
     conflicts
 )
 
@@ -40,6 +41,7 @@ api_router.include_router(resources.router, prefix="/resources", tags=["Machines
 api_router.include_router(alerts.router, prefix="/alerts", tags=["Safety Alerts & Speed Restrictions"])
 api_router.include_router(reports.router, prefix="/reports", tags=["Executive Analytics & Reports"])
 api_router.include_router(ai_priority.router, prefix="/ai", tags=["AI Maintenance Priority Engine"])
+api_router.include_router(ai_recommendations.router, prefix="/ai/recommendations", tags=["AI Governance & Approval Workflow"])
 api_router.include_router(conflicts.router, prefix="/conflicts", tags=["Conflict Detection & Resolution"])
 api_router.include_router(conflicts.coordination_router, prefix="/coordination", tags=["Multi-Department Coordination"])
 

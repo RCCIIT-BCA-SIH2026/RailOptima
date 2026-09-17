@@ -692,6 +692,184 @@ def seed_database(reset: bool = True):
             )
             db.add(ilog)
 
+        print("16. Seeding AI Governance Recommendations (Pending Review & Approved Official Updates)...")
+        eng_assets = [a for a in assets if a.department and a.department.code == "ENG"]
+        trd_assets = [a for a in assets if a.department and a.department.code == "TRD"]
+        snt_assets = [a for a in assets if a.department and a.department.code == "SNT"]
+
+        # 1. Approved ENG recommendation (Official Update for Engineering)
+        if eng_assets:
+            rec_appr_eng = AIRecommendation(
+                recommendation_code="PM-2026-0001",
+                recommendation_type="PREDICTIVE_MAINTENANCE",
+                source_module="ai_predictive_maintenance",
+                entity_type="ASSET",
+                entity_id=eng_assets[0].asset_code,
+                asset_id=eng_assets[0].id,
+                asset_code=eng_assets[0].asset_code,
+                department_code="ENG",
+                title=f"Predictive Maintenance Assessment: {eng_assets[0].asset_code}",
+                description="High rail wear and track vibration detected on UP mainline.",
+                location=f"NDLS-TKD-UP Km {eng_assets[0].km_location}",
+                prediction="YES",
+                probability=0.8845,
+                maintenance_probability=0.8845,
+                maintenance_required=True,
+                risk_level="High",
+                top_risk_factors=[
+                    {"feature": "rail_wear_mm", "importance": 0.5712, "value": 9.4},
+                    {"feature": "train_age_years", "importance": 0.0826, "value": 16.0},
+                    {"feature": "brake_pad_wear_percent", "importance": 0.0600, "value": 78.5}
+                ],
+                recommended_action="Schedule urgent rail grinding & ultrasonic flaw testing block within 48h.",
+                model_type="RandomForestClassifier",
+                model_version="v1.0.0",
+                status="APPROVED",
+                created_at=now - timedelta(days=1),
+                created_by=users["admin"].id,
+                reviewed_at=now - timedelta(hours=5),
+                reviewed_by=users["admin"].id,
+                reviewer_name="System Administrator",
+                approval_comment="Approved for immediate corrective P-Way possession during weekend shadow window."
+            )
+            db.add(rec_appr_eng)
+
+        # 2. Approved TRD recommendation (Official Update for TRD)
+        if trd_assets:
+            rec_appr_trd = AIRecommendation(
+                recommendation_code="PM-2026-0002",
+                recommendation_type="PREDICTIVE_MAINTENANCE",
+                source_module="ai_predictive_maintenance",
+                entity_type="ASSET",
+                entity_id=trd_assets[0].asset_code,
+                asset_id=trd_assets[0].id,
+                asset_code=trd_assets[0].asset_code,
+                department_code="TRD",
+                title=f"Predictive Maintenance Assessment: {trd_assets[0].asset_code}",
+                description="Elevated contact wire wear and thermal gradient detected on 25kV OHE.",
+                location=f"TKD-PWL-DN Km {trd_assets[0].km_location}",
+                prediction="YES",
+                probability=0.9120,
+                maintenance_probability=0.9120,
+                maintenance_required=True,
+                risk_level="Critical",
+                top_risk_factors=[
+                    {"feature": "brake_pad_wear_percent", "importance": 0.35, "value": 85.0},
+                    {"feature": "axle_temperature_c", "importance": 0.28, "value": 94.0}
+                ],
+                recommended_action="Isolate traction section and inspect catenary droppers & insulator integrity.",
+                model_type="RandomForestClassifier",
+                model_version="v1.0.0",
+                status="APPROVED",
+                created_at=now - timedelta(days=1),
+                created_by=users["admin"].id,
+                reviewed_at=now - timedelta(hours=3),
+                reviewed_by=users["admin"].id,
+                reviewer_name="System Administrator",
+                approval_comment="Sanctioned power block for traction sub-station maintenance."
+            )
+            db.add(rec_appr_trd)
+
+        # 3. Approved S&T recommendation (Official Update for SNT)
+        if snt_assets:
+            rec_appr_snt = AIRecommendation(
+                recommendation_code="PM-2026-0003",
+                recommendation_type="PREDICTIVE_MAINTENANCE",
+                source_module="ai_predictive_maintenance",
+                entity_type="ASSET",
+                entity_id=snt_assets[0].asset_code,
+                asset_id=snt_assets[0].id,
+                asset_code=snt_assets[0].asset_code,
+                department_code="SNT",
+                title=f"Predictive Maintenance Assessment: {snt_assets[0].asset_code}",
+                description="Point machine operating voltage jitter and throw time latency anomaly.",
+                location=f"MTJ-AGC Km {snt_assets[0].km_location}",
+                prediction="YES",
+                probability=0.7650,
+                maintenance_probability=0.7650,
+                maintenance_required=True,
+                risk_level="High",
+                top_risk_factors=[
+                    {"feature": "battery_voltage", "importance": 0.42, "value": 20.8},
+                    {"feature": "sensor_health_index", "importance": 0.31, "value": 58.0}
+                ],
+                recommended_action="Execute point machine motor cleaning & electronic interlocking recalibration.",
+                model_type="RandomForestClassifier",
+                model_version="v1.0.0",
+                status="APPROVED",
+                created_at=now - timedelta(days=1),
+                created_by=users["admin"].id,
+                reviewed_at=now - timedelta(hours=2),
+                reviewed_by=users["admin"].id,
+                reviewer_name="System Administrator",
+                approval_comment="Approved. Coordinate with Control Office during non-peak hours."
+            )
+            db.add(rec_appr_snt)
+
+        # 4. Pending Review Recommendations (For Admin AI Review Center)
+        if len(eng_assets) > 1:
+            rec_pend_eng = AIRecommendation(
+                recommendation_code="PM-2026-0004",
+                recommendation_type="PREDICTIVE_MAINTENANCE",
+                source_module="ai_predictive_maintenance",
+                entity_type="ASSET",
+                entity_id=eng_assets[1].asset_code,
+                asset_id=eng_assets[1].id,
+                asset_code=eng_assets[1].asset_code,
+                department_code="ENG",
+                title=f"Predictive Maintenance Assessment: {eng_assets[1].asset_code}",
+                description="Moderate wheel wear and rail corrugation detected by track telemetry.",
+                location=f"AGC-GWL-UP Km {eng_assets[1].km_location}",
+                prediction="YES",
+                probability=0.7231,
+                maintenance_probability=0.7231,
+                maintenance_required=True,
+                risk_level="High",
+                top_risk_factors=[
+                    {"feature": "rail_wear_mm", "importance": 0.5712, "value": 8.2},
+                    {"feature": "train_age_years", "importance": 0.0826, "value": 14.5},
+                    {"feature": "brake_pressure_psi", "importance": 0.0540, "value": 62.0}
+                ],
+                recommended_action="Schedule ultrasonic flaw detector (USFD) run within 72 hours.",
+                model_type="RandomForestClassifier",
+                model_version="v1.0.0",
+                status="PENDING_REVIEW",
+                created_at=now - timedelta(hours=4),
+                created_by=users["admin"].id
+            )
+            db.add(rec_pend_eng)
+
+        if len(trd_assets) > 1:
+            rec_pend_trd = AIRecommendation(
+                recommendation_code="PM-2026-0005",
+                recommendation_type="PREDICTIVE_MAINTENANCE",
+                source_module="ai_predictive_maintenance",
+                entity_type="ASSET",
+                entity_id=trd_assets[1].asset_code,
+                asset_id=trd_assets[1].id,
+                asset_code=trd_assets[1].asset_code,
+                department_code="TRD",
+                title=f"Predictive Maintenance Assessment: {trd_assets[1].asset_code}",
+                description="Catenary tension fluctuation and pantograph contact pressure anomaly.",
+                location=f"GWL-VGLJ-DN Km {trd_assets[1].km_location}",
+                prediction="YES",
+                probability=0.6840,
+                maintenance_probability=0.6840,
+                maintenance_required=True,
+                risk_level="Medium",
+                top_risk_factors=[
+                    {"feature": "bearing_temperature_c", "importance": 0.32, "value": 88.0},
+                    {"feature": "last_maintenance_days", "importance": 0.25, "value": 140.0}
+                ],
+                recommended_action="Depot inspection recommended for auto-tensioning device.",
+                model_type="RandomForestClassifier",
+                model_version="v1.0.0",
+                status="PENDING_REVIEW",
+                created_at=now - timedelta(hours=2),
+                created_by=users["admin"].id
+            )
+            db.add(rec_pend_trd)
+
         db.commit()
         print("==================================================")
         print("SEEDING COMPLETE!")

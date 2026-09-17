@@ -1,0 +1,126 @@
+[
+  {
+    "feature": "rail_wear_mm",
+    "importance": 0.57122
+  },
+  {
+    "feature": "train_age_years",
+    "importance": 0.08263
+  },
+  {
+    "feature": "brake_pad_wear_percent",
+    "importance": 0.05995
+  },
+  {
+    "feature": "brake_pressure_psi",
+    "importance": 0.04938
+  },
+  {
+    "feature": "battery_voltage",
+    "importance": 0.03541
+  },
+  {
+    "feature": "wheel_wear_percent",
+    "importance": 0.0345
+  },
+  {
+    "feature": "humidity_percent",
+    "importance": 0.0213
+  },
+  {
+    "feature": "track_vibration_level",
+    "importance": 0.01912
+  },
+  {
+    "feature": "bearing_temperature_c",
+    "importance": 0.01803
+  },
+  {
+    "feature": "axle_temperature_c",
+    "importance": 0.01507
+  },
+  {
+    "feature": "rainfall_mm",
+    "importance": 0.01101
+  },
+  {
+    "feature": "average_speed_kmph",
+    "importance": 0.01043
+  },
+  {
+    "feature": "delay_minutes",
+    "importance": 0.01023
+  },
+  {
+    "feature": "distance_travelled_km",
+    "importance": 0.01021
+  },
+  {
+    "feature": "ambient_temperature_c",
+    "importance": 0.00988
+  },
+  {
+    "feature": "last_maintenance_days",
+    "importance": 0.00981
+  },
+  {
+    "feature": "sensor_health_index",
+    "importance": 0.00937
+  },
+  {
+    "feature": "inspection_score",
+    "importance": 0.00875
+  },
+  {
+    "feature": "season_Monsoon",
+    "importance": 0.00331
+  },
+  {
+    "feature": "season_Summer",
+    "importance": 0.00107
+  },
+  {
+    "feature": "season_Winter",
+    "importance": 0.00102
+  },
+  {
+    "feature": "region_Western Railway",
+    "importance": 0.00094
+  },
+  {
+    "feature": "train_type_Passenger",
+    "importance": 0.00089
+  },
+  {
+    "feature": "region_Central Railway",
+    "importance": 0.00088
+  },
+  {
+    "feature": "region_Southern Railway",
+    "importance": 0.00086
+  },
+  {
+    "feature": "region_Northern Railway",
+    "importance": 0.00084
+  },
+  {
+    "feature": "region_South Central Railway",
+    "importance": 0.00084
+  },
+  {
+    "feature": "region_Eastern Railway",
+    "importance": 0.00083
+  },
+  {
+    "feature": "train_type_Express",
+    "importance": 0.00079
+  },
+  {
+    "feature": "train_type_Freight",
+    "importance": 0.00078
+  },
+  {
+    "feature": "train_type_Metro",
+    "importance": 0.00068
+  }
+]
