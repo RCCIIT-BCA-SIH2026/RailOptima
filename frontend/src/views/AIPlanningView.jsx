@@ -406,13 +406,13 @@ export default function AIPlanningView() {
         </div>
 
         {/* Tab Navigation Switches */}
-        <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+        <div className="flex items-center bg-white/80 p-1 rounded-xl border border-slate-200 shadow-xs">
           <button
             onClick={() => setActiveTab('priorities')}
-            className={`flex items-center space-x-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            className={`flex items-center space-x-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'priorities'
-                ? 'bg-purple-600 text-white shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-600/20'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'
             }`}
           >
             <BarChart3 className="w-3.5 h-3.5" />
@@ -420,10 +420,10 @@ export default function AIPlanningView() {
           </button>
           <button
             onClick={() => setActiveTab('recommendations')}
-            className={`flex items-center space-x-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            className={`flex items-center space-x-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'recommendations'
-                ? 'bg-purple-600 text-white shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-600/20'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'
             }`}
           >
             <Database className="w-3.5 h-3.5" />
@@ -431,10 +431,10 @@ export default function AIPlanningView() {
           </button>
           <button
             onClick={() => setActiveTab('optimizer')}
-            className={`flex items-center space-x-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            className={`flex items-center space-x-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'optimizer'
-                ? 'bg-purple-600 text-white shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-600/20'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'
             }`}
           >
             <Cpu className="w-3.5 h-3.5" />

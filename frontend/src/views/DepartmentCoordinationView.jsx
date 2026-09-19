@@ -119,17 +119,17 @@ export default function DepartmentCoordinationView() {
   });
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-white flex items-center space-x-2">
-            <span>Multi-Department Coordination & Anti-Gaming Audit</span>
-            <span className="text-xs font-mono font-normal text-purple-400 bg-purple-950/60 border border-purple-800/60 px-2 py-0.5 rounded">
-              Zero Silo Operation
-            </span>
-          </h2>
-          <p className="text-xs text-slate-400 mt-1">
+          <div className="flex items-center space-x-2">
+            <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">
+              Multi-Department Coordination & Anti-Gaming Audit
+            </h2>
+            <Badge variant="emerald">Zero Silo Protocol</Badge>
+          </div>
+          <p className="text-xs text-slate-600 font-medium mt-1">
             Breaking down organizational silos: Bundling Civil, S&T, and Electrical works while cross-validating claims against objective IoT telemetry.
           </p>
         </div>
@@ -138,7 +138,7 @@ export default function DepartmentCoordinationView() {
           variant="outline"
           size="sm"
           onClick={fetchData}
-          className="text-xs text-purple-300 border-purple-800 hover:bg-purple-950/60 flex items-center space-x-1.5"
+          className="text-xs text-emerald-800 border-emerald-300 hover:bg-emerald-50 flex items-center space-x-1.5"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
           <span>Refresh Telemetry</span>
@@ -147,70 +147,70 @@ export default function DepartmentCoordinationView() {
 
       {/* KPI Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-slate-800/80 border border-slate-700/60 p-5 rounded-xl shadow">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold">
+        <div className="glass-card glass-card-interactive p-5 rounded-2xl">
+          <div className="flex items-center justify-between text-slate-500 text-xs font-bold">
             <span>Integrated Shadow Blocks</span>
-            <Layers className="w-4 h-4 text-purple-400" />
+            <Layers className="w-4 h-4 text-emerald-600" />
           </div>
-          <div className="mt-2 text-3xl font-extrabold text-purple-400 font-mono">
+          <div className="mt-2 text-3xl font-black text-slate-900 font-mono">
             {synergy?.integrated_shadow_blocks || 14}
           </div>
-          <p className="text-[11px] text-slate-400 mt-1">of {synergy?.total_blocks || 38} total system blocks</p>
+          <p className="text-[11px] text-slate-500 mt-1">of {synergy?.total_blocks || 38} total system blocks</p>
         </div>
 
-        <div className="bg-slate-800/80 border border-slate-700/60 p-5 rounded-xl shadow">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold">
+        <div className="glass-card glass-card-interactive p-5 rounded-2xl">
+          <div className="flex items-center justify-between text-slate-500 text-xs font-bold">
             <span>Synergy Efficiency</span>
-            <Zap className="w-4 h-4 text-emerald-400" />
+            <Zap className="w-4 h-4 text-emerald-600" />
           </div>
-          <div className="mt-2 text-3xl font-extrabold text-emerald-400 font-mono">
+          <div className="mt-2 text-3xl font-black text-emerald-700 font-mono">
             {synergy?.synergy_percentage || 42.5}%
           </div>
-          <p className="text-[11px] text-slate-400 mt-1">Co-located multi-dept possession</p>
+          <p className="text-[11px] text-slate-500 mt-1">Co-located multi-dept possession</p>
         </div>
 
-        <div className="bg-slate-800/80 border border-slate-700/60 p-5 rounded-xl shadow">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold">
+        <div className="glass-card glass-card-interactive p-5 rounded-2xl">
+          <div className="flex items-center justify-between text-slate-500 text-xs font-bold">
             <span>Possession Hours Saved</span>
-            <Clock className="w-4 h-4 text-blue-400" />
+            <Clock className="w-4 h-4 text-sky-600" />
           </div>
-          <div className="mt-2 text-3xl font-extrabold text-blue-400 font-mono">
+          <div className="mt-2 text-3xl font-black text-sky-700 font-mono">
             {synergy?.estimated_hours_saved || 28.5} Hours
           </div>
-          <p className="text-[11px] text-slate-400 mt-1">Avoided track outage time</p>
+          <p className="text-[11px] text-slate-500 mt-1">Avoided corridor outage time</p>
         </div>
 
-        <div className="bg-slate-800/80 border border-slate-700/60 p-5 rounded-xl shadow">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold">
+        <div className="glass-card glass-card-interactive p-5 rounded-2xl">
+          <div className="flex items-center justify-between text-slate-500 text-xs font-bold">
             <span>Anti-Gaming Integrity</span>
-            <Scale className="w-4 h-4 text-amber-400" />
+            <Scale className="w-4 h-4 text-purple-600" />
           </div>
-          <div className="mt-2 text-3xl font-extrabold text-amber-400 font-mono">
+          <div className="mt-2 text-3xl font-black text-purple-800 font-mono">
             {auditData?.compliance_rate_pct || 47.5}%
           </div>
-          <p className="text-[11px] text-slate-400 mt-1">{auditData?.inflated_claims_detected || 0} claims recalibrated</p>
+          <p className="text-[11px] text-slate-500 mt-1">{auditData?.inflated_claims_detected || 0} claims recalibrated</p>
         </div>
       </div>
 
       {/* Interactive Anti-Gaming Audit Sandbox & Table */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Real-Time Claim Evaluator */}
-        <div className="bg-slate-800/80 border border-slate-700/60 p-5 rounded-xl shadow-xl space-y-4">
-          <div className="flex items-center space-x-2 text-white">
-            <Scale className="w-4 h-4 text-amber-400" />
+        <div className="glass-card p-5 rounded-2xl space-y-4 shadow-sm">
+          <div className="flex items-center space-x-2 text-slate-900">
+            <Scale className="w-4 h-4 text-emerald-600" />
             <h3 className="text-sm font-bold">Audit Simulator (Anti-Gaming Test)</h3>
           </div>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500">
             Cross-examine department block criticality against 30-day failure risk, speed restrictions, and SLA timers.
           </p>
 
           <form onSubmit={handleEvaluateClaim} className="space-y-3 text-xs">
             <div>
-              <label className="block text-slate-300 font-semibold mb-1">Department</label>
+              <label className="block text-slate-700 font-semibold mb-1">Department</label>
               <select
                 value={simForm.department_code}
                 onChange={(e) => setSimForm({ ...simForm, department_code: e.target.value })}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white font-mono focus:outline-none focus:border-blue-500"
+                className="w-full bg-white border border-sky-200 rounded-xl p-2 text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
                 <option value="SNT">S&T (Signal & Telecommunication)</option>
                 <option value="ENG">ENG (Civil / Track)</option>
@@ -219,11 +219,11 @@ export default function DepartmentCoordinationView() {
             </div>
 
             <div>
-              <label className="block text-slate-300 font-semibold mb-1">Claimed Criticality Level</label>
+              <label className="block text-slate-700 font-semibold mb-1">Claimed Criticality Level</label>
               <select
                 value={simForm.claimed_criticality}
                 onChange={(e) => setSimForm({ ...simForm, claimed_criticality: e.target.value })}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white font-mono focus:outline-none focus:border-blue-500"
+                className="w-full bg-white border border-sky-200 rounded-xl p-2 text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
                 <option value="Emergency">P0 - Emergency (Level 5)</option>
                 <option value="Critical">Critical (Level 5)</option>
@@ -234,8 +234,9 @@ export default function DepartmentCoordinationView() {
             </div>
 
             <div>
-              <label className="block text-slate-300 font-semibold mb-1">
-                Objective 30-Day Failure Risk (%): <span className="font-mono text-blue-400">{simForm.risk_30d_pct}%</span>
+              <label className="block text-slate-700 font-semibold mb-1 flex items-center justify-between">
+                <span>Objective 30-Day Failure Risk:</span>
+                <span className="font-mono text-emerald-700 font-bold">{simForm.risk_30d_pct}%</span>
               </label>
               <input
                 type="range"
@@ -243,76 +244,77 @@ export default function DepartmentCoordinationView() {
                 max="99"
                 value={simForm.risk_30d_pct}
                 onChange={(e) => setSimForm({ ...simForm, risk_30d_pct: Number(e.target.value) })}
-                className="w-full accent-blue-500"
+                className="w-full accent-emerald-600 cursor-pointer"
               />
             </div>
 
             <div className="space-y-2 pt-1">
-              <label className="flex items-center space-x-2 text-slate-300 cursor-pointer">
+              <label className="flex items-center space-x-2 text-slate-700 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={simForm.has_speed_restriction}
                   onChange={(e) => setSimForm({ ...simForm, has_speed_restriction: e.target.checked })}
-                  className="rounded bg-slate-900 border-slate-700 text-blue-600 focus:ring-0"
+                  className="rounded border-sky-300 text-emerald-600 focus:ring-0"
                 />
-                <span>Active Speed Restriction (TSR) Imposed</span>
+                <span className="font-medium">Active Speed Restriction (TSR) Imposed</span>
               </label>
 
-              <label className="flex items-center space-x-2 text-slate-300 cursor-pointer">
+              <label className="flex items-center space-x-2 text-slate-700 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={simForm.is_overdue}
                   onChange={(e) => setSimForm({ ...simForm, is_overdue: e.target.checked })}
-                  className="rounded bg-slate-900 border-slate-700 text-blue-600 focus:ring-0"
+                  className="rounded border-sky-300 text-emerald-600 focus:ring-0"
                 />
-                <span>Maintenance Interval Overdue (&gt; SLA)</span>
+                <span className="font-medium">Maintenance Interval Overdue (&gt; SLA)</span>
               </label>
             </div>
 
-            <button
+            <Button
               type="submit"
+              variant="emerald"
               disabled={evaluating}
-              className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-lg shadow transition text-xs mt-2"
+              className="w-full py-2.5 text-xs font-bold mt-2"
             >
               {evaluating ? 'Evaluating Sensors...' : 'Verify Claim Against Sensors'}
-            </button>
+            </Button>
           </form>
 
           {/* Result Box */}
           {simResult && (
             <div className={`p-3.5 rounded-xl border text-xs space-y-2 ${
               simResult.is_inflated 
-                ? 'bg-amber-950/60 border-amber-700/80 text-amber-200' 
-                : 'bg-emerald-950/60 border-emerald-700/80 text-emerald-200'
+                ? 'bg-amber-50 border-amber-300 text-amber-950' 
+                : 'bg-emerald-50 border-emerald-300 text-emerald-950'
             }`}>
               <div className="flex items-center justify-between">
                 <span className="font-bold flex items-center space-x-1.5">
-                  {simResult.is_inflated ? <AlertTriangle className="w-4 h-4 text-amber-400" /> : <ShieldCheck className="w-4 h-4 text-emerald-400" />}
+                  {simResult.is_inflated ? <AlertTriangle className="w-4 h-4 text-amber-600" /> : <ShieldCheck className="w-4 h-4 text-emerald-600" />}
                   <span>{simResult.is_inflated ? 'FLAGGED: INFLATED CLAIM' : 'CLAIM VERIFIED GENUINE'}</span>
                 </span>
-                <span className="font-mono font-bold text-white">Score: {simResult.verified_priority_score}/100</span>
+                <span className="font-mono font-bold text-slate-900">Score: {simResult.verified_priority_score}/100</span>
               </div>
-              <div className="text-[11px] leading-relaxed">
+              <div className="text-[11px] leading-relaxed text-slate-700">
                 {simResult.audit_rationale}
               </div>
-              <div className="pt-2 border-t border-slate-700/60 flex items-center justify-between text-[11px] font-mono">
-                <span>Evidence: {simResult.evidence_score}/5.0</span>
-                <span>Claimed: Level {simResult.claimed_level}/5</span>
+              <div className="pt-2 border-t border-sky-100 flex items-center justify-between text-[11px] font-mono text-slate-600">
+                <span>Evidence: <strong>{simResult.evidence_score}/5.0</strong></span>
+                <span>Claimed: <strong>Level {simResult.claimed_level}/5</strong></span>
               </div>
             </div>
           )}
         </div>
 
         {/* Audit Transparency Table */}
-        <div className="lg:col-span-2 bg-slate-800/80 border border-slate-700/60 p-5 rounded-xl shadow-xl space-y-4 flex flex-col justify-between">
+        <div className="lg:col-span-2 glass-card p-5 rounded-2xl shadow-sm space-y-4 flex flex-col justify-between">
           <div>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-700/60 pb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-sky-100 pb-3">
               <div>
-                <h3 className="text-sm font-bold text-white flex items-center space-x-2">
-                  <ShieldAlert className="w-4 h-4 text-purple-400" />
+                <h3 className="text-sm font-bold text-slate-900 flex items-center space-x-2">
+                  <ShieldAlert className="w-4 h-4 text-emerald-600" />
                   <span>Division Maintenance Task Integrity Audit</span>
                 </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-xs text-slate-500 mt-0.5">
                   AI-evaluated claim levels vs sensor evidence across all department requests.
                 </p>
               </div>
@@ -322,7 +324,7 @@ export default function DepartmentCoordinationView() {
                 <select
                   value={auditFilter}
                   onChange={(e) => setAuditFilter(e.target.value)}
-                  className="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs focus:outline-none"
+                  className="bg-white border border-sky-200 rounded-lg px-2.5 py-1 text-slate-800 text-xs focus:outline-none"
                 >
                   <option value="ALL">All Claims ({auditData?.total_tasks_audited || 0})</option>
                   <option value="INFLATED">Flagged Inflated ({auditData?.inflated_claims_detected || 0})</option>
@@ -332,12 +334,12 @@ export default function DepartmentCoordinationView() {
                 <select
                   value={deptFilter}
                   onChange={(e) => setDeptFilter(e.target.value)}
-                  className="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs focus:outline-none"
+                  className="bg-white border border-sky-200 rounded-lg px-2.5 py-1 text-slate-800 text-xs focus:outline-none"
                 >
                   <option value="ALL">All Depts</option>
-                  <option value="ENG">ENG</option>
-                  <option value="SNT">S&T</option>
-                  <option value="TRD">TRD</option>
+                  <option value="ENG">ENG (Civil)</option>
+                  <option value="SNT">S&T (Signal)</option>
+                  <option value="TRD">TRD (Traction)</option>
                 </select>
               </div>
             </div>
@@ -346,46 +348,42 @@ export default function DepartmentCoordinationView() {
             <div className="overflow-x-auto mt-3">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="border-b border-slate-700 text-slate-400 font-semibold bg-slate-900/40">
-                    <th className="p-2.5">Task Code</th>
-                    <th className="p-2.5">Dept</th>
-                    <th className="p-2.5">Claimed Level</th>
-                    <th className="p-2.5">IoT Evidence</th>
-                    <th className="p-2.5">Audit Status</th>
-                    <th className="p-2.5 font-mono text-right">Fair Priority</th>
+                  <tr className="border-b border-sky-100 text-slate-500 font-bold bg-sky-50/50">
+                    <th className="p-3">Task Code</th>
+                    <th className="p-3">Dept</th>
+                    <th className="p-3">Claimed Level</th>
+                    <th className="p-3">IoT Evidence</th>
+                    <th className="p-3">Audit Status</th>
+                    <th className="p-3 font-mono text-right">Fair Priority</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-700/50">
+                <tbody className="divide-y divide-sky-100/70">
                   {filteredAuditedTasks.slice(0, 6).map((task, idx) => (
-                    <tr key={idx} className="hover:bg-slate-700/30">
-                      <td className="p-2.5 font-mono font-bold text-white">
+                    <tr key={idx} className="hover:bg-sky-50/60 transition">
+                      <td className="p-3 font-mono font-bold text-slate-900">
                         <div>{task.task_code}</div>
-                        <div className="text-[10px] text-slate-400 font-sans font-normal truncate max-w-[140px]">{task.title || task.section_code}</div>
+                        <div className="text-[10px] text-slate-500 font-sans font-normal truncate max-w-[150px]">{task.title || task.section_code}</div>
                       </td>
-                      <td className="p-2.5">
-                        <span className="font-mono text-[10px] font-bold bg-slate-900 text-blue-300 px-1.5 py-0.5 rounded border border-slate-700">
+                      <td className="p-3">
+                        <span className="font-mono text-[10px] font-bold bg-sky-100 text-sky-900 px-2 py-0.5 rounded-full border border-sky-200">
                           {task.department_code}
                         </span>
                       </td>
-                      <td className="p-2.5 text-slate-300">
-                        <span className="font-semibold">{task.claimed_criticality}</span>
+                      <td className="p-3 text-slate-700">
+                        <span className="font-bold">{task.claimed_criticality}</span>
                         <span className="text-[10px] text-slate-500 font-mono ml-1">({task.claimed_level}/5)</span>
                       </td>
-                      <td className="p-2.5 font-mono text-slate-300">
-                        <span className="font-bold text-white">{task.evidence_score}</span> / 5.0
+                      <td className="p-3 font-mono text-slate-700">
+                        <span className="font-bold text-slate-900">{task.evidence_score}</span> / 5.0
                       </td>
-                      <td className="p-2.5">
+                      <td className="p-3">
                         {task.is_inflated ? (
-                          <span className="px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800 text-[10px] font-bold">
-                            FLAGGED INFLATED
-                          </span>
+                          <Badge variant="warning">FLAGGED INFLATED</Badge>
                         ) : (
-                          <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 text-[10px] font-bold">
-                            VERIFIED
-                          </span>
+                          <Badge variant="success">VERIFIED</Badge>
                         )}
                       </td>
-                      <td className="p-2.5 text-right font-mono font-bold text-purple-300">
+                      <td className="p-3 text-right font-mono font-black text-emerald-800">
                         {task.verified_priority_score} / 100
                       </td>
                     </tr>
@@ -395,52 +393,52 @@ export default function DepartmentCoordinationView() {
             </div>
           </div>
 
-          <div className="pt-3 border-t border-slate-700/60 flex items-center justify-between text-[11px] text-slate-400">
+          <div className="pt-3 border-t border-sky-100 flex items-center justify-between text-[11px] text-slate-500">
             <span>Showing top {Math.min(6, filteredAuditedTasks.length)} of {filteredAuditedTasks.length} filtered records</span>
-            <span className="text-purple-400 font-semibold">Automatic Multi-Department Fair Share Protocol Active</span>
+            <span className="text-emerald-700 font-bold">Automatic Multi-Department Fair Share Protocol Active</span>
           </div>
         </div>
       </div>
 
       {/* Coordinated Shadow Blocks Showcase */}
       <div className="space-y-4">
-        <h3 className="text-base font-bold text-white flex items-center space-x-2">
-          <Layers className="w-4 h-4 text-purple-400" />
-          <span>Active Integrated Shadow Block Possessions</span>
-        </h3>
+        <div className="flex items-center space-x-2">
+          <Layers className="w-5 h-5 text-emerald-600" />
+          <h3 className="text-base font-extrabold text-slate-900">Active Integrated Shadow Block Possessions</h3>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {coordinationExamples.map((ex, idx) => (
-            <div key={idx} className="bg-slate-800/80 border border-slate-700/60 rounded-xl p-5 shadow-xl space-y-4 flex flex-col justify-between">
+            <div key={idx} className="glass-card glass-card-interactive p-5 rounded-2xl shadow-sm space-y-4 flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between border-b border-slate-700/60 pb-3">
+                <div className="flex items-center justify-between border-b border-sky-100 pb-3">
                   <div>
-                    <h4 className="font-bold text-white text-sm">{ex.section}</h4>
-                    <span className="text-xs text-slate-400">{ex.corridor}</span>
+                    <h4 className="font-bold text-slate-900 text-sm">{ex.section}</h4>
+                    <span className="text-xs text-slate-500 font-medium">{ex.corridor}</span>
                   </div>
-                  <span className="px-2.5 py-1 rounded bg-purple-950 text-purple-300 border border-purple-800 font-mono text-xs font-bold">
+                  <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 font-mono text-xs font-black">
                     {ex.duration}
                   </span>
                 </div>
 
                 {/* Bundled Tasks */}
                 <div className="space-y-2 mt-3">
-                  <span className="text-xs font-semibold text-slate-400">Co-located Departmental Works:</span>
+                  <span className="text-xs font-bold text-slate-600">Co-located Departmental Works:</span>
                   {ex.bundled.map((b, bIdx) => (
-                    <div key={bIdx} className="bg-slate-900/60 p-2 rounded-lg border border-slate-700/50 flex items-start space-x-2 text-xs">
-                      <span className="px-1.5 py-0.5 rounded font-mono text-[10px] font-bold bg-blue-900 text-blue-300 flex-shrink-0">
+                    <div key={bIdx} className="bg-sky-50/80 p-2 rounded-xl border border-sky-100 flex items-start space-x-2 text-xs">
+                      <span className="px-1.5 py-0.5 rounded font-mono text-[10px] font-black bg-sky-200 text-sky-900 flex-shrink-0">
                         {b.dept}
                       </span>
-                      <span className="text-slate-300 leading-snug">{b.task}</span>
+                      <span className="text-slate-700 leading-snug">{b.task}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* Impact Gain */}
-              <div className="pt-3 border-t border-slate-700/60 flex items-center justify-between text-xs">
-                <span className="text-slate-400">Hours Eliminated: <strong className="text-emerald-400 font-mono">{ex.hoursSaved}</strong></span>
-                <span className="text-[10px] text-slate-400 italic text-right max-w-[150px]">{ex.trafficGain}</span>
+              <div className="pt-3 border-t border-sky-100 flex items-center justify-between text-xs">
+                <span className="text-slate-600 font-medium">Hours Eliminated: <strong className="text-emerald-700 font-mono">{ex.hoursSaved}</strong></span>
+                <span className="text-[10px] text-slate-500 italic text-right max-w-[150px]">{ex.trafficGain}</span>
               </div>
             </div>
           ))}

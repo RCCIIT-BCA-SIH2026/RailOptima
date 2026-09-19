@@ -115,33 +115,33 @@ export default function DashboardView() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Hero Welcome & Quick Actions */}
-      <div className="bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 rounded-2xl p-6 text-white shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border border-blue-600">
-        <div className="space-y-1">
+      <div className="bg-gradient-to-r from-emerald-900/85 via-teal-950/80 to-slate-900/85 backdrop-blur-md rounded-2xl p-6 text-white shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border border-white/30 relative overflow-hidden">
+        <div className="space-y-1 relative z-10">
           <div className="flex items-center space-x-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-white/20 text-white backdrop-blur-xs">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/20 text-white backdrop-blur-xs">
               Executive Telemetry
             </span>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-amber-400 text-slate-950">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-amber-400 text-slate-950 shadow-2xs">
               SIMULATED DEMO DATA
             </span>
           </div>
-          <h2 className="text-xl md:text-2xl font-black tracking-tight">
+          <h2 className="text-xl md:text-2xl font-black tracking-tight text-white drop-shadow-sm">
             Indian Railways Operations & Block Planning Dashboard
           </h2>
-          <p className="text-xs text-blue-100 max-w-2xl">
+          <p className="text-xs text-emerald-100/90 max-w-2xl font-medium">
             {summary?.active_defects} defects pending analysis • {summary?.scheduled_blocks_today} blocks scheduled today • {summary?.active_speed_restrictions_count} active speed restrictions imposed on trunk corridors.
           </p>
         </div>
 
-        <div className="flex items-center space-x-3 shrink-0">
+        <div className="flex items-center space-x-3 shrink-0 relative z-10">
           <Button
-            variant="ai"
+            variant="emerald"
             size="lg"
-            onClick={() => navigate('/ai-planning')}
-            className="flex items-center space-x-2 shadow-lg"
+            onClick={() => navigate('/optimization-studio')}
+            className="flex items-center space-x-2 shadow-lg cursor-pointer"
           >
             <Sparkles className="w-4 h-4" />
-            <span>Launch AI Optimizer</span>
+            <span>Launch AI Optimizer Studio</span>
           </Button>
         </div>
       </div>
@@ -284,14 +284,17 @@ export default function DashboardView() {
                     <h4 className="text-xs font-bold text-slate-900 mt-1">{meta.fullName}</h4>
                     <p className="text-[11px] font-medium text-slate-500 mt-0.5">{meta.dept}</p>
 
-                    <div className="mt-3 text-[11px] text-slate-700 space-y-1 bg-white p-2.5 rounded-lg border border-slate-200/80">
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">Gateway Feed:</span>
-                        <span className="font-mono text-emerald-700 font-semibold">{sys.status}</span>
+                    <div className="mt-3 text-[11px] text-slate-700 space-y-1.5 bg-white/90 p-2.5 rounded-lg border border-slate-200/80">
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-500 font-medium">Gateway:</span>
+                        <span className="text-emerald-700 font-bold flex items-center space-x-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                          <span>Online (Simulated)</span>
+                        </span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">Records Pool:</span>
-                        <span className="font-mono text-slate-900 font-bold">{sys.records_available} items</span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-500 font-medium">Records Pool:</span>
+                        <span className="font-mono text-slate-900 font-bold">{sys.records_available?.toLocaleString()} items</span>
                       </div>
                     </div>
                   </div>

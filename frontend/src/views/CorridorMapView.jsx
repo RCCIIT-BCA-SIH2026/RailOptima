@@ -16,7 +16,7 @@ L.Icon.Default.mergeOptions({
 // Custom Station Icons
 const stationIcon = L.divIcon({
   className: 'custom-station-pin',
-  html: `<div style="background-color: #2563eb; width: 10px; height: 10px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 6px rgba(0,0,0,0.5);"></div>`,
+  html: `<div style="background-color: #059669; width: 10px; height: 10px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 6px rgba(5,150,105,0.6);"></div>`,
   iconSize: [10, 10],
   iconAnchor: [5, 5]
 });
@@ -61,36 +61,36 @@ export default function CorridorMapView() {
       {/* Top Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-white flex items-center space-x-2">
+          <h2 className="text-xl font-bold text-slate-900 flex items-center space-x-2">
             <span>GIS Corridor & Section Risk Heatmap</span>
-            <span className="text-xs font-mono font-normal text-emerald-400 bg-emerald-950/60 border border-emerald-800/60 px-2 py-0.5 rounded">
+            <span className="text-xs font-mono font-semibold text-emerald-800 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded">
               Weibull AFT + XGBoost Telemetry
             </span>
           </h2>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-600 mt-1">
             Spatial monitoring of trunk corridors (Delhi &ndash; Agra &ndash; Kanpur &ndash; Jhansi &ndash; Bhopal &ndash; Itarsi &ndash; Nagpur) with continuous survival hazard gradients.
           </p>
         </div>
 
         {/* Legend */}
-        <div className="flex flex-wrap items-center gap-3 bg-slate-800/90 border border-slate-700/60 px-4 py-2 rounded-lg text-xs">
+        <div className="flex flex-wrap items-center gap-3 glass-card px-4 py-2 border border-slate-200/80 shadow-sm text-xs">
           <div className="flex items-center space-x-1.5">
             <span className="w-3 h-1.5 bg-rose-500 rounded"></span>
-            <span className="text-slate-300 font-medium">Critical Risk (RUL &le; 30d)</span>
+            <span className="text-slate-700 font-medium">Critical Risk (RUL &le; 30d)</span>
           </div>
           <div className="flex items-center space-x-1.5">
             <span className="w-3 h-1.5 bg-amber-500 rounded"></span>
-            <span className="text-slate-300 font-medium">Elevated Risk (30d &ndash; 60d)</span>
+            <span className="text-slate-700 font-medium">Elevated Risk (30d &ndash; 60d)</span>
           </div>
           <div className="flex items-center space-x-1.5">
             <span className="w-3 h-1.5 bg-emerald-500 rounded"></span>
-            <span className="text-slate-300 font-medium">Nominal Health (RUL &gt; 60d)</span>
+            <span className="text-slate-700 font-medium">Nominal Health (RUL &gt; 60d)</span>
           </div>
         </div>
       </div>
 
       {/* Map Container */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl h-[580px] relative">
+      <div className="glass-card border border-slate-200/80 rounded-xl overflow-hidden shadow-2xl h-[580px] relative">
         <MapContainer
           center={mapCenter}
           zoom={6}
@@ -169,65 +169,65 @@ export default function CorridorMapView() {
 
         {/* Selected Section Flyout Overlay */}
         {selectedSection && (
-          <div className="absolute bottom-4 right-4 z-[1000] bg-slate-900/95 border border-slate-700 p-5 rounded-xl shadow-2xl max-w-sm backdrop-blur space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-700/60 pb-2">
+          <div className="absolute bottom-4 right-4 z-[1000] glass-card bg-white/95 border border-slate-200/90 p-5 rounded-xl shadow-2xl max-w-sm backdrop-blur space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
               <div>
-                <h4 className="font-bold text-white text-sm">{selectedSection.section_code}</h4>
-                <span className="text-xs text-slate-400">{selectedSection.corridor?.name || "Main Corridor"}</span>
+                <h4 className="font-bold text-slate-900 text-sm">{selectedSection.section_code}</h4>
+                <span className="text-xs text-slate-500">{selectedSection.corridor?.name || "Main Corridor"}</span>
               </div>
               <button 
                 onClick={() => setSelectedSection(null)}
-                className="text-xs text-slate-400 hover:text-white p-1"
+                className="text-xs text-slate-400 hover:text-slate-700 font-bold p-1 cursor-pointer"
               >
                 &times; Close
               </button>
             </div>
 
             {/* Survival & RUL Metrics */}
-            <div className="bg-slate-800/80 p-3 rounded-lg border border-slate-700/60 space-y-2">
+            <div className="bg-slate-50/90 p-3 rounded-lg border border-slate-200/80 space-y-2">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-400">30-Day Failure Hazard:</span>
-                <span className="font-mono font-bold text-rose-400">
+                <span className="text-slate-500">30-Day Failure Hazard:</span>
+                <span className="font-mono font-bold text-rose-600">
                   {selectedSection.survival?.risk_percentage || Math.round((selectedSection.survival?.failure_probability_30d || 0.3) * 100)}%
                 </span>
               </div>
-              <div className="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
+              <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
                 <div 
                   className={`h-full rounded-full ${
-                    (selectedSection.survival?.failure_probability_30d || 0) >= 0.75 ? 'bg-rose-600' : 'bg-amber-500'
+                    (selectedSection.survival?.failure_probability_30d || 0) >= 0.75 ? 'bg-rose-500' : 'bg-amber-500'
                   }`}
                   style={{ width: `${selectedSection.survival?.risk_percentage || 30}%` }}
                 ></div>
               </div>
               <div className="flex items-center justify-between text-[11px]">
-                <span className="text-slate-400">Estimated RUL:</span>
-                <span className="font-mono font-bold text-emerald-400">
+                <span className="text-slate-500">Estimated RUL:</span>
+                <span className="font-mono font-bold text-emerald-700">
                   {selectedSection.survival?.estimated_rul_days || 72} Days
                 </span>
               </div>
             </div>
 
             {/* Section Physical Details */}
-            <div className="space-y-1.5 text-xs text-slate-300">
+            <div className="space-y-1.5 text-xs text-slate-700">
               <div className="flex justify-between">
-                <span className="text-slate-400">Route:</span>
-                <span>{selectedSection.start_station} &rarr; {selectedSection.end_station}</span>
+                <span className="text-slate-500">Route:</span>
+                <span className="font-medium">{selectedSection.start_station} &rarr; {selectedSection.end_station}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Track Type:</span>
-                <span className="font-mono text-blue-400">{selectedSection.track_type} Line</span>
+                <span className="text-slate-500">Track Type:</span>
+                <span className="font-mono text-emerald-700 font-semibold">{selectedSection.track_type} Line</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Length:</span>
-                <span>{selectedSection.length_km} km</span>
+                <span className="text-slate-500">Length:</span>
+                <span className="font-medium">{selectedSection.length_km} km</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Max Permissible Speed:</span>
-                <span className="text-emerald-400 font-bold font-mono">{selectedSection.max_permissible_speed} km/h</span>
+                <span className="text-slate-500">Max Permissible Speed:</span>
+                <span className="text-emerald-700 font-bold font-mono">{selectedSection.max_permissible_speed} km/h</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Traffic Density:</span>
-                <span className="font-mono">{selectedSection.current_traffic_density} GMT</span>
+                <span className="text-slate-500">Traffic Density:</span>
+                <span className="font-mono font-semibold">{selectedSection.current_traffic_density} GMT</span>
               </div>
             </div>
           </div>
