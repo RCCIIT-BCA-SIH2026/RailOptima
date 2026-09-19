@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Network, RefreshCw, CheckCircle2, AlertCircle, Database, ArrowDownToLine } from 'lucide-react';
+import { Network, RefreshCw, CheckCircle2, AlertCircle, Database, ArrowDownToLine, Zap } from 'lucide-react';
 import apiClient from '../api/client';
 
 export default function IntegrationsHubView() {
@@ -49,20 +49,20 @@ export default function IntegrationsHubView() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-white flex items-center space-x-2">
+          <h2 className="text-xl font-bold text-slate-900 flex items-center space-x-2">
             <span>Railway Systems Integration Hub</span>
-            <span className="text-xs font-mono font-normal text-blue-400 bg-blue-950/60 border border-blue-800/60 px-2 py-0.5 rounded">
-              Mock APIs & Data Ingestion
+            <span className="text-xs font-mono font-semibold text-emerald-800 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded">
+              Mock APIs & Ingestion Telemetry
             </span>
           </h2>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-600 mt-1">
             Simulated enterprise connectivity to Indian Railways core operational systems (TMS, SMMS, TDMS, COA).
           </p>
         </div>
 
         <button
           onClick={fetchIntegrationsStatus}
-          className="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-lg text-xs font-semibold"
+          className="flex items-center space-x-1.5 px-3.5 py-1.5 bg-white/90 hover:bg-emerald-50 border border-slate-200 text-slate-700 hover:text-emerald-800 rounded-lg text-xs font-semibold shadow-xs cursor-pointer transition"
         >
           <RefreshCw className="w-3.5 h-3.5" />
           <span>Refresh Feeds</span>
@@ -70,14 +70,14 @@ export default function IntegrationsHubView() {
       </div>
 
       {syncFeedback && (
-        <div className="p-3 bg-emerald-950/70 border border-emerald-700 text-emerald-300 text-xs rounded-lg flex items-center justify-between">
+        <div className="p-3.5 bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs rounded-xl flex items-center justify-between shadow-xs animate-in fade-in">
           <div className="flex items-center space-x-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>
-              Ingested <strong>{syncFeedback.records_ingested}</strong> simulated records from <strong>{syncFeedback.system}</strong>.
+              Ingested <strong>{syncFeedback.records_ingested || syncFeedback.records_normalized_and_ingested}</strong> simulated records from <strong>{syncFeedback.system}</strong>.
             </span>
           </div>
-          <button onClick={() => setSyncFeedback(null)} className="text-emerald-400 hover:text-white">&times;</button>
+          <button onClick={() => setSyncFeedback(null)} className="text-slate-400 hover:text-slate-600 cursor-pointer font-bold">&times;</button>
         </div>
       )}
 
@@ -86,39 +86,39 @@ export default function IntegrationsHubView() {
         {(statusData?.systems || []).map((sys) => {
           const isSyncing = syncingSystem === sys.system;
           return (
-            <div key={sys.system} className="bg-slate-800/80 border border-slate-700/60 rounded-xl p-5 shadow-xl flex flex-col justify-between space-y-4">
+            <div key={sys.system} className="glass-card border border-slate-200/80 rounded-xl p-5 shadow-lg flex flex-col justify-between space-y-4">
               <div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2.5">
-                    <div className="p-2 bg-blue-950 text-blue-400 border border-blue-800 rounded-lg font-mono font-bold text-sm">
+                    <div className="p-2 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg font-mono font-bold text-sm">
                       {sys.system}
                     </div>
                     <div>
-                      <h4 className="font-bold text-white text-sm">{sys.system} Service Gateway</h4>
-                      <span className="text-[11px] text-emerald-400 font-medium flex items-center space-x-1">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                      <h4 className="font-bold text-slate-900 text-sm">{sys.system} Service Gateway</h4>
+                      <span className="text-[11px] text-emerald-700 font-medium flex items-center space-x-1">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                         <span>{sys.status}</span>
                       </span>
                     </div>
                   </div>
-                  <span className="text-[11px] font-mono text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-700">
+                  <span className="text-[11px] font-mono text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200">
                     {sys.latency_ms} ms latency
                   </span>
                 </div>
 
-                <p className="text-xs text-slate-300 mt-3 leading-relaxed">
+                <p className="text-xs text-slate-600 mt-3 leading-relaxed">
                   {systemDescriptions[sys.system]}
                 </p>
               </div>
 
-              <div className="pt-3 border-t border-slate-700/60 flex items-center justify-between">
-                <span className="text-[10px] font-mono text-slate-400">
+              <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between">
+                <span className="text-[10px] font-mono text-slate-500">
                   Mode: {sys.data_mode}
                 </span>
                 <button
                   onClick={() => handleSync(sys.system)}
                   disabled={isSyncing}
-                  className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-xs rounded-lg shadow transition flex items-center space-x-1.5"
+                  className="px-4 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-50 text-white font-bold text-xs rounded-lg shadow-md shadow-emerald-600/20 transition flex items-center space-x-1.5 cursor-pointer"
                 >
                   {isSyncing ? (
                     <>
@@ -139,13 +139,13 @@ export default function IntegrationsHubView() {
       </div>
 
       {/* Recent Sync Audit Log */}
-      <div className="bg-slate-800/80 border border-slate-700/60 rounded-xl p-5 shadow-xl space-y-4">
-        <h3 className="font-bold text-white text-sm">Recent External Systems Ingestion History</h3>
+      <div className="glass-card border border-slate-200/80 rounded-xl p-5 shadow-xl space-y-4">
+        <h3 className="font-bold text-slate-900 text-sm">Recent External Systems Ingestion History</h3>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto rounded-lg border border-slate-200/80">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-slate-700 text-slate-400 font-semibold bg-slate-900/50">
+              <tr className="border-b border-slate-200 text-slate-700 font-semibold bg-slate-100/90">
                 <th className="p-3">System</th>
                 <th className="p-3">Sync Type</th>
                 <th className="p-3">Records Ingested</th>
@@ -153,18 +153,18 @@ export default function IntegrationsHubView() {
                 <th className="p-3">Timestamp</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-700/60">
+            <tbody className="divide-y divide-slate-200/70 bg-white/70">
               {(statusData?.recent_sync_logs || []).map((l) => (
-                <tr key={l.id} className="hover:bg-slate-700/30">
-                  <td className="p-3 font-mono font-bold text-blue-300">{l.system_name}</td>
-                  <td className="p-3 text-slate-300">{l.sync_type}</td>
-                  <td className="p-3 font-mono text-slate-200">{l.records_synced} items</td>
+                <tr key={l.id} className="hover:bg-emerald-50/40 transition">
+                  <td className="p-3 font-mono font-bold text-emerald-800">{l.system_name}</td>
+                  <td className="p-3 text-slate-700">{l.sync_type}</td>
+                  <td className="p-3 font-mono text-slate-900 font-semibold">{l.records_synced} items</td>
                   <td className="p-3">
-                    <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800 font-semibold">
+                    <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300 font-semibold">
                       {l.status}
                     </span>
                   </td>
-                  <td className="p-3 font-mono text-slate-400">
+                  <td className="p-3 font-mono text-slate-500">
                     {new Date(l.timestamp).toLocaleString()}
                   </td>
                 </tr>

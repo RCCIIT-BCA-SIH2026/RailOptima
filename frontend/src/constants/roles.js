@@ -3,6 +3,7 @@ export const USER_ROLES = [
     id: "admin",
     key: "admin",
     role: "ADMIN",
+    canonical_role: "ADMIN",
     systemRole: "Admin",
     department: "ALL",
     departmentName: "Central Operations / All Departments",
@@ -21,6 +22,7 @@ export const USER_ROLES = [
     id: "engineering",
     key: "engineering",
     role: "ENGINEERING",
+    canonical_role: "ENGINEERING",
     systemRole: "Sr_DEN",
     department: "ENG",
     departmentName: "Civil Engineering / Permanent Way (P-Way)",
@@ -39,6 +41,7 @@ export const USER_ROLES = [
     id: "trd",
     key: "trd",
     role: "TRD",
+    canonical_role: "TRD",
     systemRole: "Sr_DEE",
     department: "TRD",
     departmentName: "Traction Distribution / Electrical (OHE)",
@@ -57,6 +60,7 @@ export const USER_ROLES = [
     id: "snt",
     key: "snt",
     role: "S&T",
+    canonical_role: "S&T",
     systemRole: "Sr_DSTE",
     department: "SNT",
     departmentName: "Signal & Telecommunication",
@@ -75,6 +79,7 @@ export const USER_ROLES = [
     id: "control_office",
     key: "control_office",
     role: "CONTROL_OFFICE",
+    canonical_role: "CONTROL_OFFICE",
     systemRole: "Sr_DOM",
     department: "OPT",
     departmentName: "Operating / Traffic Control Office",
@@ -93,6 +98,7 @@ export const USER_ROLES = [
     id: "drm",
     key: "drm",
     role: "DRM",
+    canonical_role: "DRM",
     systemRole: "DRM",
     department: "OPT",
     departmentName: "Divisional Operations / Executive",
@@ -113,6 +119,7 @@ export const USER_ROLES = [
 export const USER_ROLES_MAP = USER_ROLES.reduce((acc, r) => {
   acc[r.id] = r;
   acc[r.role] = r;
+  acc[r.canonical_role] = r;
   acc[r.systemRole] = r;
   acc[r.username] = r;
   return acc;
@@ -125,6 +132,7 @@ export function getRoleDefinition(roleOrUsername) {
     if (
       r.id.toUpperCase() === query ||
       r.role.toUpperCase() === query ||
+      (r.canonical_role && r.canonical_role.toUpperCase() === query) ||
       r.systemRole.toUpperCase() === query ||
       r.username.toUpperCase() === query
     ) {
@@ -144,25 +152,31 @@ export function isRouteAllowed(path, role) {
     case '/reports':
     case '/blocks':
     case '/block-planning':
+    case '/optimization-studio':
+    case '/department-coordination':
+    case '/corridor-map':
+    case '/integrations':
+    case '/weekly-planner':
       return true;
 
     case '/maintenance':
     case '/defects':
     case '/assets':
     case '/resources':
-      return ['ENGINEERING', 'TRD', 'S&T', 'SR_DEN', 'SR_DEE', 'SR_DSTE', 'SUPERVISOR'].includes(norm);
+      return ['ENGINEERING', 'TRD', 'S&T', 'SR_DEN', 'SR_DEE', 'SR_DSTE', 'SUPERVISOR', 'ADMIN', 'DRM', 'CONTROL_OFFICE', 'SR_DOM'].includes(norm);
 
     case '/trains':
     case '/ai-planning':
     case '/what-if':
-      return ['CONTROL_OFFICE', 'DRM', 'SR_DOM'].includes(norm);
+      return ['CONTROL_OFFICE', 'DRM', 'SR_DOM', 'ADMIN'].includes(norm);
 
     case '/approvals':
-      return ['DRM', 'CONTROL_OFFICE', 'SR_DOM'].includes(norm);
+      return ['DRM', 'CONTROL_OFFICE', 'SR_DOM', 'ADMIN', 'ENGINEERING', 'TRD', 'S&T', 'SR_DEN', 'SR_DEE', 'SR_DSTE'].includes(norm);
 
     case '/settings':
     case '/ai-review':
-      return ['ADMIN', 'ADMINISTRATOR'].includes(norm);
+    case '/audit-logs':
+      return ['ADMIN', 'ADMINISTRATOR', 'DRM'].includes(norm);
 
     default:
       return true;
