@@ -30,26 +30,51 @@
 
 ## Quick Start
 
-### 1. Backend Server
+### Option A: One-Click Launch (Windows)
+Double-click `start.bat` or run in PowerShell:
+```powershell
+.\start.bat
+```
+This automatically launches both backend and frontend servers and opens your browser to [http://127.0.0.1:5173](http://127.0.0.1:5173).
+
+---
+
+### Option B: Manual Terminal Execution
+
+#### 1. Backend Server
 ```powershell
 # In project root:
-uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload
+.\.venv\Scripts\uvicorn.exe backend.app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 Interactive Swagger API Documentation: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 
-### 2. Frontend Application
+#### 2. Frontend Application
 ```powershell
 # In frontend/ directory:
 cd frontend
-npm run dev -- --host 127.0.0.1 --port 5173
+npm run dev
 ```
 Interactive Web UI: [http://127.0.0.1:5173](http://127.0.0.1:5173)
 
-### 3. Run Automated Test Suite
+#### 3. Run Automated Test Suite
 ```powershell
-pytest tests/ -v
-# 26 passed in 15s (100% passing)
+.\.venv\Scripts\pytest.exe tests/ -v
+# 150 passed in 68s (100% passing)
 ```
+
+---
+
+## Demo Accounts & Role-Based Access (RBAC)
+
+| Role | Username | Password | Access / Department Scope |
+|---|---|---|---|
+| **System Administrator** | `admin` | `Admin@123` | Full system access across all departments & configurations |
+| **Divisional Railway Manager (DRM)** | `drm` | `Drm@123` | Executive approval authority & division-wide corridor overview |
+| **Sr. Divisional Engineer (Sr. DEN)** | `engineering_officer` | `Eng@123` | Civil Engineering (P-Way, Track defects, Tamping machines) |
+| **Sr. Signal & Telecom Engineer (Sr. DSTE)** | `signal_officer` | `Signal@123` | S&T Department (Interlocking, Points, Telemetry) |
+| **Sr. Electrical Engineer (Sr. DEE)** | `traction_officer` | `Trd@123` | Traction & OHE (Power shutdowns, Tower wagons) |
+| **Sr. Operations Manager (Sr. DOM)** | `control_office` | `Opt@123` | Control Office (Timetable, Train punctuality, Freight paths) |
+| **Senior Section Engineer (Supervisor)** | `supervisor` | `Supervisor@123` | Field work execution & defect reporting |
 
 ---
 

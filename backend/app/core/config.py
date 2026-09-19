@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
     
     # Database
-    DATABASE_URL: str = "postgresql://postgres:JaiChattiMaiyaDB2026SecureDatabase@127.0.0.1:5432/railway_planner"
+    DATABASE_URL: str = "sqlite:///./data/railway_planner.db"
     
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = [

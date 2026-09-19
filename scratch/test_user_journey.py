@@ -41,10 +41,10 @@ def get_json(path, auth_token=None):
 # 1. Login
 def test_login():
     global token
-    res = post_json("/api/v1/auth/login", {"username": "drm", "password": "Drm@123"})
+    res = post_json("/api/v1/auth/login", {"username": "admin", "password": "Admin@123"})
     token = res.get("access_token")
-    role = res.get("user", {}).get("role", "DRM")
-    return f"Authenticated as DRM (Role: {role}), Token length: {len(token)}"
+    role = res.get("user", {}).get("role", "Admin")
+    return f"Authenticated as Admin (Role: {role}), Token length: {len(token)}"
 
 # 2. Dashboard
 def test_dashboard():
