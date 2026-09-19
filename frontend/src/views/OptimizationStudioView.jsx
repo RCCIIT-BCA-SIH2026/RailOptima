@@ -17,6 +17,7 @@ import AIExplanationModal from '../components/AIExplanationModal';
 
 export default function OptimizationStudioView({ onNavigate }) {
   const [horizon, setHorizon] = useState(24);
+  const [strategyCode, setStrategyCode] = useState("BALANCED");
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [optimizationResult, setOptimizationResult] = useState(null);
   const [alternatives, setAlternatives] = useState([]);
@@ -44,7 +45,7 @@ export default function OptimizationStudioView({ onNavigate }) {
       setSubmittedSuccess(null);
       const res = await apiClient.post('/optimization/run', {
         horizon_hours: horizon,
-        strategy_code: "BALANCED"
+        strategy_code: strategyCode
       });
       setOptimizationResult(res.data);
       setAlternatives(res.data.alternatives || []);
@@ -92,7 +93,21 @@ export default function OptimizationStudioView({ onNavigate }) {
           </div>
 
           {/* Trigger Button & Controls */}
-          <div className="flex items-center space-x-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center space-x-2 bg-slate-900 border border-slate-700 px-3 py-2 rounded-lg text-xs">
+              <Zap className="w-4 h-4 text-purple-400" />
+              <span className="text-slate-400">Policy:</span>
+              <select
+                value={strategyCode}
+                onChange={(e) => setStrategyCode(e.target.value)}
+                className="bg-transparent text-white font-semibold focus:outline-none"
+              >
+                <option value="BALANCED" className="bg-slate-900">Balanced Strategy</option>
+                <option value="SAFETY_FIRST" className="bg-slate-900">Safety First (High Buffer)</option>
+                <option value="THROUGHPUT_FIRST" className="bg-slate-900">Throughput First (Zero Delay)</option>
+              </select>
+            </div>
+
             <div className="flex items-center space-x-2 bg-slate-900 border border-slate-700 px-3 py-2 rounded-lg text-xs">
               <Clock className="w-4 h-4 text-slate-400" />
               <span className="text-slate-400">Horizon:</span>

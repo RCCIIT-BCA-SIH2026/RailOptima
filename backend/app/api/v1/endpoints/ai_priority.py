@@ -665,6 +665,73 @@ def predict_train_delay(
         )
 
 
+# ==============================================================================
+# Advanced Layer 1 Survival Analysis & Layer 2 Anti-Gaming Endpoints
+# ==============================================================================
+
+@router.get("/survival/sections", summary="Get 30-Day Failure Risk & Remaining Useful Life for all Railway Sections")
+def get_all_sections_survival(db: Session = Depends(get_db)):
+    """Returns survival risk ranking and estimated RUL across all network sections."""
+    from backend.app.services.survival_service import get_all_sections_risk_overview
+    return get_all_sections_risk_overview(db)
+
+
+@router.get("/survival/section/{section_id}", summary="Get 30-Day Discrete Survival Curve for Specific Section")
+def get_section_survival_curve(section_id: int, db: Session = Depends(get_db)):
+    """Computes daily survival probability S(t) and hazard rates across a 30-day forecast horizon."""
+    from backend.app.services.survival_service import get_section_survival_analysis
+    return get_section_survival_analysis(section_id, db)
+
+
+@router.post("/survival/predict", summary="Predict 30-Day Failure Probability & Survival Curve from Feature Payload")
+def predict_survival_from_features(payload: Dict[str, Any]):
+    """Calculates survival probability curve and RUL from track parameters."""
+    from ml.survival_engine import predict_failure_risk_30d
+    age = float(payload.get("age_years", 18.0))
+    gmt = float(payload.get("gmt_density", 45.0))
+    monsoon = str(payload.get("monsoon_exposure", "medium"))
+    curvature = str(payload.get("curvature_class", "gentle"))
+    asset_type = str(payload.get("asset_type", "Track"))
+    defects = int(payload.get("defects_count", 0))
+    return predict_failure_risk_30d(age, gmt, monsoon, curvature, asset_type, defects)
+
+
+@router.get("/anti-gaming/audit", summary="Division-Wide Anti-Inflation & Gaming Audit Report")
+def run_anti_gaming_audit(db: Session = Depends(get_db)):
+    """Audits all pending tasks, comparing claimed priority vs sensor evidence score to identify inflated emergency requests."""
+    from backend.app.services.anti_gaming_service import audit_department_task_pool
+    return audit_department_task_pool(db)
+
+
+@router.post("/anti-gaming/evaluate", summary="Evaluate Single Task for Criticality Inflation")
+def evaluate_task_claim(payload: Dict[str, Any]):
+    """Evaluates task criticality claim against objective failure risk."""
+    from backend.app.services.anti_gaming_service import evaluate_task_inflation
+    return evaluate_task_inflation(
+        task_code=str(payload.get("task_code", "TSK-DEMO")),
+        department_code=str(payload.get("department_code", "ENG")),
+        claimed_criticality=str(payload.get("claimed_criticality", "Critical")),
+        section_name=str(payload.get("section_name", "NDLS-TKD")),
+        risk_30d_pct=float(payload.get("risk_30d_pct", 25.0)),
+        has_speed_restriction=bool(payload.get("has_speed_restriction", False)),
+        is_overdue=bool(payload.get("is_overdue", False))
+    )
+
+
+@router.post("/duration-overrun/predict", summary="Predict Maintenance Duration & Block Overrun Probability")
+def predict_task_duration_and_overrun(payload: Dict[str, Any]):
+    """Estimates realistic required possession duration and overrun probability."""
+    from ml.duration_overrun_engine import predict_duration_and_overrun
+    return predict_duration_and_overrun(
+        task_type=str(payload.get("task_type", "Track Tamping")),
+        department=str(payload.get("department", "ENG")),
+        crew_size=int(payload.get("crew_size", 15)),
+        machinery_count=int(payload.get("machinery_count", 1)),
+        weather_condition=str(payload.get("weather_condition", "Clear")),
+        claimed_duration_minutes=int(payload.get("claimed_duration_minutes", 120))
+    )
+
+
 
 
 

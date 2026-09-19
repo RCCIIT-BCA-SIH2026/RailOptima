@@ -1,0 +1,603 @@
+task_id,segment_id,division,department,type,planned_duration_hrs,actual_duration_hrs,planned_date,completion_date,overdue_flag,overdue_days,overrun_flag
+TASK-00001,SEG-001,Agra,Engineering,Rail Grinding,5.62,4.57,2024-04-04,2024-04-04,0,0,0
+TASK-00002,SEG-001,Agra,Engineering,Tamping,7.87,11.01,2025-10-14,2025-10-14,0,0,1
+TASK-00003,SEG-001,Agra,Engineering,Track Inspection,1.99,2.13,2024-04-24,2024-04-24,0,0,0
+TASK-00004,SEG-001,Agra,Engineering,Tamping,5.09,4.14,2025-08-19,2025-08-19,0,0,0
+TASK-00005,SEG-001,Agra,Engineering,Drainage Cleaning,2.87,2.38,2025-01-01,2025-01-01,0,0,0
+TASK-00006,SEG-001,Agra,Engineering,Rail Grinding,6.37,5.55,2025-09-27,2025-10-23,1,26,0
+TASK-00007,SEG-001,Agra,Engineering,Rail Grinding,1.66,1.49,2025-02-26,2025-02-26,0,0,0
+TASK-00008,SEG-001,Agra,Engineering,Rail Grinding,2.53,2.31,2024-09-30,2024-10-16,1,16,0
+TASK-00009,SEG-001,Agra,Engineering,Rail Grinding,6.81,6.07,2024-07-23,2024-07-23,0,0,0
+TASK-00010,SEG-001,Agra,Engineering,Track Inspection,1.65,2.22,2024-08-16,2024-08-16,0,0,1
+TASK-00011,SEG-002,Delhi,Engineering,Tamping,4.81,5.07,2025-10-18,2025-10-18,0,0,0
+TASK-00012,SEG-002,Delhi,Engineering,Tamping,7.2,7.01,2024-04-28,2024-04-28,0,0,0
+TASK-00013,SEG-002,Delhi,Engineering,Tamping,5.38,5.57,2024-04-21,2024-04-21,0,0,0
+TASK-00014,SEG-002,Delhi,Engineering,Rail Grinding,7.35,8.97,2025-01-29,2025-01-29,0,0,1
+TASK-00015,SEG-002,Delhi,Engineering,Tamping,4.3,4.63,2025-01-07,2025-01-07,0,0,0
+TASK-00016,SEG-002,Delhi,Engineering,Rail Grinding,4.8,4.31,2024-11-03,2024-11-03,0,0,0
+TASK-00017,SEG-002,Delhi,Engineering,Track Inspection,4.23,4.24,2024-07-15,2024-07-15,0,0,0
+TASK-00018,SEG-002,Delhi,Engineering,Track Inspection,5.06,6.73,2025-02-19,2025-02-19,0,0,1
+TASK-00019,SEG-002,Delhi,Engineering,Rail Grinding,4.37,4.17,2025-04-21,2025-04-21,0,0,0
+TASK-00020,SEG-002,Delhi,Engineering,Rail Grinding,2.05,2.03,2025-11-05,2025-11-05,0,0,0
+TASK-00021,SEG-002,Delhi,Engineering,Tamping,3.52,2.97,2025-11-19,2025-12-05,1,16,0
+TASK-00022,SEG-002,Delhi,Engineering,Drainage Cleaning,4.19,3.6,2025-04-11,2025-04-11,0,0,0
+TASK-00023,SEG-003,Agra,S&T,Signal Inspection,2.46,2.63,2024-09-06,2024-09-06,0,0,0
+TASK-00024,SEG-003,Agra,S&T,Relay Maintenance,2.92,2.95,2025-03-11,2025-03-11,0,0,0
+TASK-00025,SEG-003,Agra,S&T,Cable Inspection,4.47,4.47,2024-05-04,2024-05-04,0,0,0
+TASK-00026,SEG-003,Agra,S&T,Point Machine Service,5.48,5.21,2025-03-29,2025-03-29,0,0,0
+TASK-00027,SEG-003,Agra,S&T,Cable Inspection,6.33,5.56,2024-06-11,2024-06-11,0,0,0
+TASK-00028,SEG-003,Agra,S&T,Relay Maintenance,4.65,4.33,2025-06-17,2025-06-17,0,0,0
+TASK-00029,SEG-003,Agra,S&T,Point Machine Service,3.68,3.03,2024-10-05,2024-10-05,0,0,0
+TASK-00030,SEG-003,Agra,S&T,Point Machine Service,6.09,8.43,2024-06-05,2024-06-05,0,0,1
+TASK-00031,SEG-003,Agra,S&T,Signal Inspection,2.84,3.04,2024-03-04,2024-03-04,0,0,0
+TASK-00032,SEG-003,Agra,S&T,Point Machine Service,3.97,5.39,2025-08-12,2025-08-12,0,0,1
+TASK-00033,SEG-003,Agra,S&T,Relay Maintenance,6.36,6.24,2025-07-05,2025-07-05,0,0,0
+TASK-00034,SEG-003,Agra,S&T,Point Machine Service,4.33,5.85,2024-10-06,2024-10-06,0,0,1
+TASK-00035,SEG-003,Agra,S&T,Point Machine Service,6.96,7.62,2024-06-18,2024-06-18,0,0,0
+TASK-00036,SEG-004,Delhi,S&T,Relay Maintenance,5.81,8.09,2025-07-31,2025-07-31,0,0,1
+TASK-00037,SEG-004,Delhi,S&T,Point Machine Service,3.19,2.99,2024-02-21,2024-02-21,0,0,0
+TASK-00038,SEG-004,Delhi,S&T,Signal Inspection,6.39,5.6,2024-10-11,2024-10-11,0,0,0
+TASK-00039,SEG-004,Delhi,S&T,Signal Inspection,1.84,1.6,2025-07-06,2025-07-27,1,21,0
+TASK-00040,SEG-004,Delhi,S&T,Relay Maintenance,7.67,9.27,2024-02-01,2024-02-01,0,0,1
+TASK-00041,SEG-004,Delhi,S&T,Cable Inspection,5.85,5.06,2025-04-29,2025-04-29,0,0,0
+TASK-00042,SEG-004,Delhi,S&T,Relay Maintenance,5.44,5.52,2024-06-20,2024-06-20,0,0,0
+TASK-00043,SEG-004,Delhi,S&T,Point Machine Service,2.2,2.95,2024-11-14,2024-11-14,0,0,1
+TASK-00044,SEG-004,Delhi,S&T,Relay Maintenance,7.62,11.17,2025-02-10,2025-02-10,0,0,1
+TASK-00045,SEG-004,Delhi,S&T,Signal Inspection,6.03,6.06,2024-04-14,2024-04-14,0,0,0
+TASK-00046,SEG-004,Delhi,S&T,Signal Inspection,4.96,4.07,2024-12-21,2024-12-21,0,0,0
+TASK-00047,SEG-004,Delhi,S&T,Point Machine Service,6.85,11.18,2025-03-06,2025-03-06,0,0,1
+TASK-00048,SEG-004,Delhi,S&T,Point Machine Service,4.33,4.72,2024-06-05,2024-06-05,0,0,0
+TASK-00049,SEG-004,Delhi,S&T,Signal Inspection,4.33,3.81,2025-04-21,2025-04-21,0,0,0
+TASK-00050,SEG-005,Agra,Electrical,OHE Inspection,3.09,3.04,2025-04-06,2025-04-06,0,0,0
+TASK-00051,SEG-005,Agra,Electrical,Isolator Service,7.03,9.11,2025-05-21,2025-05-21,0,0,1
+TASK-00052,SEG-005,Agra,Electrical,OHE Inspection,7.22,6.37,2024-10-13,2024-10-20,1,7,0
+TASK-00053,SEG-005,Agra,Electrical,Mast Inspection,6.18,6.35,2024-09-04,2024-09-04,0,0,0
+TASK-00054,SEG-005,Agra,Electrical,Isolator Service,6.65,8.64,2025-04-03,2025-04-03,0,0,1
+TASK-00055,SEG-005,Agra,Electrical,Isolator Service,5.28,5.06,2025-11-10,2025-11-10,0,0,0
+TASK-00056,SEG-005,Agra,Electrical,Contact Wire Maintenance,6.07,5.31,2024-12-26,2024-12-26,0,0,0
+TASK-00057,SEG-005,Agra,Electrical,Contact Wire Maintenance,2.28,2.35,2024-11-19,2024-11-19,0,0,0
+TASK-00058,SEG-005,Agra,Electrical,OHE Inspection,3.3,3.39,2025-05-10,2025-05-10,0,0,0
+TASK-00059,SEG-005,Agra,Electrical,Contact Wire Maintenance,3.43,3.06,2024-07-17,2024-07-17,0,0,0
+TASK-00060,SEG-005,Agra,Electrical,Mast Inspection,1.8,2.4,2024-10-07,2024-10-07,0,0,1
+TASK-00061,SEG-005,Agra,Electrical,Contact Wire Maintenance,7.17,6.75,2024-04-15,2024-04-15,0,0,0
+TASK-00062,SEG-006,Delhi,Electrical,OHE Inspection,7.62,7.98,2024-09-15,2024-09-15,0,0,0
+TASK-00063,SEG-006,Delhi,Electrical,Isolator Service,5.59,7.08,2025-08-13,2025-08-13,0,0,1
+TASK-00064,SEG-006,Delhi,Electrical,Contact Wire Maintenance,7.96,12.29,2024-03-28,2024-03-28,0,0,1
+TASK-00065,SEG-006,Delhi,Electrical,Mast Inspection,3.97,3.53,2025-06-19,2025-06-19,0,0,0
+TASK-00066,SEG-006,Delhi,Electrical,Contact Wire Maintenance,5.2,8.49,2024-11-08,2024-11-08,0,0,1
+TASK-00067,SEG-006,Delhi,Electrical,OHE Inspection,2.87,2.43,2025-10-02,2025-10-02,0,0,0
+TASK-00068,SEG-006,Delhi,Electrical,Contact Wire Maintenance,1.52,1.49,2024-06-09,2024-06-09,0,0,0
+TASK-00069,SEG-006,Delhi,Electrical,Isolator Service,6.1,5.71,2024-10-22,2024-10-22,0,0,0
+TASK-00070,SEG-006,Delhi,Electrical,Contact Wire Maintenance,5.33,4.58,2025-10-02,2025-10-02,0,0,0
+TASK-00071,SEG-006,Delhi,Electrical,Isolator Service,2.47,2.08,2025-10-25,2025-11-20,1,26,0
+TASK-00072,SEG-007,Agra,Engineering,Drainage Cleaning,7.49,7.05,2025-08-05,2025-08-05,0,0,0
+TASK-00073,SEG-007,Agra,Engineering,Track Inspection,4.75,3.91,2024-10-05,2024-10-19,1,14,0
+TASK-00074,SEG-007,Agra,Engineering,Tamping,3.13,5.11,2025-09-10,2025-09-10,0,0,1
+TASK-00075,SEG-007,Agra,Engineering,Drainage Cleaning,6.84,7.04,2025-11-19,2025-12-06,1,17,0
+TASK-00076,SEG-007,Agra,Engineering,Tamping,2.68,2.65,2024-10-11,2024-10-11,0,0,0
+TASK-00077,SEG-007,Agra,Engineering,Track Inspection,3.76,3.76,2025-04-26,2025-04-26,0,0,0
+TASK-00078,SEG-007,Agra,Engineering,Tamping,6.01,6.51,2025-02-25,2025-02-25,0,0,0
+TASK-00079,SEG-007,Agra,Engineering,Tamping,2.07,1.73,2025-04-10,2025-04-10,0,0,0
+TASK-00080,SEG-007,Agra,Engineering,Drainage Cleaning,7.15,5.84,2025-11-04,2025-11-04,0,0,0
+TASK-00081,SEG-007,Agra,Engineering,Drainage Cleaning,4.37,5.77,2025-10-02,2025-10-12,1,10,1
+TASK-00082,SEG-007,Agra,Engineering,Rail Grinding,2.29,2.25,2025-05-11,2025-05-11,0,0,0
+TASK-00083,SEG-007,Agra,Engineering,Tamping,5.08,4.21,2024-11-14,2024-11-14,0,0,0
+TASK-00084,SEG-007,Agra,Engineering,Track Inspection,7.66,6.48,2025-04-17,2025-04-17,0,0,0
+TASK-00085,SEG-007,Agra,Engineering,Drainage Cleaning,6.09,5.75,2025-06-05,2025-06-05,0,0,0
+TASK-00086,SEG-008,Delhi,Engineering,Tamping,3.99,3.8,2024-05-28,2024-05-28,0,0,0
+TASK-00087,SEG-008,Delhi,Engineering,Track Inspection,6.52,5.88,2024-10-09,2024-10-09,0,0,0
+TASK-00088,SEG-008,Delhi,Engineering,Drainage Cleaning,3.34,3.26,2024-01-03,2024-01-03,0,0,0
+TASK-00089,SEG-008,Delhi,Engineering,Drainage Cleaning,4.4,3.96,2024-06-01,2024-06-01,0,0,0
+TASK-00090,SEG-008,Delhi,Engineering,Drainage Cleaning,7.56,8.27,2025-04-11,2025-04-11,0,0,0
+TASK-00091,SEG-008,Delhi,Engineering,Drainage Cleaning,7.06,6.32,2024-08-27,2024-08-27,0,0,0
+TASK-00092,SEG-008,Delhi,Engineering,Tamping,7.92,7.89,2025-01-30,2025-01-30,0,0,0
+TASK-00093,SEG-008,Delhi,Engineering,Drainage Cleaning,4.76,5.05,2024-05-09,2024-05-09,0,0,0
+TASK-00094,SEG-008,Delhi,Engineering,Rail Grinding,4.92,5.0,2024-04-12,2024-04-12,0,0,0
+TASK-00095,SEG-008,Delhi,Engineering,Tamping,4.55,4.1,2024-03-17,2024-03-17,0,0,0
+TASK-00096,SEG-008,Delhi,Engineering,Drainage Cleaning,7.04,6.43,2024-12-02,2024-12-02,0,0,0
+TASK-00097,SEG-008,Delhi,Engineering,Rail Grinding,1.73,2.57,2025-07-08,2025-07-08,0,0,1
+TASK-00098,SEG-008,Delhi,Engineering,Drainage Cleaning,4.32,6.42,2024-04-02,2024-04-02,0,0,1
+TASK-00099,SEG-008,Delhi,Engineering,Track Inspection,6.01,4.89,2024-06-19,2024-06-19,0,0,0
+TASK-00100,SEG-009,Agra,S&T,Relay Maintenance,4.3,3.97,2025-01-18,2025-01-18,0,0,0
+TASK-00101,SEG-009,Agra,S&T,Point Machine Service,2.64,2.41,2024-06-23,2024-06-23,0,0,0
+TASK-00102,SEG-009,Agra,S&T,Signal Inspection,2.43,2.13,2025-08-20,2025-08-20,0,0,0
+TASK-00103,SEG-009,Agra,S&T,Cable Inspection,7.36,6.24,2025-04-21,2025-04-21,0,0,0
+TASK-00104,SEG-009,Agra,S&T,Cable Inspection,3.44,3.46,2025-08-24,2025-08-24,0,0,0
+TASK-00105,SEG-009,Agra,S&T,Cable Inspection,8.0,6.66,2024-07-22,2024-07-22,0,0,0
+TASK-00106,SEG-009,Agra,S&T,Point Machine Service,3.42,2.76,2025-08-11,2025-08-11,0,0,0
+TASK-00107,SEG-009,Agra,S&T,Point Machine Service,1.55,1.6,2024-10-08,2024-10-08,0,0,0
+TASK-00108,SEG-009,Agra,S&T,Relay Maintenance,6.54,6.81,2024-10-20,2024-10-20,0,0,0
+TASK-00109,SEG-009,Agra,S&T,Relay Maintenance,3.13,3.22,2025-09-27,2025-09-27,0,0,0
+TASK-00110,SEG-009,Agra,S&T,Signal Inspection,2.13,1.73,2025-10-05,2025-10-05,0,0,0
+TASK-00111,SEG-009,Agra,S&T,Point Machine Service,3.87,6.23,2025-08-16,2025-08-16,0,0,1
+TASK-00112,SEG-010,Delhi,S&T,Cable Inspection,2.36,2.58,2024-07-24,2024-07-24,0,0,0
+TASK-00113,SEG-010,Delhi,S&T,Cable Inspection,3.17,2.99,2024-06-17,2024-06-17,0,0,0
+TASK-00114,SEG-010,Delhi,S&T,Point Machine Service,4.54,6.99,2024-04-27,2024-04-27,0,0,1
+TASK-00115,SEG-010,Delhi,S&T,Point Machine Service,3.88,3.12,2025-07-24,2025-07-24,0,0,0
+TASK-00116,SEG-010,Delhi,S&T,Cable Inspection,5.87,5.73,2025-01-12,2025-01-12,0,0,0
+TASK-00117,SEG-010,Delhi,S&T,Cable Inspection,5.89,5.81,2024-04-20,2024-04-20,0,0,0
+TASK-00118,SEG-010,Delhi,S&T,Cable Inspection,2.94,4.62,2025-09-16,2025-09-16,0,0,1
+TASK-00119,SEG-010,Delhi,S&T,Point Machine Service,4.15,6.75,2025-10-26,2025-10-26,0,0,1
+TASK-00120,SEG-010,Delhi,S&T,Point Machine Service,2.13,1.79,2024-04-28,2024-04-28,0,0,0
+TASK-00121,SEG-010,Delhi,S&T,Point Machine Service,6.32,8.76,2025-08-24,2025-08-24,0,0,1
+TASK-00122,SEG-010,Delhi,S&T,Point Machine Service,4.15,3.36,2025-09-22,2025-09-22,0,0,0
+TASK-00123,SEG-011,Agra,Electrical,Isolator Service,7.06,10.65,2024-08-29,2024-08-29,0,0,1
+TASK-00124,SEG-011,Agra,Electrical,Mast Inspection,4.09,5.13,2024-03-03,2024-03-03,0,0,1
+TASK-00125,SEG-011,Agra,Electrical,Isolator Service,5.81,5.69,2024-04-03,2024-04-29,1,26,0
+TASK-00126,SEG-011,Agra,Electrical,Contact Wire Maintenance,7.93,6.83,2024-09-06,2024-09-06,0,0,0
+TASK-00127,SEG-011,Agra,Electrical,OHE Inspection,2.9,2.61,2025-08-23,2025-08-23,0,0,0
+TASK-00128,SEG-011,Agra,Electrical,Contact Wire Maintenance,7.08,8.91,2024-10-10,2024-10-10,0,0,1
+TASK-00129,SEG-011,Agra,Electrical,Contact Wire Maintenance,5.8,7.0,2024-04-22,2024-04-22,0,0,1
+TASK-00130,SEG-011,Agra,Electrical,OHE Inspection,3.6,4.4,2025-08-25,2025-08-25,0,0,1
+TASK-00131,SEG-011,Agra,Electrical,Contact Wire Maintenance,4.6,4.39,2024-03-06,2024-03-06,0,0,0
+TASK-00132,SEG-011,Agra,Electrical,Mast Inspection,1.78,1.89,2025-09-21,2025-09-21,0,0,0
+TASK-00133,SEG-011,Agra,Electrical,OHE Inspection,7.77,11.0,2025-10-20,2025-10-20,0,0,1
+TASK-00134,SEG-011,Agra,Electrical,Contact Wire Maintenance,6.13,6.56,2025-05-17,2025-05-17,0,0,0
+TASK-00135,SEG-011,Agra,Electrical,Mast Inspection,2.32,2.26,2024-03-08,2024-03-08,0,0,0
+TASK-00136,SEG-012,Delhi,Electrical,OHE Inspection,3.42,3.18,2025-06-27,2025-06-27,0,0,0
+TASK-00137,SEG-012,Delhi,Electrical,Mast Inspection,5.73,5.82,2025-11-01,2025-11-01,0,0,0
+TASK-00138,SEG-012,Delhi,Electrical,Isolator Service,4.19,3.85,2024-08-21,2024-08-21,0,0,0
+TASK-00139,SEG-012,Delhi,Electrical,Mast Inspection,3.53,3.83,2025-03-13,2025-03-13,0,0,0
+TASK-00140,SEG-012,Delhi,Electrical,Isolator Service,2.09,2.91,2024-03-09,2024-03-09,0,0,1
+TASK-00141,SEG-012,Delhi,Electrical,OHE Inspection,5.12,4.96,2024-05-13,2024-05-13,0,0,0
+TASK-00142,SEG-012,Delhi,Electrical,OHE Inspection,3.8,3.9,2025-02-24,2025-02-24,0,0,0
+TASK-00143,SEG-012,Delhi,Electrical,Mast Inspection,5.4,5.26,2024-10-21,2024-10-21,0,0,0
+TASK-00144,SEG-012,Delhi,Electrical,Contact Wire Maintenance,7.01,6.78,2024-08-17,2024-08-26,1,9,0
+TASK-00145,SEG-012,Delhi,Electrical,OHE Inspection,6.99,7.31,2025-03-15,2025-03-15,0,0,0
+TASK-00146,SEG-012,Delhi,Electrical,Isolator Service,7.54,6.64,2025-09-15,2025-09-15,0,0,0
+TASK-00147,SEG-012,Delhi,Electrical,OHE Inspection,3.78,4.78,2024-12-13,2024-12-13,0,0,1
+TASK-00148,SEG-012,Delhi,Electrical,Mast Inspection,6.32,5.23,2024-05-25,2024-05-25,0,0,0
+TASK-00149,SEG-012,Delhi,Electrical,OHE Inspection,4.45,5.96,2025-03-05,2025-03-05,0,0,1
+TASK-00150,SEG-013,Agra,Engineering,Drainage Cleaning,2.52,2.53,2024-06-08,2024-06-08,0,0,0
+TASK-00151,SEG-013,Agra,Engineering,Track Inspection,5.45,4.71,2025-05-12,2025-05-12,0,0,0
+TASK-00152,SEG-013,Agra,Engineering,Track Inspection,2.22,2.17,2025-03-16,2025-03-16,0,0,0
+TASK-00153,SEG-013,Agra,Engineering,Rail Grinding,2.93,2.39,2024-02-16,2024-02-16,0,0,0
+TASK-00154,SEG-013,Agra,Engineering,Drainage Cleaning,6.47,5.41,2024-05-20,2024-05-20,0,0,0
+TASK-00155,SEG-013,Agra,Engineering,Track Inspection,2.34,2.03,2024-06-28,2024-06-28,0,0,0
+TASK-00156,SEG-013,Agra,Engineering,Tamping,4.08,3.8,2024-03-14,2024-03-14,0,0,0
+TASK-00157,SEG-013,Agra,Engineering,Tamping,5.24,5.31,2024-11-16,2024-11-16,0,0,0
+TASK-00158,SEG-013,Agra,Engineering,Track Inspection,1.64,1.71,2025-02-18,2025-02-18,0,0,0
+TASK-00159,SEG-013,Agra,Engineering,Tamping,4.34,6.06,2024-03-31,2024-03-31,0,0,1
+TASK-00160,SEG-014,Delhi,Engineering,Tamping,6.35,6.56,2024-11-13,2024-12-04,1,21,0
+TASK-00161,SEG-014,Delhi,Engineering,Rail Grinding,4.81,4.35,2025-06-27,2025-06-27,0,0,0
+TASK-00162,SEG-014,Delhi,Engineering,Tamping,2.17,1.85,2024-08-29,2024-08-29,0,0,0
+TASK-00163,SEG-014,Delhi,Engineering,Drainage Cleaning,7.68,7.21,2024-06-30,2024-06-30,0,0,0
+TASK-00164,SEG-014,Delhi,Engineering,Track Inspection,7.51,7.44,2025-11-28,2025-11-28,0,0,0
+TASK-00165,SEG-014,Delhi,Engineering,Tamping,4.36,4.31,2024-06-03,2024-06-03,0,0,0
+TASK-00166,SEG-014,Delhi,Engineering,Track Inspection,4.8,4.49,2024-12-26,2025-01-22,1,27,0
+TASK-00167,SEG-014,Delhi,Engineering,Drainage Cleaning,5.69,4.71,2024-03-19,2024-03-19,0,0,0
+TASK-00168,SEG-014,Delhi,Engineering,Rail Grinding,5.27,5.38,2025-04-18,2025-05-18,1,30,0
+TASK-00169,SEG-014,Delhi,Engineering,Track Inspection,5.43,5.9,2024-11-25,2024-11-25,0,0,0
+TASK-00170,SEG-014,Delhi,Engineering,Drainage Cleaning,4.78,6.27,2024-03-27,2024-03-27,0,0,1
+TASK-00171,SEG-014,Delhi,Engineering,Drainage Cleaning,4.9,6.7,2025-06-20,2025-06-20,0,0,1
+TASK-00172,SEG-014,Delhi,Engineering,Track Inspection,5.91,8.77,2024-12-12,2024-12-12,0,0,1
+TASK-00173,SEG-015,Agra,S&T,Relay Maintenance,5.91,6.01,2025-07-25,2025-07-25,0,0,0
+TASK-00174,SEG-015,Agra,S&T,Point Machine Service,2.03,2.18,2024-12-07,2024-12-07,0,0,0
+TASK-00175,SEG-015,Agra,S&T,Cable Inspection,5.37,4.79,2024-05-12,2024-05-12,0,0,0
+TASK-00176,SEG-015,Agra,S&T,Signal Inspection,5.86,5.99,2024-05-10,2024-05-10,0,0,0
+TASK-00177,SEG-015,Agra,S&T,Relay Maintenance,5.86,4.72,2025-10-23,2025-10-23,0,0,0
+TASK-00178,SEG-015,Agra,S&T,Signal Inspection,7.66,6.65,2024-12-15,2024-12-15,0,0,0
+TASK-00179,SEG-015,Agra,S&T,Signal Inspection,6.99,10.81,2024-10-29,2024-10-29,0,0,1
+TASK-00180,SEG-015,Agra,S&T,Relay Maintenance,3.69,3.1,2025-11-08,2025-11-08,0,0,0
+TASK-00181,SEG-015,Agra,S&T,Point Machine Service,6.9,7.19,2024-07-04,2024-07-04,0,0,0
+TASK-00182,SEG-015,Agra,S&T,Cable Inspection,4.17,3.63,2024-02-14,2024-02-14,0,0,0
+TASK-00183,SEG-016,Delhi,S&T,Relay Maintenance,4.97,5.18,2024-08-27,2024-08-27,0,0,0
+TASK-00184,SEG-016,Delhi,S&T,Point Machine Service,5.91,5.51,2025-01-11,2025-01-11,0,0,0
+TASK-00185,SEG-016,Delhi,S&T,Relay Maintenance,4.93,5.15,2025-05-29,2025-05-29,0,0,0
+TASK-00186,SEG-016,Delhi,S&T,Signal Inspection,1.84,1.68,2024-09-13,2024-09-13,0,0,0
+TASK-00187,SEG-016,Delhi,S&T,Point Machine Service,2.05,2.87,2024-10-18,2024-10-18,0,0,1
+TASK-00188,SEG-016,Delhi,S&T,Signal Inspection,7.65,7.16,2024-04-03,2024-04-03,0,0,0
+TASK-00189,SEG-016,Delhi,S&T,Cable Inspection,1.85,1.61,2025-02-28,2025-02-28,0,0,0
+TASK-00190,SEG-016,Delhi,S&T,Relay Maintenance,1.68,1.77,2024-08-17,2024-08-17,0,0,0
+TASK-00191,SEG-016,Delhi,S&T,Point Machine Service,1.75,1.65,2024-05-20,2024-05-20,0,0,0
+TASK-00192,SEG-016,Delhi,S&T,Relay Maintenance,5.5,4.43,2025-04-04,2025-04-04,0,0,0
+TASK-00193,SEG-016,Delhi,S&T,Relay Maintenance,7.61,7.05,2025-07-15,2025-07-15,0,0,0
+TASK-00194,SEG-016,Delhi,S&T,Signal Inspection,2.29,2.27,2024-11-04,2024-11-04,0,0,0
+TASK-00195,SEG-016,Delhi,S&T,Relay Maintenance,6.94,6.67,2024-04-23,2024-04-23,0,0,0
+TASK-00196,SEG-017,Agra,Electrical,OHE Inspection,4.29,3.74,2024-10-25,2024-10-25,0,0,0
+TASK-00197,SEG-017,Agra,Electrical,OHE Inspection,7.84,11.26,2025-06-20,2025-06-20,0,0,1
+TASK-00198,SEG-017,Agra,Electrical,OHE Inspection,7.18,9.87,2025-02-03,2025-02-03,0,0,1
+TASK-00199,SEG-017,Agra,Electrical,Isolator Service,6.63,6.76,2024-12-31,2024-12-31,0,0,0
+TASK-00200,SEG-017,Agra,Electrical,Mast Inspection,1.79,1.87,2024-05-16,2024-05-16,0,0,0
+TASK-00201,SEG-017,Agra,Electrical,Mast Inspection,5.61,4.59,2025-05-05,2025-05-05,0,0,0
+TASK-00202,SEG-017,Agra,Electrical,Isolator Service,3.41,4.4,2024-02-07,2024-03-08,1,30,1
+TASK-00203,SEG-017,Agra,Electrical,Contact Wire Maintenance,4.09,3.85,2025-06-11,2025-07-02,1,21,0
+TASK-00204,SEG-017,Agra,Electrical,OHE Inspection,3.82,4.05,2024-10-19,2024-10-19,0,0,0
+TASK-00205,SEG-017,Agra,Electrical,Isolator Service,4.34,4.04,2025-01-11,2025-01-11,0,0,0
+TASK-00206,SEG-017,Agra,Electrical,OHE Inspection,4.73,5.1,2024-07-10,2024-07-10,0,0,0
+TASK-00207,SEG-018,Delhi,Electrical,OHE Inspection,4.3,3.67,2024-03-21,2024-03-21,0,0,0
+TASK-00208,SEG-018,Delhi,Electrical,Contact Wire Maintenance,3.63,3.39,2024-03-22,2024-03-22,0,0,0
+TASK-00209,SEG-018,Delhi,Electrical,Mast Inspection,3.79,6.03,2025-03-30,2025-03-30,0,0,1
+TASK-00210,SEG-018,Delhi,Electrical,Mast Inspection,5.66,4.63,2024-10-08,2024-10-08,0,0,0
+TASK-00211,SEG-018,Delhi,Electrical,Mast Inspection,4.84,4.1,2025-01-07,2025-02-04,1,28,0
+TASK-00212,SEG-018,Delhi,Electrical,OHE Inspection,2.32,2.31,2024-02-05,2024-02-05,0,0,0
+TASK-00213,SEG-018,Delhi,Electrical,OHE Inspection,2.5,2.28,2025-09-11,2025-09-11,0,0,0
+TASK-00214,SEG-018,Delhi,Electrical,OHE Inspection,2.4,2.15,2025-08-10,2025-08-10,0,0,0
+TASK-00215,SEG-018,Delhi,Electrical,Isolator Service,6.28,5.75,2024-01-27,2024-01-27,0,0,0
+TASK-00216,SEG-018,Delhi,Electrical,Mast Inspection,6.08,5.98,2024-09-23,2024-09-23,0,0,0
+TASK-00217,SEG-018,Delhi,Electrical,Mast Inspection,2.3,2.15,2024-07-23,2024-07-23,0,0,0
+TASK-00218,SEG-018,Delhi,Electrical,OHE Inspection,6.77,7.42,2024-03-30,2024-03-30,0,0,0
+TASK-00219,SEG-018,Delhi,Electrical,Contact Wire Maintenance,5.02,5.3,2025-07-17,2025-07-17,0,0,0
+TASK-00220,SEG-019,Agra,Engineering,Drainage Cleaning,2.96,3.07,2025-06-04,2025-06-04,0,0,0
+TASK-00221,SEG-019,Agra,Engineering,Rail Grinding,3.85,3.62,2024-01-27,2024-01-27,0,0,0
+TASK-00222,SEG-019,Agra,Engineering,Drainage Cleaning,7.25,10.0,2025-09-18,2025-09-18,0,0,1
+TASK-00223,SEG-019,Agra,Engineering,Track Inspection,4.17,4.06,2025-06-22,2025-06-22,0,0,0
+TASK-00224,SEG-019,Agra,Engineering,Rail Grinding,1.98,1.89,2025-10-19,2025-10-19,0,0,0
+TASK-00225,SEG-019,Agra,Engineering,Rail Grinding,4.31,3.52,2024-05-12,2024-05-12,0,0,0
+TASK-00226,SEG-019,Agra,Engineering,Track Inspection,2.57,2.6,2024-11-07,2024-11-07,0,0,0
+TASK-00227,SEG-019,Agra,Engineering,Track Inspection,3.13,3.02,2024-03-21,2024-03-21,0,0,0
+TASK-00228,SEG-019,Agra,Engineering,Rail Grinding,4.97,4.23,2025-09-21,2025-09-21,0,0,0
+TASK-00229,SEG-019,Agra,Engineering,Tamping,5.78,5.67,2024-06-24,2024-06-24,0,0,0
+TASK-00230,SEG-019,Agra,Engineering,Rail Grinding,2.03,2.09,2024-01-30,2024-01-30,0,0,0
+TASK-00231,SEG-019,Agra,Engineering,Track Inspection,4.21,4.0,2025-08-08,2025-08-08,0,0,0
+TASK-00232,SEG-020,Delhi,Engineering,Tamping,3.09,2.85,2025-05-09,2025-05-09,0,0,0
+TASK-00233,SEG-020,Delhi,Engineering,Track Inspection,4.36,3.75,2024-06-10,2024-06-10,0,0,0
+TASK-00234,SEG-020,Delhi,Engineering,Tamping,6.27,6.85,2024-11-22,2024-12-04,1,12,0
+TASK-00235,SEG-020,Delhi,Engineering,Track Inspection,3.07,4.31,2024-11-22,2024-11-24,1,2,1
+TASK-00236,SEG-020,Delhi,Engineering,Track Inspection,7.12,7.75,2025-01-28,2025-01-28,0,0,0
+TASK-00237,SEG-020,Delhi,Engineering,Drainage Cleaning,6.19,7.87,2025-08-14,2025-08-14,0,0,1
+TASK-00238,SEG-020,Delhi,Engineering,Drainage Cleaning,7.21,5.96,2025-05-25,2025-05-25,0,0,0
+TASK-00239,SEG-020,Delhi,Engineering,Drainage Cleaning,2.9,2.36,2024-09-03,2024-09-03,0,0,0
+TASK-00240,SEG-020,Delhi,Engineering,Track Inspection,4.99,4.64,2024-10-19,2024-10-19,0,0,0
+TASK-00241,SEG-020,Delhi,Engineering,Track Inspection,3.88,3.77,2025-02-16,2025-02-16,0,0,0
+TASK-00242,SEG-020,Delhi,Engineering,Tamping,4.01,3.87,2024-03-16,2024-03-16,0,0,0
+TASK-00243,SEG-020,Delhi,Engineering,Track Inspection,7.84,8.14,2024-05-11,2024-05-11,0,0,0
+TASK-00244,SEG-021,Agra,S&T,Cable Inspection,5.42,4.4,2024-07-22,2024-08-14,1,23,0
+TASK-00245,SEG-021,Agra,S&T,Cable Inspection,4.88,7.82,2025-04-30,2025-04-30,0,0,1
+TASK-00246,SEG-021,Agra,S&T,Point Machine Service,4.05,4.26,2024-06-15,2024-06-15,0,0,0
+TASK-00247,SEG-021,Agra,S&T,Point Machine Service,3.45,3.14,2025-07-30,2025-07-30,0,0,0
+TASK-00248,SEG-021,Agra,S&T,Point Machine Service,3.5,3.72,2025-08-20,2025-08-20,0,0,0
+TASK-00249,SEG-021,Agra,S&T,Signal Inspection,7.79,8.05,2024-09-28,2024-09-28,0,0,0
+TASK-00250,SEG-021,Agra,S&T,Point Machine Service,4.62,4.7,2025-08-20,2025-08-20,0,0,0
+TASK-00251,SEG-021,Agra,S&T,Relay Maintenance,6.84,6.65,2024-05-31,2024-05-31,0,0,0
+TASK-00252,SEG-021,Agra,S&T,Point Machine Service,4.37,4.04,2024-01-20,2024-01-20,0,0,0
+TASK-00253,SEG-021,Agra,S&T,Point Machine Service,6.09,5.9,2024-03-04,2024-03-04,0,0,0
+TASK-00254,SEG-021,Agra,S&T,Cable Inspection,3.95,3.7,2025-06-22,2025-06-22,0,0,0
+TASK-00255,SEG-022,Delhi,S&T,Cable Inspection,4.65,4.11,2025-09-16,2025-09-16,0,0,0
+TASK-00256,SEG-022,Delhi,S&T,Cable Inspection,6.08,5.76,2024-10-22,2024-10-22,0,0,0
+TASK-00257,SEG-022,Delhi,S&T,Cable Inspection,2.29,2.09,2024-10-21,2024-10-21,0,0,0
+TASK-00258,SEG-022,Delhi,S&T,Point Machine Service,3.39,3.44,2024-05-29,2024-05-29,0,0,0
+TASK-00259,SEG-022,Delhi,S&T,Cable Inspection,3.17,2.73,2025-11-02,2025-11-02,0,0,0
+TASK-00260,SEG-022,Delhi,S&T,Relay Maintenance,2.21,1.93,2024-05-20,2024-06-18,1,29,0
+TASK-00261,SEG-022,Delhi,S&T,Relay Maintenance,3.01,4.06,2025-10-15,2025-10-15,0,0,1
+TASK-00262,SEG-022,Delhi,S&T,Point Machine Service,7.77,6.58,2024-01-06,2024-01-06,0,0,0
+TASK-00263,SEG-022,Delhi,S&T,Signal Inspection,5.73,5.08,2025-05-03,2025-05-03,0,0,0
+TASK-00264,SEG-022,Delhi,S&T,Signal Inspection,5.74,5.86,2024-04-01,2024-04-01,0,0,0
+TASK-00265,SEG-022,Delhi,S&T,Point Machine Service,4.22,4.56,2024-06-28,2024-07-25,1,27,0
+TASK-00266,SEG-022,Delhi,S&T,Signal Inspection,2.71,2.88,2025-05-22,2025-05-22,0,0,0
+TASK-00267,SEG-023,Agra,Electrical,Mast Inspection,5.19,8.52,2024-11-01,2024-11-01,0,0,1
+TASK-00268,SEG-023,Agra,Electrical,Contact Wire Maintenance,7.03,6.03,2024-05-17,2024-05-17,0,0,0
+TASK-00269,SEG-023,Agra,Electrical,Isolator Service,5.71,4.59,2025-04-14,2025-04-14,0,0,0
+TASK-00270,SEG-023,Agra,Electrical,Mast Inspection,5.88,8.67,2025-08-04,2025-08-04,0,0,1
+TASK-00271,SEG-023,Agra,Electrical,Contact Wire Maintenance,4.85,7.28,2025-03-13,2025-03-13,0,0,1
+TASK-00272,SEG-023,Agra,Electrical,Isolator Service,3.6,3.16,2025-05-03,2025-05-03,0,0,0
+TASK-00273,SEG-023,Agra,Electrical,Contact Wire Maintenance,3.46,2.78,2024-12-03,2024-12-03,0,0,0
+TASK-00274,SEG-023,Agra,Electrical,Isolator Service,5.84,4.95,2024-03-04,2024-03-04,0,0,0
+TASK-00275,SEG-023,Agra,Electrical,Contact Wire Maintenance,5.65,5.14,2024-04-30,2024-04-30,0,0,0
+TASK-00276,SEG-023,Agra,Electrical,Mast Inspection,2.5,2.45,2025-05-04,2025-05-04,0,0,0
+TASK-00277,SEG-024,Delhi,Electrical,OHE Inspection,6.87,6.9,2025-11-11,2025-11-11,0,0,0
+TASK-00278,SEG-024,Delhi,Electrical,OHE Inspection,4.4,3.62,2025-06-22,2025-06-22,0,0,0
+TASK-00279,SEG-024,Delhi,Electrical,Mast Inspection,7.37,7.08,2025-07-14,2025-07-14,0,0,0
+TASK-00280,SEG-024,Delhi,Electrical,Mast Inspection,5.92,5.6,2024-04-29,2024-04-29,0,0,0
+TASK-00281,SEG-024,Delhi,Electrical,Isolator Service,4.45,4.17,2024-02-26,2024-03-12,1,15,0
+TASK-00282,SEG-024,Delhi,Electrical,OHE Inspection,4.07,4.17,2024-01-23,2024-01-23,0,0,0
+TASK-00283,SEG-024,Delhi,Electrical,OHE Inspection,3.74,6.16,2025-03-09,2025-03-09,0,0,1
+TASK-00284,SEG-024,Delhi,Electrical,Mast Inspection,1.71,1.76,2025-04-28,2025-04-28,0,0,0
+TASK-00285,SEG-024,Delhi,Electrical,Mast Inspection,7.95,8.43,2025-01-18,2025-01-18,0,0,0
+TASK-00286,SEG-024,Delhi,Electrical,Isolator Service,5.94,5.71,2024-03-23,2024-03-23,0,0,0
+TASK-00287,SEG-024,Delhi,Electrical,Contact Wire Maintenance,2.66,2.55,2024-05-01,2024-05-01,0,0,0
+TASK-00288,SEG-024,Delhi,Electrical,Mast Inspection,6.42,6.03,2024-01-04,2024-01-04,0,0,0
+TASK-00289,SEG-024,Delhi,Electrical,Contact Wire Maintenance,3.97,3.72,2025-06-28,2025-06-28,0,0,0
+TASK-00290,SEG-024,Delhi,Electrical,OHE Inspection,1.71,1.68,2024-04-25,2024-04-25,0,0,0
+TASK-00291,SEG-025,Agra,Engineering,Tamping,1.94,1.81,2024-07-30,2024-07-30,0,0,0
+TASK-00292,SEG-025,Agra,Engineering,Tamping,6.31,5.49,2024-09-07,2024-09-07,0,0,0
+TASK-00293,SEG-025,Agra,Engineering,Track Inspection,4.78,4.99,2024-05-23,2024-05-23,0,0,0
+TASK-00294,SEG-025,Agra,Engineering,Rail Grinding,5.39,4.83,2025-08-14,2025-08-14,0,0,0
+TASK-00295,SEG-025,Agra,Engineering,Rail Grinding,4.89,4.32,2025-11-07,2025-11-07,0,0,0
+TASK-00296,SEG-025,Agra,Engineering,Drainage Cleaning,5.91,4.81,2025-10-03,2025-10-03,0,0,0
+TASK-00297,SEG-025,Agra,Engineering,Drainage Cleaning,3.57,3.02,2025-06-21,2025-06-21,0,0,0
+TASK-00298,SEG-025,Agra,Engineering,Tamping,7.02,7.11,2024-09-03,2024-09-03,0,0,0
+TASK-00299,SEG-025,Agra,Engineering,Track Inspection,4.18,4.01,2025-07-29,2025-07-29,0,0,0
+TASK-00300,SEG-025,Agra,Engineering,Rail Grinding,3.65,5.12,2024-07-27,2024-07-27,0,0,1
+TASK-00301,SEG-025,Agra,Engineering,Rail Grinding,3.25,3.19,2024-02-22,2024-02-22,0,0,0
+TASK-00302,SEG-026,Delhi,Engineering,Tamping,5.13,5.44,2025-11-18,2025-11-18,0,0,0
+TASK-00303,SEG-026,Delhi,Engineering,Drainage Cleaning,7.59,6.34,2024-08-04,2024-08-04,0,0,0
+TASK-00304,SEG-026,Delhi,Engineering,Track Inspection,6.02,5.53,2024-09-05,2024-09-05,0,0,0
+TASK-00305,SEG-026,Delhi,Engineering,Drainage Cleaning,3.97,3.6,2024-10-16,2024-10-16,0,0,0
+TASK-00306,SEG-026,Delhi,Engineering,Rail Grinding,2.14,2.01,2025-04-22,2025-04-22,0,0,0
+TASK-00307,SEG-026,Delhi,Engineering,Tamping,3.53,5.61,2025-01-14,2025-01-14,0,0,1
+TASK-00308,SEG-026,Delhi,Engineering,Rail Grinding,5.1,5.18,2024-09-24,2024-09-24,0,0,0
+TASK-00309,SEG-026,Delhi,Engineering,Track Inspection,3.0,2.62,2024-12-03,2024-12-03,0,0,0
+TASK-00310,SEG-026,Delhi,Engineering,Drainage Cleaning,6.46,6.57,2024-09-20,2024-09-20,0,0,0
+TASK-00311,SEG-026,Delhi,Engineering,Rail Grinding,6.26,5.27,2024-06-21,2024-06-21,0,0,0
+TASK-00312,SEG-026,Delhi,Engineering,Tamping,7.94,7.6,2025-07-09,2025-07-09,0,0,0
+TASK-00313,SEG-026,Delhi,Engineering,Tamping,1.82,2.3,2025-11-15,2025-11-15,0,0,1
+TASK-00314,SEG-026,Delhi,Engineering,Drainage Cleaning,1.56,1.42,2024-06-03,2024-06-03,0,0,0
+TASK-00315,SEG-026,Delhi,Engineering,Track Inspection,4.67,6.76,2025-11-06,2025-11-23,1,17,1
+TASK-00316,SEG-027,Agra,S&T,Relay Maintenance,1.61,1.61,2024-10-20,2024-10-20,0,0,0
+TASK-00317,SEG-027,Agra,S&T,Cable Inspection,7.47,6.52,2024-04-19,2024-04-19,0,0,0
+TASK-00318,SEG-027,Agra,S&T,Relay Maintenance,3.24,2.95,2024-12-28,2024-12-28,0,0,0
+TASK-00319,SEG-027,Agra,S&T,Signal Inspection,3.45,2.84,2024-08-19,2024-08-19,0,0,0
+TASK-00320,SEG-027,Agra,S&T,Relay Maintenance,4.13,3.89,2024-04-05,2024-04-05,0,0,0
+TASK-00321,SEG-027,Agra,S&T,Signal Inspection,4.75,4.92,2024-03-25,2024-03-25,0,0,0
+TASK-00322,SEG-027,Agra,S&T,Point Machine Service,7.47,8.0,2025-06-24,2025-06-24,0,0,0
+TASK-00323,SEG-027,Agra,S&T,Signal Inspection,1.8,2.91,2024-10-04,2024-10-04,0,0,1
+TASK-00324,SEG-027,Agra,S&T,Point Machine Service,7.54,8.21,2024-07-02,2024-07-02,0,0,0
+TASK-00325,SEG-027,Agra,S&T,Cable Inspection,3.45,3.35,2024-03-19,2024-03-19,0,0,0
+TASK-00326,SEG-027,Agra,S&T,Cable Inspection,6.41,10.54,2025-01-28,2025-01-28,0,0,1
+TASK-00327,SEG-027,Agra,S&T,Point Machine Service,2.13,1.75,2024-02-24,2024-02-24,0,0,0
+TASK-00328,SEG-027,Agra,S&T,Cable Inspection,1.69,1.86,2024-11-30,2024-11-30,0,0,0
+TASK-00329,SEG-027,Agra,S&T,Signal Inspection,7.62,7.65,2025-07-20,2025-07-20,0,0,0
+TASK-00330,SEG-028,Delhi,S&T,Relay Maintenance,6.69,5.52,2024-10-29,2024-11-21,1,23,0
+TASK-00331,SEG-028,Delhi,S&T,Cable Inspection,3.56,4.28,2025-02-02,2025-02-02,0,0,1
+TASK-00332,SEG-028,Delhi,S&T,Point Machine Service,2.16,3.01,2024-10-03,2024-10-03,0,0,1
+TASK-00333,SEG-028,Delhi,S&T,Cable Inspection,1.67,1.38,2024-04-15,2024-04-15,0,0,0
+TASK-00334,SEG-028,Delhi,S&T,Relay Maintenance,1.58,1.63,2025-01-29,2025-01-29,0,0,0
+TASK-00335,SEG-028,Delhi,S&T,Cable Inspection,4.89,4.16,2025-08-08,2025-08-08,0,0,0
+TASK-00336,SEG-028,Delhi,S&T,Signal Inspection,2.45,3.24,2025-05-19,2025-05-19,0,0,1
+TASK-00337,SEG-028,Delhi,S&T,Relay Maintenance,3.14,3.1,2025-01-04,2025-01-04,0,0,0
+TASK-00338,SEG-028,Delhi,S&T,Point Machine Service,2.2,2.39,2025-04-13,2025-04-13,0,0,0
+TASK-00339,SEG-028,Delhi,S&T,Relay Maintenance,4.36,4.57,2024-12-03,2024-12-03,0,0,0
+TASK-00340,SEG-028,Delhi,S&T,Point Machine Service,3.58,3.08,2024-11-03,2024-11-03,0,0,0
+TASK-00341,SEG-028,Delhi,S&T,Relay Maintenance,3.39,3.21,2024-11-22,2024-11-22,0,0,0
+TASK-00342,SEG-028,Delhi,S&T,Relay Maintenance,3.94,3.62,2024-11-29,2024-12-18,1,19,0
+TASK-00343,SEG-028,Delhi,S&T,Point Machine Service,7.98,12.33,2025-08-29,2025-09-22,1,24,1
+TASK-00344,SEG-029,Agra,Electrical,Mast Inspection,6.68,5.48,2025-03-24,2025-03-24,0,0,0
+TASK-00345,SEG-029,Agra,Electrical,Mast Inspection,4.75,4.14,2025-11-20,2025-11-20,0,0,0
+TASK-00346,SEG-029,Agra,Electrical,Mast Inspection,1.98,1.87,2025-01-21,2025-01-21,0,0,0
+TASK-00347,SEG-029,Agra,Electrical,OHE Inspection,1.74,1.76,2025-07-10,2025-07-10,0,0,0
+TASK-00348,SEG-029,Agra,Electrical,OHE Inspection,6.5,5.89,2024-04-21,2024-04-21,0,0,0
+TASK-00349,SEG-029,Agra,Electrical,Mast Inspection,7.89,7.26,2025-07-30,2025-07-30,0,0,0
+TASK-00350,SEG-029,Agra,Electrical,Contact Wire Maintenance,1.57,1.5,2024-04-18,2024-04-18,0,0,0
+TASK-00351,SEG-029,Agra,Electrical,Contact Wire Maintenance,3.93,3.95,2025-04-01,2025-04-01,0,0,0
+TASK-00352,SEG-029,Agra,Electrical,OHE Inspection,7.99,7.1,2024-12-19,2024-12-19,0,0,0
+TASK-00353,SEG-029,Agra,Electrical,Contact Wire Maintenance,6.9,6.24,2024-04-28,2024-04-28,0,0,0
+TASK-00354,SEG-029,Agra,Electrical,Isolator Service,4.64,4.32,2025-06-17,2025-06-17,0,0,0
+TASK-00355,SEG-030,Delhi,Electrical,OHE Inspection,1.79,1.44,2024-11-03,2024-11-03,0,0,0
+TASK-00356,SEG-030,Delhi,Electrical,Contact Wire Maintenance,6.7,6.85,2025-11-24,2025-11-24,0,0,0
+TASK-00357,SEG-030,Delhi,Electrical,Contact Wire Maintenance,5.14,4.47,2024-12-04,2024-12-04,0,0,0
+TASK-00358,SEG-030,Delhi,Electrical,Contact Wire Maintenance,5.66,4.58,2024-07-09,2024-07-09,0,0,0
+TASK-00359,SEG-030,Delhi,Electrical,OHE Inspection,5.35,5.41,2025-04-05,2025-04-05,0,0,0
+TASK-00360,SEG-030,Delhi,Electrical,Mast Inspection,2.16,1.85,2025-08-14,2025-08-14,0,0,0
+TASK-00361,SEG-030,Delhi,Electrical,Mast Inspection,3.21,3.08,2024-04-26,2024-04-26,0,0,0
+TASK-00362,SEG-030,Delhi,Electrical,Contact Wire Maintenance,4.05,5.5,2025-09-17,2025-09-17,0,0,1
+TASK-00363,SEG-030,Delhi,Electrical,Contact Wire Maintenance,6.09,5.99,2025-11-20,2025-11-20,0,0,0
+TASK-00364,SEG-030,Delhi,Electrical,Mast Inspection,2.27,1.94,2024-11-16,2024-11-16,0,0,0
+TASK-00365,SEG-031,Agra,Engineering,Rail Grinding,2.4,2.05,2025-09-02,2025-09-02,0,0,0
+TASK-00366,SEG-031,Agra,Engineering,Tamping,2.58,2.21,2025-07-22,2025-07-22,0,0,0
+TASK-00367,SEG-031,Agra,Engineering,Drainage Cleaning,7.69,6.6,2025-01-02,2025-01-02,0,0,0
+TASK-00368,SEG-031,Agra,Engineering,Tamping,5.95,6.26,2025-02-22,2025-02-22,0,0,0
+TASK-00369,SEG-031,Agra,Engineering,Track Inspection,1.7,1.51,2025-08-01,2025-08-01,0,0,0
+TASK-00370,SEG-031,Agra,Engineering,Tamping,6.57,6.78,2024-06-21,2024-06-21,0,0,0
+TASK-00371,SEG-031,Agra,Engineering,Tamping,2.24,2.35,2025-08-09,2025-08-09,0,0,0
+TASK-00372,SEG-031,Agra,Engineering,Rail Grinding,5.05,4.2,2025-03-27,2025-03-27,0,0,0
+TASK-00373,SEG-031,Agra,Engineering,Tamping,7.19,9.48,2024-10-31,2024-10-31,0,0,1
+TASK-00374,SEG-031,Agra,Engineering,Track Inspection,7.12,11.15,2025-03-25,2025-03-25,0,0,1
+TASK-00375,SEG-031,Agra,Engineering,Rail Grinding,5.61,7.08,2025-09-16,2025-09-16,0,0,1
+TASK-00376,SEG-031,Agra,Engineering,Track Inspection,5.21,5.1,2024-03-01,2024-03-24,1,23,0
+TASK-00377,SEG-031,Agra,Engineering,Tamping,5.22,4.98,2024-10-23,2024-10-23,0,0,0
+TASK-00378,SEG-032,Delhi,Engineering,Rail Grinding,7.47,7.92,2025-02-25,2025-03-25,1,28,0
+TASK-00379,SEG-032,Delhi,Engineering,Drainage Cleaning,2.45,2.14,2024-09-12,2024-09-12,0,0,0
+TASK-00380,SEG-032,Delhi,Engineering,Tamping,2.42,2.39,2025-05-16,2025-05-16,0,0,0
+TASK-00381,SEG-032,Delhi,Engineering,Track Inspection,6.66,6.13,2025-10-10,2025-10-10,0,0,0
+TASK-00382,SEG-032,Delhi,Engineering,Tamping,7.68,6.15,2025-04-10,2025-04-10,0,0,0
+TASK-00383,SEG-032,Delhi,Engineering,Drainage Cleaning,5.63,5.94,2025-04-14,2025-04-14,0,0,0
+TASK-00384,SEG-032,Delhi,Engineering,Track Inspection,7.79,7.39,2024-08-11,2024-08-11,0,0,0
+TASK-00385,SEG-032,Delhi,Engineering,Tamping,5.06,8.01,2024-12-11,2024-12-11,0,0,1
+TASK-00386,SEG-032,Delhi,Engineering,Rail Grinding,2.15,2.02,2024-02-17,2024-03-16,1,28,0
+TASK-00387,SEG-032,Delhi,Engineering,Rail Grinding,4.47,4.15,2025-03-27,2025-03-27,0,0,0
+TASK-00388,SEG-032,Delhi,Engineering,Track Inspection,3.46,3.68,2025-10-27,2025-11-08,1,12,0
+TASK-00389,SEG-033,Agra,S&T,Relay Maintenance,5.82,4.75,2025-01-15,2025-01-15,0,0,0
+TASK-00390,SEG-033,Agra,S&T,Relay Maintenance,5.76,4.61,2025-03-15,2025-03-15,0,0,0
+TASK-00391,SEG-033,Agra,S&T,Signal Inspection,2.97,2.38,2025-08-30,2025-08-30,0,0,0
+TASK-00392,SEG-033,Agra,S&T,Signal Inspection,6.01,5.22,2025-03-08,2025-03-08,0,0,0
+TASK-00393,SEG-033,Agra,S&T,Relay Maintenance,3.54,2.98,2024-04-15,2024-04-15,0,0,0
+TASK-00394,SEG-033,Agra,S&T,Relay Maintenance,7.95,11.44,2025-10-18,2025-11-08,1,21,1
+TASK-00395,SEG-033,Agra,S&T,Point Machine Service,3.78,3.87,2025-03-26,2025-03-26,0,0,0
+TASK-00396,SEG-033,Agra,S&T,Point Machine Service,2.06,3.17,2024-08-10,2024-08-10,0,0,1
+TASK-00397,SEG-033,Agra,S&T,Signal Inspection,7.76,6.53,2024-12-25,2024-12-25,0,0,0
+TASK-00398,SEG-033,Agra,S&T,Signal Inspection,5.1,5.01,2024-09-11,2024-09-11,0,0,0
+TASK-00399,SEG-034,Delhi,S&T,Signal Inspection,4.87,4.99,2024-07-29,2024-07-29,0,0,0
+TASK-00400,SEG-034,Delhi,S&T,Signal Inspection,4.72,6.73,2024-09-02,2024-09-02,0,0,1
+TASK-00401,SEG-034,Delhi,S&T,Cable Inspection,7.57,12.02,2025-01-04,2025-01-04,0,0,1
+TASK-00402,SEG-034,Delhi,S&T,Signal Inspection,5.94,6.45,2025-07-13,2025-07-13,0,0,0
+TASK-00403,SEG-034,Delhi,S&T,Point Machine Service,1.94,1.58,2025-08-24,2025-09-19,1,26,0
+TASK-00404,SEG-034,Delhi,S&T,Point Machine Service,3.36,3.46,2025-06-02,2025-06-02,0,0,0
+TASK-00405,SEG-034,Delhi,S&T,Relay Maintenance,5.66,4.79,2024-03-25,2024-03-28,1,3,0
+TASK-00406,SEG-034,Delhi,S&T,Signal Inspection,4.99,4.94,2024-06-08,2024-06-08,0,0,0
+TASK-00407,SEG-034,Delhi,S&T,Point Machine Service,6.04,6.37,2024-11-13,2024-11-16,1,3,0
+TASK-00408,SEG-034,Delhi,S&T,Relay Maintenance,4.45,3.97,2024-04-28,2024-04-28,0,0,0
+TASK-00409,SEG-034,Delhi,S&T,Cable Inspection,1.58,1.9,2024-05-02,2024-05-02,0,0,1
+TASK-00410,SEG-034,Delhi,S&T,Cable Inspection,4.86,4.27,2025-06-19,2025-06-19,0,0,0
+TASK-00411,SEG-035,Agra,Electrical,OHE Inspection,3.68,3.52,2024-01-31,2024-01-31,0,0,0
+TASK-00412,SEG-035,Agra,Electrical,Isolator Service,4.46,4.24,2025-05-23,2025-05-23,0,0,0
+TASK-00413,SEG-035,Agra,Electrical,Contact Wire Maintenance,3.16,4.61,2024-06-10,2024-06-10,0,0,1
+TASK-00414,SEG-035,Agra,Electrical,Mast Inspection,1.52,1.22,2025-06-05,2025-06-17,1,12,0
+TASK-00415,SEG-035,Agra,Electrical,Mast Inspection,2.66,2.16,2024-06-02,2024-06-02,0,0,0
+TASK-00416,SEG-035,Agra,Electrical,OHE Inspection,3.59,3.65,2024-08-17,2024-08-17,0,0,0
+TASK-00417,SEG-035,Agra,Electrical,OHE Inspection,3.92,4.2,2025-08-08,2025-09-03,1,26,0
+TASK-00418,SEG-035,Agra,Electrical,Isolator Service,1.95,1.73,2025-02-14,2025-02-14,0,0,0
+TASK-00419,SEG-035,Agra,Electrical,Isolator Service,5.1,6.58,2024-03-29,2024-03-29,0,0,1
+TASK-00420,SEG-035,Agra,Electrical,Contact Wire Maintenance,3.08,3.36,2025-09-29,2025-09-29,0,0,0
+TASK-00421,SEG-036,Delhi,Electrical,OHE Inspection,2.48,2.0,2024-09-08,2024-09-08,0,0,0
+TASK-00422,SEG-036,Delhi,Electrical,OHE Inspection,1.51,1.59,2024-12-09,2024-12-09,0,0,0
+TASK-00423,SEG-036,Delhi,Electrical,Isolator Service,4.94,4.68,2024-07-29,2024-08-03,1,5,0
+TASK-00424,SEG-036,Delhi,Electrical,Isolator Service,1.79,1.89,2024-04-05,2024-04-05,0,0,0
+TASK-00425,SEG-036,Delhi,Electrical,Mast Inspection,7.83,9.73,2025-04-14,2025-04-14,0,0,1
+TASK-00426,SEG-036,Delhi,Electrical,Isolator Service,5.35,8.01,2024-03-17,2024-03-17,0,0,1
+TASK-00427,SEG-036,Delhi,Electrical,Isolator Service,7.03,6.45,2024-09-24,2024-09-24,0,0,0
+TASK-00428,SEG-036,Delhi,Electrical,OHE Inspection,4.44,4.81,2024-11-21,2024-11-21,0,0,0
+TASK-00429,SEG-036,Delhi,Electrical,Isolator Service,2.19,1.96,2024-06-08,2024-06-08,0,0,0
+TASK-00430,SEG-036,Delhi,Electrical,Isolator Service,4.44,4.69,2024-07-31,2024-07-31,0,0,0
+TASK-00431,SEG-036,Delhi,Electrical,Contact Wire Maintenance,1.76,1.58,2025-09-09,2025-09-09,0,0,0
+TASK-00432,SEG-036,Delhi,Electrical,Contact Wire Maintenance,4.08,5.44,2024-12-30,2024-12-30,0,0,1
+TASK-00433,SEG-036,Delhi,Electrical,OHE Inspection,7.69,7.43,2024-02-01,2024-02-01,0,0,0
+TASK-00434,SEG-036,Delhi,Electrical,Contact Wire Maintenance,2.16,1.81,2025-04-18,2025-05-13,1,25,0
+TASK-00435,SEG-037,Agra,Engineering,Track Inspection,6.85,6.78,2024-07-21,2024-07-21,0,0,0
+TASK-00436,SEG-037,Agra,Engineering,Rail Grinding,1.64,2.63,2024-03-17,2024-03-17,0,0,1
+TASK-00437,SEG-037,Agra,Engineering,Tamping,7.38,6.64,2024-04-04,2024-04-19,1,15,0
+TASK-00438,SEG-037,Agra,Engineering,Drainage Cleaning,7.51,7.64,2024-06-21,2024-06-21,0,0,0
+TASK-00439,SEG-037,Agra,Engineering,Drainage Cleaning,4.27,4.58,2025-11-30,2025-11-30,0,0,0
+TASK-00440,SEG-037,Agra,Engineering,Drainage Cleaning,1.73,1.51,2024-06-01,2024-06-01,0,0,0
+TASK-00441,SEG-037,Agra,Engineering,Rail Grinding,4.61,6.33,2025-07-17,2025-07-17,0,0,1
+TASK-00442,SEG-037,Agra,Engineering,Track Inspection,7.96,6.41,2025-10-07,2025-10-07,0,0,0
+TASK-00443,SEG-037,Agra,Engineering,Drainage Cleaning,5.04,5.41,2025-05-06,2025-05-06,0,0,0
+TASK-00444,SEG-037,Agra,Engineering,Track Inspection,2.67,2.31,2024-10-03,2024-10-03,0,0,0
+TASK-00445,SEG-037,Agra,Engineering,Rail Grinding,6.76,6.13,2024-02-29,2024-02-29,0,0,0
+TASK-00446,SEG-038,Delhi,Engineering,Tamping,3.11,2.99,2024-04-12,2024-04-12,0,0,0
+TASK-00447,SEG-038,Delhi,Engineering,Rail Grinding,5.24,4.8,2024-08-12,2024-08-12,0,0,0
+TASK-00448,SEG-038,Delhi,Engineering,Tamping,3.04,3.11,2024-06-29,2024-06-29,0,0,0
+TASK-00449,SEG-038,Delhi,Engineering,Drainage Cleaning,7.66,7.42,2024-12-26,2024-12-26,0,0,0
+TASK-00450,SEG-038,Delhi,Engineering,Rail Grinding,3.51,2.9,2025-07-09,2025-07-09,0,0,0
+TASK-00451,SEG-038,Delhi,Engineering,Rail Grinding,4.92,7.94,2024-01-21,2024-01-21,0,0,1
+TASK-00452,SEG-038,Delhi,Engineering,Tamping,6.16,6.49,2024-12-14,2024-12-14,0,0,0
+TASK-00453,SEG-038,Delhi,Engineering,Track Inspection,5.31,5.48,2024-05-31,2024-05-31,0,0,0
+TASK-00454,SEG-038,Delhi,Engineering,Track Inspection,3.93,3.61,2024-03-15,2024-03-25,1,10,0
+TASK-00455,SEG-038,Delhi,Engineering,Drainage Cleaning,7.84,7.3,2024-05-19,2024-05-19,0,0,0
+TASK-00456,SEG-038,Delhi,Engineering,Track Inspection,3.56,3.45,2025-10-26,2025-10-26,0,0,0
+TASK-00457,SEG-039,Agra,S&T,Relay Maintenance,5.33,7.13,2025-11-12,2025-11-12,0,0,1
+TASK-00458,SEG-039,Agra,S&T,Signal Inspection,6.24,6.77,2024-06-30,2024-06-30,0,0,0
+TASK-00459,SEG-039,Agra,S&T,Signal Inspection,5.42,5.91,2024-07-05,2024-07-05,0,0,0
+TASK-00460,SEG-039,Agra,S&T,Relay Maintenance,2.41,2.1,2025-05-23,2025-05-23,0,0,0
+TASK-00461,SEG-039,Agra,S&T,Cable Inspection,7.25,11.01,2025-10-13,2025-10-13,0,0,1
+TASK-00462,SEG-039,Agra,S&T,Signal Inspection,1.57,1.58,2025-04-02,2025-04-02,0,0,0
+TASK-00463,SEG-039,Agra,S&T,Point Machine Service,1.81,1.68,2024-01-02,2024-01-16,1,14,0
+TASK-00464,SEG-039,Agra,S&T,Relay Maintenance,3.78,3.96,2025-01-22,2025-01-22,0,0,0
+TASK-00465,SEG-039,Agra,S&T,Signal Inspection,4.43,3.59,2024-06-15,2024-06-24,1,9,0
+TASK-00466,SEG-039,Agra,S&T,Signal Inspection,3.72,3.16,2024-03-16,2024-04-14,1,29,0
+TASK-00467,SEG-039,Agra,S&T,Relay Maintenance,5.36,5.06,2024-12-12,2025-01-02,1,21,0
+TASK-00468,SEG-040,Delhi,S&T,Cable Inspection,2.52,3.26,2025-03-20,2025-03-20,0,0,1
+TASK-00469,SEG-040,Delhi,S&T,Point Machine Service,3.33,2.71,2025-11-07,2025-11-07,0,0,0
+TASK-00470,SEG-040,Delhi,S&T,Point Machine Service,1.85,2.29,2024-06-06,2024-06-06,0,0,1
+TASK-00471,SEG-040,Delhi,S&T,Point Machine Service,2.13,2.11,2024-07-23,2024-07-23,0,0,0
+TASK-00472,SEG-040,Delhi,S&T,Signal Inspection,3.5,3.31,2024-04-28,2024-04-28,0,0,0
+TASK-00473,SEG-040,Delhi,S&T,Point Machine Service,5.04,8.06,2025-10-19,2025-10-19,0,0,1
+TASK-00474,SEG-040,Delhi,S&T,Signal Inspection,3.21,2.79,2024-02-15,2024-02-15,0,0,0
+TASK-00475,SEG-040,Delhi,S&T,Point Machine Service,6.39,5.28,2024-06-03,2024-06-03,0,0,0
+TASK-00476,SEG-040,Delhi,S&T,Point Machine Service,2.98,4.1,2025-08-26,2025-08-26,0,0,1
+TASK-00477,SEG-040,Delhi,S&T,Signal Inspection,7.23,5.96,2025-08-09,2025-08-09,0,0,0
+TASK-00478,SEG-040,Delhi,S&T,Relay Maintenance,5.21,5.06,2025-05-29,2025-05-29,0,0,0
+TASK-00479,SEG-040,Delhi,S&T,Relay Maintenance,7.67,8.32,2024-05-03,2024-05-03,0,0,0
+TASK-00480,SEG-040,Delhi,S&T,Relay Maintenance,2.32,2.54,2024-07-16,2024-07-16,0,0,0
+TASK-00481,SEG-040,Delhi,S&T,Point Machine Service,3.18,3.42,2025-09-01,2025-09-14,1,13,0
+TASK-00482,SEG-041,Agra,Electrical,Mast Inspection,7.07,7.6,2024-11-29,2024-12-22,1,23,0
+TASK-00483,SEG-041,Agra,Electrical,OHE Inspection,4.19,6.14,2024-04-25,2024-04-25,0,0,1
+TASK-00484,SEG-041,Agra,Electrical,Isolator Service,5.16,6.86,2024-04-18,2024-04-18,0,0,1
+TASK-00485,SEG-041,Agra,Electrical,Contact Wire Maintenance,3.22,3.13,2025-02-24,2025-02-24,0,0,0
+TASK-00486,SEG-041,Agra,Electrical,Mast Inspection,4.12,4.14,2024-10-09,2024-10-09,0,0,0
+TASK-00487,SEG-041,Agra,Electrical,Isolator Service,5.99,8.47,2024-12-05,2024-12-05,0,0,1
+TASK-00488,SEG-041,Agra,Electrical,OHE Inspection,3.7,3.31,2024-01-21,2024-01-21,0,0,0
+TASK-00489,SEG-041,Agra,Electrical,Isolator Service,2.37,2.21,2024-08-21,2024-08-21,0,0,0
+TASK-00490,SEG-041,Agra,Electrical,Mast Inspection,5.43,7.6,2025-03-02,2025-03-02,0,0,1
+TASK-00491,SEG-041,Agra,Electrical,Contact Wire Maintenance,6.44,6.74,2025-05-11,2025-05-11,0,0,0
+TASK-00492,SEG-041,Agra,Electrical,OHE Inspection,3.52,2.96,2024-03-08,2024-03-08,0,0,0
+TASK-00493,SEG-041,Agra,Electrical,Mast Inspection,2.75,2.89,2024-06-26,2024-06-26,0,0,0
+TASK-00494,SEG-041,Agra,Electrical,Mast Inspection,7.47,6.59,2024-02-21,2024-02-21,0,0,0
+TASK-00495,SEG-041,Agra,Electrical,Mast Inspection,7.5,6.54,2025-10-12,2025-10-12,0,0,0
+TASK-00496,SEG-042,Delhi,Electrical,OHE Inspection,5.31,4.51,2025-04-30,2025-04-30,0,0,0
+TASK-00497,SEG-042,Delhi,Electrical,Contact Wire Maintenance,1.68,2.66,2024-10-18,2024-10-18,0,0,1
+TASK-00498,SEG-042,Delhi,Electrical,OHE Inspection,5.71,5.03,2024-08-14,2024-08-14,0,0,0
+TASK-00499,SEG-042,Delhi,Electrical,OHE Inspection,1.56,1.55,2025-11-29,2025-11-29,0,0,0
+TASK-00500,SEG-042,Delhi,Electrical,Isolator Service,3.14,2.8,2024-08-17,2024-08-17,0,0,0
+TASK-00501,SEG-042,Delhi,Electrical,Isolator Service,7.32,6.86,2025-03-09,2025-03-09,0,0,0
+TASK-00502,SEG-042,Delhi,Electrical,Isolator Service,4.88,4.76,2025-11-24,2025-12-16,1,22,0
+TASK-00503,SEG-042,Delhi,Electrical,OHE Inspection,5.71,5.08,2025-07-28,2025-07-28,0,0,0
+TASK-00504,SEG-042,Delhi,Electrical,Isolator Service,7.92,8.38,2024-12-10,2024-12-10,0,0,0
+TASK-00505,SEG-042,Delhi,Electrical,Mast Inspection,2.47,2.64,2024-07-11,2024-07-11,0,0,0
+TASK-00506,SEG-042,Delhi,Electrical,Isolator Service,3.58,4.34,2025-11-07,2025-11-07,0,0,1
+TASK-00507,SEG-043,Agra,Engineering,Rail Grinding,4.13,4.03,2025-03-04,2025-03-04,0,0,0
+TASK-00508,SEG-043,Agra,Engineering,Track Inspection,6.22,5.97,2024-12-17,2024-12-17,0,0,0
+TASK-00509,SEG-043,Agra,Engineering,Track Inspection,3.45,5.16,2025-06-03,2025-06-03,0,0,1
+TASK-00510,SEG-043,Agra,Engineering,Rail Grinding,4.56,4.64,2024-04-09,2024-04-09,0,0,0
+TASK-00511,SEG-043,Agra,Engineering,Track Inspection,7.35,6.37,2025-11-27,2025-11-27,0,0,0
+TASK-00512,SEG-043,Agra,Engineering,Tamping,6.62,5.81,2025-03-06,2025-03-06,0,0,0
+TASK-00513,SEG-043,Agra,Engineering,Drainage Cleaning,1.85,1.8,2025-04-26,2025-04-26,0,0,0
+TASK-00514,SEG-043,Agra,Engineering,Tamping,4.75,4.34,2024-07-18,2024-07-18,0,0,0
+TASK-00515,SEG-043,Agra,Engineering,Drainage Cleaning,2.39,2.21,2024-06-03,2024-06-03,0,0,0
+TASK-00516,SEG-043,Agra,Engineering,Rail Grinding,3.56,3.68,2024-05-26,2024-05-26,0,0,0
+TASK-00517,SEG-043,Agra,Engineering,Rail Grinding,5.62,7.44,2024-11-16,2024-11-16,0,0,1
+TASK-00518,SEG-043,Agra,Engineering,Drainage Cleaning,6.47,6.66,2025-08-13,2025-09-02,1,20,0
+TASK-00519,SEG-044,Delhi,Engineering,Track Inspection,4.29,3.44,2025-02-17,2025-02-17,0,0,0
+TASK-00520,SEG-044,Delhi,Engineering,Rail Grinding,7.3,7.0,2024-01-15,2024-01-16,1,1,0
+TASK-00521,SEG-044,Delhi,Engineering,Track Inspection,6.01,5.04,2024-08-19,2024-08-19,0,0,0
+TASK-00522,SEG-044,Delhi,Engineering,Track Inspection,1.92,3.12,2024-06-20,2024-06-20,0,0,1
+TASK-00523,SEG-044,Delhi,Engineering,Track Inspection,7.27,6.56,2025-03-20,2025-03-20,0,0,0
+TASK-00524,SEG-044,Delhi,Engineering,Rail Grinding,2.57,2.68,2024-07-11,2024-07-19,1,8,0
+TASK-00525,SEG-044,Delhi,Engineering,Tamping,6.27,5.33,2024-08-04,2024-08-04,0,0,0
+TASK-00526,SEG-044,Delhi,Engineering,Tamping,7.2,6.92,2025-01-19,2025-01-21,1,2,0
+TASK-00527,SEG-044,Delhi,Engineering,Tamping,6.93,8.68,2025-10-31,2025-10-31,0,0,1
+TASK-00528,SEG-044,Delhi,Engineering,Tamping,3.14,2.71,2025-07-14,2025-07-14,0,0,0
+TASK-00529,SEG-044,Delhi,Engineering,Rail Grinding,4.24,6.08,2024-11-04,2024-11-04,0,0,1
+TASK-00530,SEG-044,Delhi,Engineering,Tamping,6.9,10.51,2025-03-04,2025-03-04,0,0,1
+TASK-00531,SEG-044,Delhi,Engineering,Rail Grinding,4.74,4.9,2024-04-18,2024-04-18,0,0,0
+TASK-00532,SEG-045,Agra,S&T,Point Machine Service,3.42,4.87,2025-02-23,2025-02-23,0,0,1
+TASK-00533,SEG-045,Agra,S&T,Point Machine Service,3.02,3.74,2024-12-04,2024-12-04,0,0,1
+TASK-00534,SEG-045,Agra,S&T,Cable Inspection,7.67,6.31,2024-06-01,2024-06-01,0,0,0
+TASK-00535,SEG-045,Agra,S&T,Signal Inspection,3.0,2.67,2025-10-21,2025-10-21,0,0,0
+TASK-00536,SEG-045,Agra,S&T,Point Machine Service,7.18,6.52,2024-06-27,2024-06-27,0,0,0
+TASK-00537,SEG-045,Agra,S&T,Relay Maintenance,2.12,1.73,2024-04-28,2024-04-28,0,0,0
+TASK-00538,SEG-045,Agra,S&T,Signal Inspection,3.82,3.77,2024-12-02,2024-12-02,0,0,0
+TASK-00539,SEG-045,Agra,S&T,Cable Inspection,6.8,9.39,2025-01-16,2025-01-16,0,0,1
+TASK-00540,SEG-045,Agra,S&T,Relay Maintenance,5.98,5.54,2025-01-29,2025-01-29,0,0,0
+TASK-00541,SEG-045,Agra,S&T,Signal Inspection,2.36,2.58,2024-04-25,2024-04-25,0,0,0
+TASK-00542,SEG-045,Agra,S&T,Point Machine Service,7.42,7.2,2025-03-02,2025-03-02,0,0,0
+TASK-00543,SEG-045,Agra,S&T,Relay Maintenance,5.47,5.82,2025-01-02,2025-01-02,0,0,0
+TASK-00544,SEG-046,Delhi,S&T,Cable Inspection,2.23,1.81,2025-05-14,2025-05-14,0,0,0
+TASK-00545,SEG-046,Delhi,S&T,Relay Maintenance,6.08,6.26,2024-01-13,2024-01-13,0,0,0
+TASK-00546,SEG-046,Delhi,S&T,Point Machine Service,7.18,7.23,2025-11-16,2025-11-16,0,0,0
+TASK-00547,SEG-046,Delhi,S&T,Relay Maintenance,6.22,6.21,2025-11-08,2025-11-08,0,0,0
+TASK-00548,SEG-046,Delhi,S&T,Point Machine Service,7.3,5.87,2025-07-25,2025-07-25,0,0,0
+TASK-00549,SEG-046,Delhi,S&T,Cable Inspection,7.15,10.16,2025-05-22,2025-05-22,0,0,1
+TASK-00550,SEG-046,Delhi,S&T,Signal Inspection,4.8,4.39,2024-02-21,2024-02-21,0,0,0
+TASK-00551,SEG-046,Delhi,S&T,Cable Inspection,4.39,3.63,2025-04-15,2025-04-15,0,0,0
+TASK-00552,SEG-046,Delhi,S&T,Signal Inspection,7.87,6.34,2024-05-01,2024-05-01,0,0,0
+TASK-00553,SEG-046,Delhi,S&T,Cable Inspection,5.07,5.26,2025-07-24,2025-07-24,0,0,0
+TASK-00554,SEG-046,Delhi,S&T,Signal Inspection,5.16,4.83,2025-06-04,2025-06-04,0,0,0
+TASK-00555,SEG-046,Delhi,S&T,Cable Inspection,6.99,7.2,2024-08-16,2024-08-16,0,0,0
+TASK-00556,SEG-046,Delhi,S&T,Cable Inspection,2.24,1.94,2025-04-08,2025-04-08,0,0,0
+TASK-00557,SEG-047,Agra,Electrical,Mast Inspection,3.93,6.3,2025-06-18,2025-06-18,0,0,1
+TASK-00558,SEG-047,Agra,Electrical,Contact Wire Maintenance,3.15,3.95,2024-04-19,2024-04-19,0,0,1
+TASK-00559,SEG-047,Agra,Electrical,OHE Inspection,6.86,9.28,2025-04-13,2025-04-13,0,0,1
+TASK-00560,SEG-047,Agra,Electrical,Contact Wire Maintenance,6.94,7.16,2025-10-10,2025-10-10,0,0,0
+TASK-00561,SEG-047,Agra,Electrical,Mast Inspection,1.53,1.48,2025-05-25,2025-05-25,0,0,0
+TASK-00562,SEG-047,Agra,Electrical,Contact Wire Maintenance,6.58,6.63,2025-06-04,2025-06-04,0,0,0
+TASK-00563,SEG-047,Agra,Electrical,Mast Inspection,4.02,4.28,2024-04-16,2024-04-16,0,0,0
+TASK-00564,SEG-047,Agra,Electrical,Isolator Service,7.87,8.1,2025-03-04,2025-03-04,0,0,0
+TASK-00565,SEG-047,Agra,Electrical,Isolator Service,4.44,6.15,2024-10-28,2024-10-28,0,0,1
+TASK-00566,SEG-047,Agra,Electrical,Contact Wire Maintenance,7.09,7.66,2025-07-14,2025-07-14,0,0,0
+TASK-00567,SEG-047,Agra,Electrical,Contact Wire Maintenance,5.56,5.02,2024-08-02,2024-08-02,0,0,0
+TASK-00568,SEG-047,Agra,Electrical,Mast Inspection,5.03,5.1,2025-05-30,2025-05-30,0,0,0
+TASK-00569,SEG-047,Agra,Electrical,Isolator Service,5.21,4.82,2025-08-19,2025-08-19,0,0,0
+TASK-00570,SEG-047,Agra,Electrical,OHE Inspection,6.75,5.45,2025-03-08,2025-03-08,0,0,0
+TASK-00571,SEG-048,Delhi,Electrical,OHE Inspection,6.38,8.48,2024-09-30,2024-09-30,0,0,1
+TASK-00572,SEG-048,Delhi,Electrical,Contact Wire Maintenance,2.83,2.57,2024-10-29,2024-10-29,0,0,0
+TASK-00573,SEG-048,Delhi,Electrical,Isolator Service,5.15,5.33,2025-10-24,2025-10-24,0,0,0
+TASK-00574,SEG-048,Delhi,Electrical,Isolator Service,1.81,1.67,2025-11-11,2025-11-11,0,0,0
+TASK-00575,SEG-048,Delhi,Electrical,Mast Inspection,1.85,1.59,2025-07-19,2025-07-19,0,0,0
+TASK-00576,SEG-048,Delhi,Electrical,Contact Wire Maintenance,7.42,7.38,2024-08-18,2024-08-18,0,0,0
+TASK-00577,SEG-048,Delhi,Electrical,Contact Wire Maintenance,3.41,5.14,2024-07-17,2024-07-17,0,0,1
+TASK-00578,SEG-048,Delhi,Electrical,Contact Wire Maintenance,2.28,3.02,2025-06-10,2025-06-10,0,0,1
+TASK-00579,SEG-048,Delhi,Electrical,OHE Inspection,7.0,9.87,2025-08-21,2025-08-21,0,0,1
+TASK-00580,SEG-048,Delhi,Electrical,Isolator Service,7.54,7.78,2024-06-06,2024-06-06,0,0,0
+TASK-00581,SEG-048,Delhi,Electrical,Contact Wire Maintenance,6.63,5.45,2025-05-17,2025-05-17,0,0,0
+TASK-00582,SEG-049,Agra,Engineering,Tamping,1.94,1.79,2025-06-17,2025-06-17,0,0,0
+TASK-00583,SEG-049,Agra,Engineering,Rail Grinding,2.94,2.64,2024-12-23,2024-12-23,0,0,0
+TASK-00584,SEG-049,Agra,Engineering,Tamping,4.95,5.18,2025-09-25,2025-09-25,0,0,0
+TASK-00585,SEG-049,Agra,Engineering,Rail Grinding,5.85,6.27,2024-04-27,2024-04-27,0,0,0
+TASK-00586,SEG-049,Agra,Engineering,Drainage Cleaning,5.94,6.38,2024-02-10,2024-02-10,0,0,0
+TASK-00587,SEG-049,Agra,Engineering,Track Inspection,5.01,5.38,2024-09-19,2024-09-19,0,0,0
+TASK-00588,SEG-049,Agra,Engineering,Rail Grinding,6.72,5.46,2025-06-10,2025-06-10,0,0,0
+TASK-00589,SEG-049,Agra,Engineering,Tamping,4.84,4.12,2024-11-24,2024-11-24,0,0,0
+TASK-00590,SEG-049,Agra,Engineering,Drainage Cleaning,1.93,1.99,2025-10-03,2025-10-03,0,0,0
+TASK-00591,SEG-049,Agra,Engineering,Drainage Cleaning,2.84,3.02,2024-04-16,2024-04-16,0,0,0
+TASK-00592,SEG-049,Agra,Engineering,Track Inspection,6.81,10.27,2025-10-24,2025-11-16,1,23,1
+TASK-00593,SEG-050,Delhi,Engineering,Rail Grinding,1.98,2.6,2024-03-30,2024-04-26,1,27,1
+TASK-00594,SEG-050,Delhi,Engineering,Drainage Cleaning,4.15,3.82,2024-09-21,2024-09-21,0,0,0
+TASK-00595,SEG-050,Delhi,Engineering,Tamping,2.27,3.46,2025-11-20,2025-12-14,1,24,1
+TASK-00596,SEG-050,Delhi,Engineering,Tamping,3.83,3.4,2024-03-15,2024-03-15,0,0,0
+TASK-00597,SEG-050,Delhi,Engineering,Drainage Cleaning,6.47,5.94,2024-10-15,2024-10-15,0,0,0
+TASK-00598,SEG-050,Delhi,Engineering,Track Inspection,4.97,6.84,2024-06-09,2024-06-09,0,0,1
+TASK-00599,SEG-050,Delhi,Engineering,Track Inspection,2.44,2.62,2025-10-11,2025-10-11,0,0,0
+TASK-00600,SEG-050,Delhi,Engineering,Drainage Cleaning,5.1,4.27,2024-01-12,2024-02-01,1,20,0
+TASK-00601,SEG-050,Delhi,Engineering,Track Inspection,5.06,6.55,2025-07-04,2025-07-04,0,0,1
+TASK-00602,SEG-050,Delhi,Engineering,Rail Grinding,4.18,3.99,2024-08-04,2024-08-04,0,0,0

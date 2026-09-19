@@ -39,6 +39,8 @@ export default function DashboardView() {
   const [punctualityData, setPunctualityData] = useState([]);
   const [synergyData, setSynergyData] = useState(null);
   const [integrationTelemetry, setIntegrationTelemetry] = useState(null);
+  const [survivalSections, setSurvivalSections] = useState([]);
+  const [antiGamingAudit, setAntiGamingAudit] = useState(null);
   const [syncingSystem, setSyncingSystem] = useState(null);
   const [syncSuccessMsg, setSyncSuccessMsg] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -50,16 +52,20 @@ export default function DashboardView() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const [sumRes, punctRes, synRes, intRes] = await Promise.all([
+      const [sumRes, punctRes, synRes, intRes, survRes, auditRes] = await Promise.all([
         apiClient.get('/analytics/dashboard-summary'),
         apiClient.get('/analytics/corridor-punctuality'),
         apiClient.get('/analytics/department-synergy'),
-        apiClient.get('/integrations/status')
+        apiClient.get('/integrations/status'),
+        apiClient.get('/ai/survival/sections').catch(() => ({ data: [] })),
+        apiClient.get('/ai/anti-gaming/audit').catch(() => ({ data: null }))
       ]);
       setSummary(sumRes.data);
       setPunctualityData(punctRes.data);
       setSynergyData(synRes.data);
       setIntegrationTelemetry(intRes.data);
+      setSurvivalSections(survRes.data || []);
+      setAntiGamingAudit(auditRes.data);
     } catch (err) {
       console.error("Dashboard data load failed", err);
     } finally {
@@ -422,6 +428,153 @@ export default function DashboardView() {
               <span className="text-slate-500">Track Hours Saved:</span>
               <span className="font-extrabold text-emerald-700 font-mono text-sm">{synergyData?.estimated_hours_saved} Hours</span>
             </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Advanced AI Telemetry: Survival Analysis & Anti-Gaming Audit */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Discrete Survival Analysis & RUL Section Health */}
+        <Card className="shadow-xs border-rose-100">
+          <CardHeader className="pb-3 flex flex-row items-center justify-between">
+            <div>
+              <div className="flex items-center space-x-2">
+                <ShieldAlert className="w-4 h-4 text-rose-600" />
+                <CardTitle>Track Asset Survival & Remaining Useful Life (RUL)</CardTitle>
+              </div>
+              <p className="text-xs text-slate-500 mt-1">
+                Discrete 30-Day Failure Hazard S(t) via Weibull Accelerated Failure Time (AFT) & XGBoost.
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/corridor-map')}
+              className="text-xs text-rose-700 border-rose-200 hover:bg-rose-50"
+            >
+              <span>View GIS Heatmap</span>
+              <ArrowUpRight className="w-3 h-3 ml-1" />
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {survivalSections.slice(0, 4).map((sec) => {
+                const isCritical = sec.failure_probability_30d >= 0.75;
+                const isElevated = sec.failure_probability_30d >= 0.40 && sec.failure_probability_30d < 0.75;
+                const barColor = isCritical ? 'bg-rose-600' : (isElevated ? 'bg-amber-500' : 'bg-emerald-500');
+                const badgeVariant = isCritical ? 'danger' : (isElevated ? 'warning' : 'success');
+
+                return (
+                  <div key={sec.section_id} className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 hover:bg-slate-100/70 transition">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center space-x-2">
+                        <span className="font-mono font-bold text-xs text-slate-900">{sec.section_code}</span>
+                        <span className="text-[11px] text-slate-500">({sec.corridor_name})</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-[11px] font-bold font-mono text-slate-700">
+                          RUL: <strong className={isCritical ? 'text-rose-700' : 'text-slate-900'}>{sec.estimated_rul_days}d</strong>
+                        </span>
+                        <Badge variant={badgeVariant}>{sec.risk_tier}</Badge>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-3 text-[11px] text-slate-600">
+                      <div className="flex-1 bg-slate-200 h-2 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full rounded-full ${barColor}`} 
+                          style={{ width: `${Math.min(100, sec.risk_percentage)}%` }}
+                        ></div>
+                      </div>
+                      <span className="font-mono font-semibold text-slate-900 shrink-0">
+                        {sec.risk_percentage}% 30d Failure Risk
+                      </span>
+                    </div>
+
+                    <div className="mt-2 flex items-center justify-between text-[10px] text-slate-500 font-mono">
+                      <span>Traffic: {sec.gmt_traffic_density} GMT</span>
+                      <span>Active Defects: {sec.active_defects}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Anti-Gaming Criticality Audit & Evidence Compliance */}
+        <Card className="shadow-xs border-purple-100">
+          <CardHeader className="pb-3 flex flex-row items-center justify-between">
+            <div>
+              <div className="flex items-center space-x-2">
+                <Sparkles className="w-4 h-4 text-purple-600" />
+                <CardTitle>Anti-Gaming Criticality & Allocation Integrity</CardTitle>
+              </div>
+              <p className="text-xs text-slate-500 mt-1">
+                Objective sensor cross-validation preventing artificial emergency block inflation.
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/department-coordination')}
+              className="text-xs text-purple-700 border-purple-200 hover:bg-purple-50"
+            >
+              <span>Audit Center</span>
+              <ArrowUpRight className="w-3 h-3 ml-1" />
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {antiGamingAudit ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="bg-purple-50 p-3 rounded-xl border border-purple-200 text-center">
+                    <span className="text-[10px] uppercase font-bold text-purple-800">Compliance Rate</span>
+                    <div className="text-2xl font-extrabold text-purple-900 font-mono mt-1">
+                      {antiGamingAudit.compliance_rate_pct}%
+                    </div>
+                    <span className="text-[10px] text-purple-700">Sensor-Verified Claims</span>
+                  </div>
+
+                  <div className="bg-amber-50 p-3 rounded-xl border border-amber-200 text-center">
+                    <span className="text-[10px] uppercase font-bold text-amber-800">Flagged Claims</span>
+                    <div className="text-2xl font-extrabold text-amber-900 font-mono mt-1">
+                      {antiGamingAudit.inflated_claims_detected}
+                    </div>
+                    <span className="text-[10px] text-amber-700">Recalibrated Fair-Share</span>
+                  </div>
+
+                  <div className="bg-blue-50 p-3 rounded-xl border border-blue-200 text-center">
+                    <span className="text-[10px] uppercase font-bold text-blue-800">Total Audited</span>
+                    <div className="text-2xl font-extrabold text-blue-900 font-mono mt-1">
+                      {antiGamingAudit.total_tasks_audited}
+                    </div>
+                    <span className="text-[10px] text-blue-700">Division Task Requests</span>
+                  </div>
+                </div>
+
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                  <div className="flex items-center justify-between text-xs font-semibold text-slate-800 mb-2">
+                    <span>Inflation Flags by Department:</span>
+                    <span className="text-[11px] font-normal text-slate-500">Autonomous fair-share recalibration</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {Object.entries(antiGamingAudit.department_inflation_breakdown || {}).map(([dept, count]) => (
+                      <div key={dept} className="bg-white p-2 rounded-lg border border-slate-200 flex items-center justify-between text-xs">
+                        <span className="font-bold text-slate-700 font-mono">{dept}</span>
+                        <span className="font-mono text-amber-700 font-bold bg-amber-50 px-1.5 py-0.5 rounded text-[11px]">
+                          {count} flagged
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="py-8 text-center text-xs text-slate-400">
+                Loading anti-gaming telemetry audit...
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
