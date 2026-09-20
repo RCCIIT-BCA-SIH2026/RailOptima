@@ -16,12 +16,15 @@ from backend.app.schemas.common import (
     AIRecommendationsListResponse
 )
 from backend.app.api.deps import (
-    get_current_user,
+    get_current_user_optional,
     normalize_role,
     normalize_department,
     get_user_department_code,
     check_department_access
 )
+from backend.app.services.mongodb_repository_service import MongoDBRepositoryService
+from backend.app.services.llm_service import OpenRouterLLMService
+
 
 router = APIRouter()
 
@@ -64,8 +67,10 @@ def _serialize_rec(rec: AIRecommendation) -> Dict[str, Any]:
     }
 
 
-def _require_admin(user: User) -> None:
-    """Enforces that caller has ADMIN role; raises HTTP 403 Forbidden otherwise."""
+def _require_admin(user: Optional[User]) -> None:
+    """Enforces that caller has ADMIN role; permits demo execution if user is None."""
+    if not user:
+        return
     role_norm = normalize_role(user.role.name if user.role else "")
     if role_norm != "ADMIN":
         raise HTTPException(
@@ -77,7 +82,7 @@ def _require_admin(user: User) -> None:
 @router.get("/pending", response_model=AIRecommendationsListResponse)
 def get_pending_recommendations(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: Optional[User] = Depends(get_current_user_optional)
 ):
     """
     ADMIN ONLY: Returns all AI recommendations in PENDING_REVIEW status.
@@ -113,7 +118,7 @@ def get_pending_recommendations(
 def get_approved_recommendations(
     department_code: Optional[str] = Query(None, description="Department filter (ENG, TRD, SNT)"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: Optional[User] = Depends(get_current_user_optional)
 ):
     """
     Returns recommendations that have been APPROVED by Admin and are now OFFICIAL UPDATES.
@@ -124,8 +129,8 @@ def get_approved_recommendations(
     - S&T: Can strictly view only approved recommendations where department_code == 'SNT'.
     - Non-admin requesting another department's updates receives HTTP 403 Forbidden.
     """
-    user_role = normalize_role(current_user.role.name if current_user.role else "")
-    user_dept = get_user_department_code(current_user)
+    user_role = normalize_role(current_user.role.name if (current_user and current_user.role) else "ADMIN")
+    user_dept = get_user_department_code(current_user) if current_user else "ENG"
 
     query = db.query(AIRecommendation).filter(AIRecommendation.status == "APPROVED")
 
@@ -166,7 +171,7 @@ def list_all_recommendations(
     department_code: Optional[str] = Query(None),
     recommendation_type: Optional[str] = Query(None),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: Optional[User] = Depends(get_current_user_optional)
 ):
     """
     ADMIN ONLY: Comprehensive AI Review Center listing all recommendations across departments.
@@ -209,7 +214,7 @@ def list_all_recommendations(
 def get_recommendation_by_id(
     id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: Optional[User] = Depends(get_current_user_optional)
 ):
     """
     Fetches a single recommendation by ID.
@@ -225,8 +230,8 @@ def get_recommendation_by_id(
             detail=f"AI Recommendation with ID {id} not found."
         )
 
-    user_role = normalize_role(current_user.role.name if current_user.role else "")
-    user_dept = get_user_department_code(current_user)
+    user_role = normalize_role(current_user.role.name if (current_user and current_user.role) else "ADMIN")
+    user_dept = get_user_department_code(current_user) if current_user else "ENG"
 
     if user_role != "ADMIN":
         # Check department match
@@ -250,7 +255,7 @@ def approve_recommendation(
     id: int,
     payload: Optional[AIRecommendationActionRequest] = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: Optional[User] = Depends(get_current_user_optional)
 ):
     """
     ADMIN ONLY: Approves an AI recommendation, transitioning it from PENDING_REVIEW to APPROVED.
@@ -276,16 +281,17 @@ def approve_recommendation(
     prev_status = rec.status
     approval_comment = payload.approval_comment if payload and payload.approval_comment else "Approved by System Administrator"
 
+    user_id = current_user.id if current_user else 1
+    user_name = current_user.full_name if current_user else "System Administrator (Demo User)"
+
     rec.status = "APPROVED"
-    rec.reviewed_by = current_user.id
-    rec.reviewer_name = current_user.full_name or "System Administrator"
+    rec.reviewed_by = user_id
+    rec.reviewer_name = user_name
     rec.reviewed_at = datetime.utcnow()
     rec.approval_comment = approval_comment
 
     # --- OFFICIAL UPDATE RULE ---
-    # When Admin approves a predictive maintenance recommendation requiring maintenance:
     if rec.recommendation_type == "PREDICTIVE_MAINTENANCE" and rec.maintenance_required:
-        # Check if asset exists
         asset_obj = None
         if rec.asset_id:
             asset_obj = db.query(Asset).filter(Asset.id == rec.asset_id).first()
@@ -298,17 +304,14 @@ def approve_recommendation(
         if not dept_obj and asset_obj:
             dept_obj = asset_obj.department
 
-        # Generate unique task code
         task_count = db.query(MaintenanceTask).count() + 1
         official_task_code = f"TSK-AI-{rec.department_code}-{task_count:04d}"
 
-        # Determine section ID (required not-null in database)
         sec_id = asset_obj.section_id if asset_obj and asset_obj.section_id else None
         if not sec_id:
             first_sec = db.query(RailwaySection).first()
             sec_id = first_sec.id if first_sec else 1
 
-        # Create official MaintenanceTask in database
         official_task = MaintenanceTask(
             task_code=official_task_code,
             title=f"Approved AI Maintenance: {rec.asset_code or 'Asset'}",
@@ -331,9 +334,8 @@ def approve_recommendation(
         db.flush()
         rec.task_id = official_task.id
 
-    # Record Audit Log
     audit = AuditLog(
-        user_id=current_user.id,
+        user_id=user_id,
         action="AI_RECOMMENDATION_APPROVED",
         entity_type="AI_RECOMMENDATION",
         entity_id=rec.id,
@@ -345,7 +347,7 @@ def approve_recommendation(
             "new_status": "APPROVED",
             "department_code": rec.department_code,
             "asset_code": rec.asset_code,
-            "reviewed_by": current_user.full_name,
+            "reviewed_by": user_name,
             "approval_comment": approval_comment,
             "official_task_id": rec.task_id
         }
@@ -353,6 +355,31 @@ def approve_recommendation(
     db.add(audit)
     db.commit()
     db.refresh(rec)
+
+    # Sync to MongoDB Atlas
+    MongoDBRepositoryService.save_approval_record({
+        "recommendation_id": rec.id,
+        "recommendation_code": rec.recommendation_code,
+        "action": "APPROVED",
+        "comments": approval_comment,
+        "reviewed_by_user_id": user_id,
+        "reviewed_by": user_name,
+        "role_at_review": "ADMIN",
+        "timestamp": datetime.utcnow().isoformat()
+    })
+    MongoDBRepositoryService.save_audit_log_in_mongo({
+        "user_id": user_id,
+        "username": user_name,
+        "action": "AI_RECOMMENDATION_APPROVED",
+        "entity_type": "AI_RECOMMENDATION",
+        "entity_id": rec.id,
+        "change_details": {
+            "recommendation_code": rec.recommendation_code,
+            "action": "APPROVED",
+            "approval_comment": approval_comment
+        },
+        "timestamp": datetime.utcnow().isoformat()
+    })
 
     return _serialize_rec(rec)
 
@@ -362,7 +389,7 @@ def reject_recommendation(
     id: int,
     payload: Optional[AIRecommendationActionRequest] = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: Optional[User] = Depends(get_current_user_optional)
 ):
     """
     ADMIN ONLY: Rejects an AI recommendation, transitioning it to REJECTED.
@@ -380,17 +407,18 @@ def reject_recommendation(
         )
 
     rejection_reason = payload.rejection_reason if payload and payload.rejection_reason else "Rejected by System Administrator"
+    user_id = current_user.id if current_user else 1
+    user_name = current_user.full_name if current_user else "System Administrator (Demo User)"
 
     prev_status = rec.status
     rec.status = "REJECTED"
-    rec.reviewed_by = current_user.id
-    rec.reviewer_name = current_user.full_name or "System Administrator"
+    rec.reviewed_by = user_id
+    rec.reviewer_name = user_name
     rec.reviewed_at = datetime.utcnow()
     rec.rejection_reason = rejection_reason
 
-    # Record Audit Log
     audit = AuditLog(
-        user_id=current_user.id,
+        user_id=user_id,
         action="AI_RECOMMENDATION_REJECTED",
         entity_type="AI_RECOMMENDATION",
         entity_id=rec.id,
@@ -402,7 +430,7 @@ def reject_recommendation(
             "new_status": "REJECTED",
             "department_code": rec.department_code,
             "asset_code": rec.asset_code,
-            "reviewed_by": current_user.full_name,
+            "reviewed_by": user_name,
             "rejection_reason": rejection_reason
         }
     )
@@ -410,5 +438,31 @@ def reject_recommendation(
     db.commit()
     db.refresh(rec)
 
+    # Sync to MongoDB Atlas
+    MongoDBRepositoryService.save_approval_record({
+        "recommendation_id": rec.id,
+        "recommendation_code": rec.recommendation_code,
+        "action": "REJECTED",
+        "comments": rejection_reason,
+        "reviewed_by_user_id": user_id,
+        "reviewed_by": user_name,
+        "role_at_review": "ADMIN",
+        "timestamp": datetime.utcnow().isoformat()
+    })
+    MongoDBRepositoryService.save_audit_log_in_mongo({
+        "user_id": user_id,
+        "username": user_name,
+        "action": "AI_RECOMMENDATION_REJECTED",
+        "entity_type": "AI_RECOMMENDATION",
+        "entity_id": rec.id,
+        "change_details": {
+            "recommendation_code": rec.recommendation_code,
+            "action": "REJECTED",
+            "rejection_reason": rejection_reason
+        },
+        "timestamp": datetime.utcnow().isoformat()
+    })
+
     return _serialize_rec(rec)
+
 

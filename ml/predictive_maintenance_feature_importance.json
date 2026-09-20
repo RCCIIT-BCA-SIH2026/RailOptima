@@ -1,59 +1,59 @@
 [
   {
     "feature": "rail_wear_mm",
-    "importance": 0.57122
+    "importance": 0.57044
   },
   {
     "feature": "train_age_years",
-    "importance": 0.08263
+    "importance": 0.08344
   },
   {
     "feature": "brake_pad_wear_percent",
-    "importance": 0.05995
+    "importance": 0.05955
   },
   {
     "feature": "brake_pressure_psi",
-    "importance": 0.04938
+    "importance": 0.04913
   },
   {
     "feature": "battery_voltage",
-    "importance": 0.03541
+    "importance": 0.0357
   },
   {
     "feature": "wheel_wear_percent",
-    "importance": 0.0345
+    "importance": 0.03428
   },
   {
     "feature": "humidity_percent",
-    "importance": 0.0213
+    "importance": 0.02132
   },
   {
     "feature": "track_vibration_level",
-    "importance": 0.01912
+    "importance": 0.01919
   },
   {
     "feature": "bearing_temperature_c",
-    "importance": 0.01803
+    "importance": 0.01804
   },
   {
     "feature": "axle_temperature_c",
-    "importance": 0.01507
+    "importance": 0.01518
   },
   {
     "feature": "rainfall_mm",
-    "importance": 0.01101
+    "importance": 0.01104
   },
   {
     "feature": "average_speed_kmph",
-    "importance": 0.01043
+    "importance": 0.01045
   },
   {
     "feature": "delay_minutes",
-    "importance": 0.01023
+    "importance": 0.01027
   },
   {
     "feature": "distance_travelled_km",
-    "importance": 0.01021
+    "importance": 0.01023
   },
   {
     "feature": "ambient_temperature_c",
@@ -61,19 +61,19 @@
   },
   {
     "feature": "last_maintenance_days",
-    "importance": 0.00981
+    "importance": 0.00978
   },
   {
     "feature": "sensor_health_index",
-    "importance": 0.00937
+    "importance": 0.00946
   },
   {
     "feature": "inspection_score",
-    "importance": 0.00875
+    "importance": 0.00884
   },
   {
     "feature": "season_Monsoon",
-    "importance": 0.00331
+    "importance": 0.00336
   },
   {
     "feature": "season_Summer",
@@ -81,19 +81,19 @@
   },
   {
     "feature": "season_Winter",
-    "importance": 0.00102
+    "importance": 0.00105
   },
   {
     "feature": "region_Western Railway",
-    "importance": 0.00094
+    "importance": 0.00092
   },
   {
     "feature": "train_type_Passenger",
-    "importance": 0.00089
+    "importance": 0.0009
   },
   {
     "feature": "region_Central Railway",
-    "importance": 0.00088
+    "importance": 0.00089
   },
   {
     "feature": "region_Southern Railway",
@@ -101,11 +101,11 @@
   },
   {
     "feature": "region_Northern Railway",
-    "importance": 0.00084
+    "importance": 0.00085
   },
   {
     "feature": "region_South Central Railway",
-    "importance": 0.00084
+    "importance": 0.00083
   },
   {
     "feature": "region_Eastern Railway",
@@ -121,6 +121,6 @@
   },
   {
     "feature": "train_type_Metro",
-    "importance": 0.00068
+    "importance": 0.00067
   }
 ]

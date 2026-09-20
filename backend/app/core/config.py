@@ -1,6 +1,6 @@
 import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import List
+from typing import List, Optional
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "AI-Powered Automatic Block Planning System for Indian Railways"
@@ -17,6 +17,24 @@ class Settings(BaseSettings):
     
     # Database
     DATABASE_URL: str = "sqlite:///./data/railway_planner.db"
+    MONGODB_USER: Optional[str] = None
+    MONGODB_PASSWORD: Optional[str] = None
+    MONGODB_HOST: Optional[str] = None
+    MONGODB_URL: Optional[str] = None
+    MONGODB_URI: Optional[str] = None
+    MONGODB_SHELL_COMMAND: Optional[str] = None
+    DB_USER: Optional[str] = None
+    # Maps API
+    MAP_API_KEY: Optional[str] = "AIzaSyAnidLeEYWpn5GYU7h7GWKrkWr7f58lbd0"
+    
+    # OpenRouter AI & LLM Model API Key
+    OPENROUTER_API_KEY: Optional[str] = "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"
+    AI_API_KEY: Optional[str] = "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"
+    OPENAI_API_KEY: Optional[str] = "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"
+
+
+
+
     
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = [
@@ -29,11 +47,16 @@ class Settings(BaseSettings):
     ]
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=[
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../.env"),
+            os.path.join(os.getcwd(), ".env"),
+            ".env"
+        ],
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore"
     )
+
 
 settings = Settings()
 

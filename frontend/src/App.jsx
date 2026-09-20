@@ -28,6 +28,9 @@ import CorridorMapView from './views/CorridorMapView';
 import IntegrationsHubView from './views/IntegrationsHubView';
 import AuditLogsView from './views/AuditLogsView';
 import WeeklyMonthlyPlannerView from './views/WeeklyMonthlyPlannerView';
+import MLDataQueryView from './views/MLDataQueryView';
+
+
 
 function OptimizationStudioRouteWrapper() {
   const navigate = useNavigate();
@@ -71,7 +74,9 @@ export default function App() {
 
           {/* AI Planning Studio Routes */}
           <Route path="/optimization-studio" element={<RouteGuard path="/optimization-studio" activeUser={activeUser}><OptimizationStudioRouteWrapper /></RouteGuard>} />
+          <Route path="/ml-query" element={<RouteGuard path="/ml-query" activeUser={activeUser}><MLDataQueryView /></RouteGuard>} />
           <Route path="/ai-planning" element={<RouteGuard path="/ai-planning" activeUser={activeUser}><AIPlanningView /></RouteGuard>} />
+
           <Route path="/block-planning" element={<RouteGuard path="/block-planning" activeUser={activeUser}><BlockPlanningView /></RouteGuard>} />
           <Route path="/what-if" element={<RouteGuard path="/what-if" activeUser={activeUser}><WhatIfView /></RouteGuard>} />
           <Route path="/resources" element={<RouteGuard path="/resources" activeUser={activeUser}><ResourcesView /></RouteGuard>} />

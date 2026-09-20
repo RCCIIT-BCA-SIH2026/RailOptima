@@ -10,7 +10,9 @@ from backend.app.schemas import DashboardSummary
 router = APIRouter()
 
 @router.get("/dashboard-summary", response_model=DashboardSummary)
+@router.get("/summary", response_model=DashboardSummary)
 def get_dashboard_summary(db: Session = Depends(get_db)):
+
     total_assets = db.query(Asset).count()
     active_defects = db.query(Defect).filter(Defect.status.in_(["Open", "Scheduled", "Investigating"])).count()
     critical_defects = db.query(Defect).filter(Defect.severity == "Critical", Defect.status != "Resolved").count()
