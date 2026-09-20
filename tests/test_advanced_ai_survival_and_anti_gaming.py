@@ -11,8 +11,13 @@ from backend.app.services.survival_service import get_all_sections_risk_overview
 from backend.app.services.anti_gaming_service import audit_department_task_pool, evaluate_task_inflation
 from ml.survival_engine import compute_survival_curve, predict_failure_risk_30d
 from ml.duration_overrun_engine import predict_duration_and_overrun
+from data.seed_data import seed_database
 
 client = TestClient(app)
+
+@pytest.fixture(scope="session", autouse=True)
+def setup_db():
+    seed_database()
 
 def test_discrete_survival_engine():
     res = predict_failure_risk_30d(

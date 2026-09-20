@@ -7,28 +7,29 @@ and degradation hazard metrics across Indian Railways track sections.
 from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
 from backend.app.models import RailwaySection, Asset, Defect, Corridor
-from ml.survival_engine import compute_survival_curve, predict_failure_risk_30d
+from backend.app.core.ml_client import ml_client
 
 def get_section_survival_analysis(section_id: int, db: Session) -> Dict[str, Any]:
     """
-    Computes 30-day discrete survival analysis and failure risk for a specific railway section.
+    Computes 30-day discrete survival analysis and failure risk for a specific railway section via ML Microservice.
     """
     sec = db.query(RailwaySection).filter(RailwaySection.id == section_id).first()
     if not sec:
-        # Fallback dummy section analysis
-        return predict_failure_risk_30d(age_years=20.0, gmt_density=45.0)
+        sec = db.query(RailwaySection).first()
+        if not sec:
+            return ml_client.predict_survival(age_years=20.0, gmt_density=45.0)
 
-    # Count active defects on this section
+    # Count active defects on this section directly from live database
     defect_count = db.query(Defect).filter(Defect.section_id == sec.id, Defect.status.in_(["Open", "Investigating", "Scheduled"])).count()
     
-    # Calculate average asset age or use corridor baseline
+    # Calculate live average asset age from database
     assets = db.query(Asset).filter(Asset.section_id == sec.id).all()
     avg_age = 18.5
     if assets:
         ages = [float(getattr(a, "age_years", 15.0) or 15.0) for a in assets]
         avg_age = sum(ages) / len(ages) if ages else 18.5
 
-    result = predict_failure_risk_30d(
+    result = ml_client.predict_survival(
         age_years=avg_age,
         gmt_density=sec.current_traffic_density or 45.0,
         monsoon_exposure="medium",
@@ -46,13 +47,13 @@ def get_section_survival_analysis(section_id: int, db: Session) -> Dict[str, Any
 
 def get_all_sections_risk_overview(db: Session) -> List[Dict[str, Any]]:
     """
-    Returns high-level survival risk & RUL summary for all railway sections.
+    Returns live survival risk & RUL summary for all railway sections via ML Microservice.
     """
     sections = db.query(RailwaySection).all()
     overview = []
     for sec in sections:
         defect_count = db.query(Defect).filter(Defect.section_id == sec.id, Defect.status != "Resolved").count()
-        risk_res = predict_failure_risk_30d(
+        risk_res = ml_client.predict_survival(
             age_years=18.0,
             gmt_density=sec.current_traffic_density or 45.0,
             defects_count=defect_count

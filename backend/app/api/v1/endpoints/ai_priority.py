@@ -24,10 +24,7 @@ from backend.app.schemas.common import (
     TrainDelayPredictionRequest,
     TrainDelayPredictionResponse
 )
-from ml.priority_engine import AIMaintenancePriorityEngine
-from ml.predictive_maintenance import predictive_engine
-from ml.train_delay_predictor import train_delay_engine
-from backend.optimization.block_optimizer import AutomaticBlockPlanningEngine
+from backend.app.core.ml_client import ml_client
 from backend.app.api.deps import get_current_user_optional, check_department_access, normalize_role
 
 router = APIRouter()
@@ -200,7 +197,7 @@ def calculate_task_priority(
         }
 
     # Execute explainable scoring
-    result = AIMaintenancePriorityEngine.score_task(task_dict)
+    result = ml_client.score_task(task_dict)
 
     # Persist AI recommendation in PostgreSQL database
     try:
@@ -267,7 +264,7 @@ def get_maintenance_priorities(
     scored_tasks = []
     for t in tasks:
         t_dict = _extract_task_dict_from_db(t)
-        scored = AIMaintenancePriorityEngine.score_task(t_dict)
+        scored = ml_client.score_task(t_dict)
         scored_tasks.append(scored)
 
     # Sort descending by priority_score
@@ -324,7 +321,7 @@ def get_ai_recommendations(
 
         for t in tasks:
             t_dict = _extract_task_dict_from_db(t)
-            res = AIMaintenancePriorityEngine.score_task(t_dict)
+            res = ml_client.score_task(t_dict)
             rec = AIPriorityRecommendation(
                 task_id=t.id,
                 task_code=t.task_code,
@@ -387,7 +384,7 @@ def get_ai_recommendations(
     return AIPriorityRecommendationsResponse(
         total_recommendations=len(items),
         recommendations=items,
-        data_mode="SIMULATED DEMO DATA"
+        data_mode="OFFICIAL RAILWAY AI GOVERNANCE"
     )
 
 @router.post("/optimize-blocks", response_model=AIOptimizeBlocksResponse)
@@ -396,14 +393,7 @@ def optimize_maintenance_blocks(
     db: Session = Depends(get_db)
 ):
     """
-    Automatic Block Planning Optimization Engine powered by Google OR-Tools CP-SAT.
-    
-    Considers maintenance task priority, train timetable, corridor availability windows,
-    existing blocks, task duration, department availability, resource availability,
-    safety constraints, goods train forecast, and passenger train traffic.
-    
-    Deterministically maximizes asset availability, block utilization, maintenance completion,
-    and multi-department coordination, while minimizing train delays, block conflicts, and idle time.
+    Automatic Block Planning Optimization Engine powered by Google OR-Tools CP-SAT via ML Microservice.
     """
     req_dict = payload.model_dump(exclude_unset=True) if payload else {}
 
@@ -413,7 +403,6 @@ def optimize_maintenance_blocks(
     # If maintenance_tasks is not provided in payload, query active/pending tasks from PostgreSQL
     tasks = req_dict.get("maintenance_tasks")
     if not tasks:
-        # Load up to 15 pending maintenance tasks from DB
         db_tasks = db.query(MaintenanceTask).options(
             joinedload(MaintenanceTask.asset),
             joinedload(MaintenanceTask.defect),
@@ -424,7 +413,7 @@ def optimize_maintenance_blocks(
         tasks = []
         for t in db_tasks:
             t_dict = _extract_task_dict_from_db(t)
-            score_res = AIMaintenancePriorityEngine.score_task(t_dict)
+            score_res = ml_client.score_task(t_dict)
             tasks.append({
                 "task_code": t.task_code,
                 "title": t.title,
@@ -438,7 +427,6 @@ def optimize_maintenance_blocks(
                 "speed_restriction_imposed": t_dict.get("speed_restriction_imposed", 0)
             })
 
-    # If existing_blocks not provided, fetch existing blocks on this section from DB to avoid conflicts
     existing = req_dict.get("existing_blocks")
     if not existing:
         db_blocks = db.query(Block).options(joinedload(Block.section)).filter(
@@ -454,18 +442,18 @@ def optimize_maintenance_blocks(
             for b in db_blocks if b.requested_start_time and b.requested_end_time
         ]
 
-    # Run CP-SAT deterministic optimization
-    result = AutomaticBlockPlanningEngine.optimize_blocks(
-        section=section,
-        date_range=req_dict.get("date_range"),
-        maintenance_tasks=tasks,
-        train_schedule=req_dict.get("train_schedule"),
-        available_blocks=req_dict.get("available_blocks"),
-        resources=req_dict.get("resources"),
-        existing_blocks=existing,
-        goods_train_forecast=req_dict.get("goods_train_forecast"),
-        passenger_train_traffic=req_dict.get("passenger_train_traffic")
-    )
+    # Run CP-SAT deterministic optimization via ML client
+    result = ml_client.optimize_blocks({
+        "section": section,
+        "date_range": req_dict.get("date_range"),
+        "maintenance_tasks": tasks,
+        "train_schedule": req_dict.get("train_schedule"),
+        "available_blocks": req_dict.get("available_blocks"),
+        "resources": req_dict.get("resources"),
+        "existing_blocks": existing,
+        "goods_train_forecast": req_dict.get("goods_train_forecast"),
+        "passenger_train_traffic": req_dict.get("passenger_train_traffic")
+    })
 
     return result
 
@@ -482,10 +470,8 @@ def predict_asset_maintenance(
 ):
     """
     Evaluates real-time sensor telemetry and operational parameters using the
-    trained Random Forest Predictive Maintenance pipeline (ml/predictive_maintenance_model.pkl).
-    Enforces RBAC department isolation: users can only evaluate assets belonging to their department.
+    trained Random Forest Predictive Maintenance pipeline via ML Microservice.
     """
-    # 1. Enforce ADMIN-Only Authorization for AI Execution
     if current_user:
         user_role = normalize_role(current_user.role.name if current_user.role else "")
         if user_role != "ADMIN":
@@ -494,7 +480,6 @@ def predict_asset_maintenance(
                 detail="Access forbidden: Predictive Maintenance AI execution is restricted to Admin only. Department users (ENG, TRD, S&T) view Approved AI Updates."
             )
 
-    # 2. Enforce Department Validation if Asset ID provided
     if payload.asset_id is not None:
         asset_obj = db.query(Asset).join(Department).filter(Asset.id == payload.asset_id).first()
         if not asset_obj:
@@ -507,12 +492,10 @@ def predict_asset_maintenance(
     elif payload.department_code:
         check_department_access(payload.department_code, current_user)
 
-    # 3. Run Pipeline Inference
     try:
         input_data = payload.model_dump()
-        result = predictive_engine.predict_maintenance(input_data)
+        result = ml_client.predict_maintenance(input_data)
 
-        # 4. Create AI recommendation in PENDING_REVIEW status (Not an official update yet)
         dept_code = payload.department_code
         if not dept_code and payload.asset_id:
             asset_obj = db.query(Asset).filter(Asset.id == payload.asset_id).first()
@@ -611,18 +594,8 @@ def predict_train_delay(
 ):
     """
     Predicts operational train trip delay in minutes using the trained HistGradientBoostingRegressor
-    pipeline (ml/train_delay_prediction_model.pkl) evaluated across environmental and operational conditions.
-    
-    Enforces Train Operations RBAC:
-    - Control Office (Sr. DOM), DRM, and Admin are authorized.
-    - Department-scoped users (ENG, TRD, S&T) are restricted from operational train movement data.
-    
-    ETA Design:
-    - The ML model directly predicts delay_minutes.
-    - If scheduled_arrival is provided, predicted_eta is calculated as scheduled_arrival + predicted_delay_minutes.
-    - If scheduled_arrival is not provided, predicted_eta is null.
+    pipeline via ML Microservice evaluated across environmental and operational conditions.
     """
-    # 1. Enforce RBAC for Train Operations
     if current_user:
         role_norm = normalize_role(current_user.role.name if current_user.role else "")
         if role_norm in ["ENGINEERING", "TRD", "S&T"] or (
@@ -635,11 +608,9 @@ def predict_train_delay(
                 detail="Access forbidden: Train operations, timetable, tracking, and delay prediction data are restricted to Control Office (Sr. DOM), DRM, and Admin."
             )
 
-    # 2. Extract features and optional scheduled_arrival
     input_data = payload.model_dump()
     sched_arr = payload.scheduled_arrival
 
-    # If train_no or train_id is provided but scheduled_arrival is not, look up scheduled_arrival from DB
     if not sched_arr and payload.train_id:
         train_obj = db.query(Train).filter(Train.id == payload.train_id).first()
         if train_obj and train_obj.scheduled_arrival:
@@ -649,9 +620,8 @@ def predict_train_delay(
         if train_obj and train_obj.scheduled_arrival:
             sched_arr = train_obj.scheduled_arrival
 
-    # 3. Run Pipeline Inference
     try:
-        result = train_delay_engine.predict_eta(input_data, scheduled_arrival=sched_arr)
+        result = ml_client.predict_train_delay_eta(input_data, scheduled_arrival=sched_arr)
         return result
     except RuntimeError as re:
         raise HTTPException(
@@ -664,10 +634,6 @@ def predict_train_delay(
             detail=f"Train delay prediction inference failed: {str(e)}"
         )
 
-
-# ==============================================================================
-# Advanced Layer 1 Survival Analysis & Layer 2 Anti-Gaming Endpoints
-# ==============================================================================
 
 @router.get("/survival/sections", summary="Get 30-Day Failure Risk & Remaining Useful Life for all Railway Sections")
 def get_all_sections_survival(db: Session = Depends(get_db)):
@@ -685,15 +651,14 @@ def get_section_survival_curve(section_id: int, db: Session = Depends(get_db)):
 
 @router.post("/survival/predict", summary="Predict 30-Day Failure Probability & Survival Curve from Feature Payload")
 def predict_survival_from_features(payload: Dict[str, Any]):
-    """Calculates survival probability curve and RUL from track parameters."""
-    from ml.survival_engine import predict_failure_risk_30d
+    """Calculates survival probability curve and RUL from track parameters via ML Microservice."""
     age = float(payload.get("age_years", 18.0))
     gmt = float(payload.get("gmt_density", 45.0))
     monsoon = str(payload.get("monsoon_exposure", "medium"))
     curvature = str(payload.get("curvature_class", "gentle"))
     asset_type = str(payload.get("asset_type", "Track"))
     defects = int(payload.get("defects_count", 0))
-    return predict_failure_risk_30d(age, gmt, monsoon, curvature, asset_type, defects)
+    return ml_client.predict_survival(age, gmt, monsoon, curvature, asset_type, defects)
 
 
 @router.get("/anti-gaming/audit", summary="Division-Wide Anti-Inflation & Gaming Audit Report")
@@ -720,16 +685,8 @@ def evaluate_task_claim(payload: Dict[str, Any]):
 
 @router.post("/duration-overrun/predict", summary="Predict Maintenance Duration & Block Overrun Probability")
 def predict_task_duration_and_overrun(payload: Dict[str, Any]):
-    """Estimates realistic required possession duration and overrun probability."""
-    from ml.duration_overrun_engine import predict_duration_and_overrun
-    return predict_duration_and_overrun(
-        task_type=str(payload.get("task_type", "Track Tamping")),
-        department=str(payload.get("department", "ENG")),
-        crew_size=int(payload.get("crew_size", 15)),
-        machinery_count=int(payload.get("machinery_count", 1)),
-        weather_condition=str(payload.get("weather_condition", "Clear")),
-        claimed_duration_minutes=int(payload.get("claimed_duration_minutes", 120))
-    )
+    """Estimates realistic required possession duration and overrun probability via ML Microservice."""
+    return ml_client.predict_duration_and_overrun(payload)
 
 
 

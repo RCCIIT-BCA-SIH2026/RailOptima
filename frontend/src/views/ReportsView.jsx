@@ -57,8 +57,36 @@ export default function ReportsView() {
     setExportNotice(`Generating official IR ${type} report dossier...`);
     setTimeout(() => {
       setExportNotice('');
-      alert(`Indian Railways Monthly Block Planning Report (${type}) exported successfully.`);
-    }, 1200);
+      
+      const csvRows = [
+        ["Indian Railways - Block Planning Executive Performance Report"],
+        ["Generated At", new Date().toISOString()],
+        ["Department Scope", reportData?.department_scope || "ALL"],
+        [""],
+        ["KPI Metric", "Value"],
+        ["Asset Availability (%)", metrics.asset_availability_pct],
+        ["System Punctuality (%)", metrics.system_punctuality_pct],
+        ["Block Approval Rate (%)", metrics.block_approval_rate_pct],
+        ["Total Blocks Analyzed", metrics.total_blocks_analyzed],
+        ["Total Defects Resolved", metrics.total_defects_resolved_ytd],
+        ["Track Hours Saved by Synergy", metrics.track_hours_saved_by_synergy],
+        [""],
+        ["Month", "Blocks Granted", "Punctuality (%)", "Delay Reduction (hrs)"],
+        ...(monthlyTrend.map(m => [m.month, m.blocks_granted, m.punctuality_pct, m.delay_reduction_hrs])),
+        [""],
+        ["Department", "Block Requests", "Approval Rate (%)", "Overrun Risk (%)"],
+        ...(deptEfficiency.map(d => [d.department, d.block_requests, d.approval_rate, d.overrun_risk_avg]))
+      ];
+      
+      const csvContent = "data:text/csv;charset=utf-8," + csvRows.map(e => e.join(",")).join("\n");
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `IR_Performance_Report_${type}_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }, 600);
   };
 
   const metrics = reportData?.key_metrics || {

@@ -150,50 +150,54 @@ export default function TopNavbar({ activeUser, setActiveUser }) {
       id: 'operations',
       label: 'Operations & Assets',
       icon: Activity,
+      primaryPath: '/dashboard',
       items: [
-        { path: "/dashboard", label: "Executive Dashboard", icon: Activity },
-        { path: "/trains", label: "Train Timetable & Tracking", icon: Train },
-        { path: "/maintenance", label: "Maintenance Tasks", icon: Wrench },
-        { path: "/defects", label: "Defects & USFD Backlog", icon: ShieldAlert, badge: "P0/P1" },
-        { path: "/assets", label: "Fixed Assets Registry", icon: Database },
-        { path: "/blocks", label: "Block Possessions", icon: Layers }
+        { path: "/dashboard", label: "Executive Dashboard", description: "Real-time network KPIs & health", icon: Activity },
+        { path: "/trains", label: "Train Timetable & Tracking", description: "Live train positions & ETA delay", icon: Train },
+        { path: "/maintenance", label: "Maintenance Tasks", description: "Civil, TRD & S&T work orders", icon: Wrench },
+        { path: "/defects", label: "Defects & USFD Backlog", description: "Track flaws & speed restrictions", icon: ShieldAlert, badge: "P0/P1" },
+        { path: "/assets", label: "Fixed Assets Registry", description: "Infrastructure assets & lifecycle", icon: Database },
+        { path: "/blocks", label: "Block Possessions", description: "Corridor possession registry", icon: Layers }
       ]
     },
     {
       id: 'ai_studio',
       label: 'AI Planning & Studio',
       icon: Sparkles,
+      primaryPath: '/optimization-studio',
       isAi: true,
       items: [
-        { path: "/optimization-studio", label: "AI Block Optimization Studio", icon: Cpu, isAi: true, badge: "CP-SAT" },
-        { path: "/ai-planning", label: "AI Block Prioritization", icon: Sparkles, isAi: true },
-        { path: "/block-planning", label: "Block Possession Planner", icon: Calendar },
-        { path: "/weekly-planner", label: "7-Day & 30-Day Gantt Schedule", icon: CalendarDays },
-        { path: "/what-if", label: "What-If Sandbox Simulation", icon: Sliders },
-        { path: "/resources", label: "Machinery & Gang Allocation", icon: Truck }
+        { path: "/optimization-studio", label: "Block Optimization Studio", description: "Multi-objective block solver", icon: Cpu, badge: "Optimal" },
+        { path: "/ai-planning", label: "Block Prioritization", description: "Asset risk & traffic conflict engine", icon: Sparkles },
+        { path: "/block-planning", label: "Possession Planner", description: "Calendar & window scheduler", icon: Calendar },
+        { path: "/weekly-planner", label: "7-Day & 30-Day Schedule", description: "Gantt timeline & corridor windows", icon: CalendarDays },
+        { path: "/what-if", label: "What-If Sandbox Simulation", description: "Disruption impact forecasting", icon: Sliders },
+        { path: "/resources", label: "Resource Allocation", description: "Machinery & maintenance gangs", icon: Truck }
       ]
     },
     {
       id: 'coordination',
       label: 'Coordination & GIS',
       icon: Layers,
+      primaryPath: '/department-coordination',
       items: [
-        { path: "/department-coordination", label: "Multi-Dept Shadow Blocks & Anti-Gaming", icon: Scale, badge: "SHADOW" },
-        { path: "/corridor-map", label: "GIS Corridor & Section Risk Map", icon: MapPin },
-        { path: "/integrations", label: "TMS / SMMS / TDMS / COA Feeds", icon: Network }
+        { path: "/department-coordination", label: "Integrated Shadow Blocks", description: "Multi-dept joint work & anti-gaming", icon: Scale, badge: "Joint" },
+        { path: "/corridor-map", label: "GIS Corridor & Risk Map", description: "Spatial railway corridor tracking", icon: MapPin },
+        { path: "/integrations", label: "Enterprise Gateway Feeds", description: "Live TMS, SMMS, TDMS & COA feeds", icon: Network }
       ]
     },
     {
       id: 'governance',
       label: 'Governance & Analytics',
       icon: ShieldAlert,
+      primaryPath: '/approvals',
       items: [
-        { path: "/approvals", label: "Officer Sign-Off Queue", icon: CheckCircle2, badge: "DRM" },
-        { path: "/alerts", label: "Safety & Speed Alerts", icon: AlertTriangle },
-        { path: "/ai-review", label: "AI Model Review Center", icon: Sparkles, isAi: true },
-        { path: "/reports", label: "Executive Reports & KPIs", icon: BarChart3 },
-        { path: "/audit-logs", label: "Audit Logs & Statutory Trail", icon: History },
-        { path: "/settings", label: "System Preferences", icon: Settings }
+        { path: "/approvals", label: "Officer Sign-Off Queue", description: "Digital concurrence & approvals", icon: CheckCircle2, badge: "DRM" },
+        { path: "/alerts", label: "Safety & Speed Alerts", description: "Urgent notifications & alarms", icon: AlertTriangle },
+        { path: "/ai-review", label: "Model Review Center", description: "Recommendation validations", icon: Sparkles },
+        { path: "/reports", label: "Executive Reports & KPIs", description: "Dossier generation & punctuality", icon: BarChart3 },
+        { path: "/audit-logs", label: "Statutory Audit Trail", description: "Immutable decision logs", icon: History },
+        { path: "/settings", label: "System Preferences", description: "Department scopes & thresholds", icon: Settings }
       ]
     }
   ];
@@ -201,7 +205,7 @@ export default function TopNavbar({ activeUser, setActiveUser }) {
   // Quick Direct Pill Links
   const QUICK_PILLS = [
     { path: "/dashboard", label: "Dashboard", icon: Activity },
-    { path: "/optimization-studio", label: "AI Optimizer", icon: Sparkles, isAi: true },
+    { path: "/optimization-studio", label: "Optimizer", icon: Sparkles, isAi: true },
     { path: "/department-coordination", label: "Shadow Blocks", icon: Scale },
     { path: "/corridor-map", label: "GIS Map", icon: MapPin },
     { path: "/trains", label: "Trains", icon: Train },
@@ -258,6 +262,19 @@ export default function TopNavbar({ activeUser, setActiveUser }) {
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               <span>4 Gateways Online</span>
             </div>
+
+            {/* AI Copilot Mascot Button in Header */}
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('toggle-railoptima-chatbot'))}
+              className="flex items-center space-x-1.5 px-3 py-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white rounded-full text-[11px] font-bold shadow-md shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all cursor-pointer group"
+              title="Open RailOptima Agentic Copilot"
+            >
+              <div className="w-4 h-4 rounded-full overflow-hidden border border-white/80 shrink-0">
+                <img src="/chatbot_avatar.png" alt="Bot" className="w-full h-full object-cover" />
+              </div>
+              <span className="hidden sm:inline">AI Copilot</span>
+              <Sparkles className="w-3 h-3 text-cyan-200 animate-pulse" />
+            </button>
 
             {/* Notifications Popover */}
             <div className="relative" ref={notifMenuRef}>
@@ -407,12 +424,12 @@ export default function TopNavbar({ activeUser, setActiveUser }) {
       </div>
 
       {/* Tier 2: Category & Navigation Pill Bar */}
-      <div className="bg-white/85 border-t border-slate-200/80 shadow-2xs backdrop-blur-md">
+      <div className="bg-white/90 border-t border-slate-200/80 shadow-xs backdrop-blur-md relative z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-1.5 overflow-x-auto no-scrollbar gap-1.5" ref={navDropdownsRef}>
+          <div className="flex items-center justify-between py-1.5 gap-2 relative" ref={navDropdownsRef}>
             
-            {/* Direct Quick Pills */}
-            <div className="flex items-center space-x-1 shrink-0">
+            {/* Direct Quick Pills (Left Scrollable Strip) */}
+            <div className="flex items-center space-x-1 shrink-0 overflow-x-auto no-scrollbar py-0.5">
               {QUICK_PILLS.map((pill) => {
                 const Icon = pill.icon;
                 const isActive = location.pathname === pill.path;
@@ -443,7 +460,7 @@ export default function TopNavbar({ activeUser, setActiveUser }) {
               })}
             </div>
 
-            {/* Mega Dropdown Group Trigger Pills */}
+            {/* Mega Dropdown Group Trigger Buttons (Right Section) */}
             <div className="hidden lg:flex items-center space-x-1 shrink-0 border-l border-slate-200 pl-2">
               {NAV_GROUPS.map((group) => {
                 const GroupIcon = group.icon;
@@ -451,58 +468,99 @@ export default function TopNavbar({ activeUser, setActiveUser }) {
                 const isDropdownOpen = openDropdownId === group.id;
 
                 return (
-                  <div key={group.id} className="relative group">
-                    <button
-                      onClick={() => setOpenDropdownId(isDropdownOpen ? null : group.id)}
-                      className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-                        isGroupActive
-                          ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
-                          : isDropdownOpen
-                            ? 'bg-slate-100 text-slate-900 border border-slate-300'
-                            : 'text-slate-600 hover:bg-emerald-50/60 hover:text-slate-900'
-                      }`}
-                    >
-                      <GroupIcon className="w-3.5 h-3.5 text-slate-500 group-hover:text-emerald-600" />
-                      <span>{group.label}</span>
-                      <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : 'group-hover:rotate-180'}`} />
-                    </button>
+                  <div key={group.id} className="relative">
+                    {/* Category Group Button */}
+                    <div className="flex items-center">
+                      <button
+                        onClick={() => {
+                          if (isDropdownOpen) {
+                            setOpenDropdownId(null);
+                          } else {
+                            setOpenDropdownId(group.id);
+                          }
+                        }}
+                        className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer select-none ${
+                          isGroupActive
+                            ? 'bg-emerald-100 text-emerald-900 border border-emerald-300 shadow-2xs'
+                            : isDropdownOpen
+                              ? 'bg-slate-900 text-white shadow-md'
+                              : 'text-slate-700 hover:bg-emerald-50 hover:text-emerald-900 border border-transparent hover:border-emerald-200'
+                        }`}
+                        title={`Explore ${group.label} modules`}
+                      >
+                        <GroupIcon className={`w-3.5 h-3.5 ${isGroupActive ? 'text-emerald-700' : isDropdownOpen ? 'text-cyan-300' : 'text-slate-500'}`} />
+                        <span>{group.label}</span>
+                        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180 text-cyan-300' : 'text-slate-400'}`} />
+                      </button>
+                    </div>
 
-                    {/* Dropdown Menu Container (Hover or Click) */}
-                    <div className={`absolute right-0 top-full pt-1.5 w-68 z-50 transition-all ${
-                      isDropdownOpen ? 'block' : 'hidden group-hover:block'
-                    }`}>
-                      <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-200 p-2 text-xs animate-in fade-in">
-                        <div className="space-y-1">
-                          {group.items.filter(item => isRouteAllowed(item.path, currentRole)).map((subItem) => {
-                            const SubIcon = subItem.icon;
-                            const isSubActive = location.pathname === subItem.path;
-
-                            return (
-                              <NavLink
-                                key={subItem.path}
-                                to={subItem.path}
-                                onClick={() => setOpenDropdownId(null)}
-                                className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs transition cursor-pointer ${
-                                  isSubActive
-                                    ? 'bg-emerald-50 text-emerald-900 font-bold border border-emerald-200'
-                                    : 'text-slate-700 hover:bg-emerald-50/40'
-                                }`}
+                    {/* Popover Dropdown Menu */}
+                    {isDropdownOpen && (
+                      <div className="absolute right-0 top-full mt-2 w-80 z-[100] animate-in fade-in zoom-in-95 duration-150">
+                        <div className="bg-white rounded-2xl shadow-2xl shadow-slate-950/20 border border-slate-200/90 p-2.5 text-xs">
+                          {/* Dropdown Header */}
+                          <div className="px-3 py-2 border-b border-slate-100 flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <div className="p-1 rounded-lg bg-emerald-50 text-emerald-700">
+                                <GroupIcon className="w-3.5 h-3.5" />
+                              </div>
+                              <span className="font-extrabold text-slate-800">{group.label}</span>
+                            </div>
+                            {group.primaryPath && (
+                              <button
+                                onClick={() => {
+                                  setOpenDropdownId(null);
+                                  navigate(group.primaryPath);
+                                }}
+                                className="text-[10px] font-bold text-emerald-700 hover:text-emerald-900 hover:underline cursor-pointer"
                               >
-                                <div className="flex items-center space-x-2">
-                                  <SubIcon className={`w-3.5 h-3.5 ${isSubActive ? 'text-emerald-700' : 'text-slate-400'}`} />
-                                  <span>{subItem.label}</span>
-                                </div>
-                                {subItem.badge && (
-                                  <span className="text-[9px] font-black px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-700">
-                                    {subItem.badge}
-                                  </span>
-                                )}
-                              </NavLink>
-                            );
-                          })}
+                                View Main &rarr;
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Sub-item List */}
+                          <div className="py-1 space-y-0.5 max-h-[380px] overflow-y-auto">
+                            {group.items.map((subItem) => {
+                              const SubIcon = subItem.icon;
+                              const isSubActive = location.pathname === subItem.path;
+
+                              return (
+                                <button
+                                  key={subItem.path}
+                                  onClick={() => {
+                                    setOpenDropdownId(null);
+                                    navigate(subItem.path);
+                                  }}
+                                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs transition cursor-pointer text-left ${
+                                    isSubActive
+                                      ? 'bg-emerald-50 text-emerald-950 font-bold border border-emerald-200 shadow-2xs'
+                                      : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
+                                  }`}
+                                >
+                                  <div className="flex items-center space-x-2.5 min-w-0">
+                                    <div className={`p-1.5 rounded-lg shrink-0 ${isSubActive ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'}`}>
+                                      <SubIcon className="w-3.5 h-3.5" />
+                                    </div>
+                                    <div className="min-w-0">
+                                      <div className="font-bold truncate">{subItem.label}</div>
+                                      {subItem.description && (
+                                        <div className="text-[10px] text-slate-400 font-normal truncate">{subItem.description}</div>
+                                      )}
+                                    </div>
+                                  </div>
+                                  {subItem.badge && (
+                                    <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0 ml-2">
+                                      {subItem.badge}
+                                    </span>
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 );
               })}
@@ -513,8 +571,8 @@ export default function TopNavbar({ activeUser, setActiveUser }) {
 
       {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-white border-b border-slate-200 p-4 space-y-3 animate-in slide-in-from-top">
-          <form onSubmit={handleSearchSubmit} className="mb-3">
+        <div className="md:hidden bg-white border-b border-slate-200 p-4 space-y-4 animate-in slide-in-from-top max-h-[80vh] overflow-y-auto">
+          <form onSubmit={handleSearchSubmit} className="mb-2">
             <input
               type="text"
               value={searchQuery}
@@ -525,20 +583,30 @@ export default function TopNavbar({ activeUser, setActiveUser }) {
           </form>
 
           {NAV_GROUPS.map((group) => (
-            <div key={group.id} className="space-y-1">
-              <span className="text-[10px] font-extrabold uppercase text-slate-400 px-2">{group.label}</span>
-              <div className="grid grid-cols-2 gap-1.5">
-                {group.items.filter(item => isRouteAllowed(item.path, currentRole)).map((item) => (
+            <div key={group.id} className="space-y-1.5">
+              <div className="flex items-center space-x-1.5 text-[11px] font-extrabold uppercase text-slate-500 px-2">
+                <group.icon className="w-3.5 h-3.5 text-emerald-600" />
+                <span>{group.label}</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                {group.items.map((item) => (
                   <NavLink
                     key={item.path}
                     to={item.path}
                     onClick={() => setMobileMenuOpen(false)}
-                    className={({ isActive }) => `p-2 rounded-xl text-xs font-semibold flex items-center space-x-1.5 ${
-                      isActive ? 'bg-emerald-600 text-white' : 'bg-emerald-50/60 text-slate-700'
+                    className={({ isActive }) => `p-2.5 rounded-xl text-xs font-semibold flex items-center justify-between ${
+                      isActive ? 'bg-emerald-600 text-white font-bold' : 'bg-slate-50 hover:bg-emerald-50 text-slate-700'
                     }`}
                   >
-                    <item.icon className="w-3.5 h-3.5" />
-                    <span className="truncate">{item.label}</span>
+                    <div className="flex items-center space-x-2">
+                      <item.icon className="w-3.5 h-3.5" />
+                      <span className="truncate">{item.label}</span>
+                    </div>
+                    {item.badge && (
+                      <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-slate-200/80 text-slate-800">
+                        {item.badge}
+                      </span>
+                    )}
                   </NavLink>
                 ))}
               </div>
