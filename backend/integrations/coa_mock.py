@@ -81,35 +81,6 @@ class MockCOAClient:
         ("G-2291", "SAIL Bokaro Finished Steel Rake", "Freight_Steel", "BKSC", "FDB", 58, 28, True, "WAG-9")
     ]
 
-    SECTION_COORDINATES = {
-        "NDLS-TKD-UP": (28.5750, 77.2500),
-        "NDLS-TKD-DN": (28.5700, 77.2550),
-        "TKD-PWL-UP": (28.3280, 77.3080),
-        "TKD-PWL-DN": (28.3200, 77.3120),
-        "PWL-MTJ-UP": (27.8200, 77.5020),
-        "PWL-MTJ-DN": (27.8150, 77.5080),
-        "MTJ-AGC-UP": (27.3250, 77.8400),
-        "MTJ-AGC-DN": (27.3200, 77.8450),
-        "AGC-DHO-UP": (26.8280, 78.0040),
-        "AGC-DHO-DN": (26.8200, 78.0100),
-        "DHO-GWL-UP": (26.3580, 78.0900),
-        "DHO-GWL-DN": (26.3500, 78.0950),
-        "GWL-VGLJ-UP": (25.8330, 78.3750),
-        "GWL-VGLJ-DN": (25.8300, 78.3800),
-        "VGLJ-BPL-UP": (24.3500, 78.2900),
-        "VGLJ-BPL-DN": (24.3450, 78.2950),
-        "BPL-ET-UP": (22.9360, 77.5880),
-        "BPL-ET-DN": (22.9300, 77.5920),
-        "ET-NGP-UP": (21.8820, 78.4430),
-        "ET-NGP-DN": (21.8780, 78.4480),
-        "CNB-PRYJ-SEC1-UP": (25.9450, 81.1000),
-        "CNB-PRYJ-SEC1-DN": (25.9400, 81.1050),
-        "CNB-PRYJ-SEC2-UP": (25.6900, 81.4900),
-        "CNB-PRYJ-SEC2-DN": (25.6850, 81.4950),
-        "PRYJ-DDU-UP": (25.3580, 82.4800),
-        "PRYJ-DDU-DN": (25.3500, 82.4850)
-    }
-
     @classmethod
     def fetch_trains(cls, count: int = 100) -> List[Dict[str, Any]]:
         """Generates realistic train timetable and real-time tracking data for at least 100 trains."""
@@ -134,11 +105,6 @@ class MockCOAClient:
             spd = max(0, max_spd - (i % 5) * 5)
             delay = (base_delay + (i % 6) * 3) if not is_fr else (base_delay + (i % 10) * 5)
 
-            # Resolve realistic GPS latitude and longitude on Indian Railways network
-            base_coords = cls.SECTION_COORDINATES.get(sec, (25.4484, 78.5685))
-            jitter_lat = round(base_coords[0] + (((i * 17) % 7) - 3) * 0.025, 4)
-            jitter_lng = round(base_coords[1] + (((i * 13) % 5) - 2) * 0.025, 4)
-
             # Timetable departure & arrival calculations
             sched_dep = (now - timedelta(hours=(i % 12) + 1, minutes=(i * 7) % 60)).strftime("%H:%M")
             sched_arr = (now + timedelta(hours=(i % 14) + 2, minutes=(i * 11) % 60)).strftime("%H:%M")
@@ -157,21 +123,16 @@ class MockCOAClient:
                 "scheduled_departure": sched_dep,
                 "scheduled_arrival": sched_arr,
                 "current_section": sec,
-                "lat": jitter_lat,
-                "lng": jitter_lng,
-                "speed_kmh": spd,
                 "current_speed_kmh": spd,
                 "delay_minutes": delay,
                 "is_freight": is_fr,
                 "locomotive_type": loco,
-                "status": status,
                 "punctuality_status": status,
                 "signal_aspect": signal,
                 "traffic_priority": "High (P0)" if "Rajdhani" in ttype or "Vande" in tname else ("Medium (P1)" if not is_fr else "Freight (P2)"),
                 "timestamp": now.isoformat()
             })
         return results
-
 
     @classmethod
     def fetch_corridors(cls) -> List[Dict[str, Any]]:

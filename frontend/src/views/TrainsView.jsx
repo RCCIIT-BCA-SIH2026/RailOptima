@@ -39,20 +39,6 @@ export default function TrainsView() {
   const { activeUser } = useOutletContext() || {};
   const currentRole = (activeUser?.canonical_role || activeUser?.role || localStorage.getItem('ir_user_role') || 'CONTROL_OFFICE').toUpperCase();
 
-  const formatTime = (timeStr) => {
-    if (!timeStr) return '--:--';
-    try {
-      const d = new Date(timeStr);
-      if (isNaN(d.getTime())) {
-        return timeStr.length >= 5 ? timeStr.slice(0, 5) : timeStr;
-      }
-      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
-    } catch (e) {
-      return '--:--';
-    }
-  };
-
-
   // Data state
   const [trains, setTrains] = useState([]);
   const [stats, setStats] = useState(null);
@@ -691,10 +677,10 @@ export default function TrainsView() {
                           <td className="px-3 py-3 text-center whitespace-nowrap font-mono text-[11px]">
                             <div className="space-y-0.5">
                               <span className="text-slate-800 font-semibold block">
-                                Dep: {formatTime(train.scheduled_departure)}
+                                Dep: {train.scheduled_departure ? new Date(train.scheduled_departure).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
                               </span>
                               <span className="text-slate-500 block text-[10px]">
-                                Arr: {formatTime(train.scheduled_arrival)}
+                                Arr: {train.scheduled_arrival ? new Date(train.scheduled_arrival).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
                               </span>
                             </div>
                           </td>
@@ -703,14 +689,13 @@ export default function TrainsView() {
                           <td className="px-3 py-3 text-center whitespace-nowrap font-mono text-[11px]">
                             <div className="space-y-0.5">
                               <span className={`font-semibold block ${train.delay_minutes > 5 ? 'text-amber-600' : 'text-slate-800'}`}>
-                                Dep: {formatTime(train.expected_departure)}
+                                Dep: {train.expected_departure ? new Date(train.expected_departure).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
                               </span>
                               <span className={`block text-[10px] ${train.delay_minutes > 5 ? 'text-rose-600 font-semibold' : 'text-slate-500'}`}>
-                                Arr: {formatTime(train.expected_arrival)}
+                                Arr: {train.expected_arrival ? new Date(train.expected_arrival).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
                               </span>
                             </div>
                           </td>
-
 
                           {/* Delay */}
                           <td className="px-3 py-3 text-center whitespace-nowrap">
@@ -822,100 +807,31 @@ export default function TrainsView() {
                 <MapPin className="w-4 h-4 text-blue-600" />
                 <span>Live Indian Railways Corridor GPS Telemetry</span>
               </CardTitle>
-              <p className="text-xs text-slate-500">Real-time GPS coordinates of active passenger and freight rakes across Central & Northern Trunk Corridors</p>
+              <p className="text-xs text-slate-500">Real-time GPS coordinates of active passenger and freight rakes</p>
             </div>
             <Badge variant="ai" className="text-[10px]">COA Telemetry Active</Badge>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="h-[560px] w-full relative">
+            <div className="h-[520px] w-full relative">
               <MapContainer 
-                center={[25.4484, 78.5685]} 
-                zoom={6} 
-                style={{ height: '100%', width: '100%', backgroundColor: '#0f172a' }}
+                center={[21.1458, 79.0882]} 
+                zoom={7} 
+                style={{ height: '100%', width: '100%' }}
               >
                 <TileLayer
-                  attribution='&copy; <a href="https://maps.google.com">Google Maps</a>'
-                  url={`https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&key=${import.meta.env.VITE_MAP_API_KEY || import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''}`}
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
-
-                {/* Trunk Corridor Railway Lines */}
-                <Polyline
-                  positions={[
-                    [28.6430, 77.2194], // NDLS
-                    [28.5085, 77.2847], // TKD
-                    [28.1487, 77.3320], // PWL
-                    [27.4924, 77.6737], // MTJ
-                    [27.1591, 78.0081], // AGC
-                    [26.2183, 78.1828], // GWL
-                    [25.4484, 78.5685], // VGLJ
-                    [24.1714, 78.1866], // BINA
-                    [23.2599, 77.4126], // BPL
-                    [22.6120, 77.7641], // ET
-                    [21.1524, 79.0882]  // NGP
-                  ]}
-                  color="#2563eb"
-                  weight={5}
-                  opacity={0.85}
-                />
-                <Polyline
-                  positions={[
-                    [28.6430, 77.2194], // NDLS
-                    [26.4547, 80.3507], // CNB
-                    [25.4358, 81.8463], // PRYJ
-                    [25.2818, 83.1186], // DDU
-                    [25.3262, 82.9866]  // BSB
-                  ]}
-                  color="#7c3aed"
-                  weight={5}
-                  opacity={0.85}
-                />
-
-                {/* Major Junction Station Pins */}
-                {[
-                  { name: "New Delhi (NDLS)", coords: [28.6430, 77.2194] },
-                  { name: "Agra Cantt (AGC)", coords: [27.1591, 78.0081] },
-                  { name: "Gwalior (GWL)", coords: [26.2183, 78.1828] },
-                  { name: "VGL Jhansi (VGLJ)", coords: [25.4484, 78.5685] },
-                  { name: "Bhopal (BPL)", coords: [23.2599, 77.4126] },
-                  { name: "Itarsi (ET)", coords: [22.6120, 77.7641] },
-                  { name: "Nagpur (NGP)", coords: [21.1524, 79.0882] },
-                  { name: "Kanpur (CNB)", coords: [26.4547, 80.3507] },
-                  { name: "Prayagraj (PRYJ)", coords: [25.4358, 81.8463] },
-                  { name: "DDU Junction", coords: [25.2818, 83.1186] }
-                ].map((st, i) => (
-                  <Marker key={`st-${i}`} position={st.coords}>
-                    <Popup>
-                      <div className="text-xs font-bold text-emerald-800">
-                        Station: {st.name}
-                      </div>
-                    </Popup>
-                  </Marker>
-                ))}
-
-                {/* Active Live Trains Positions */}
                 {liveMapTrains.map((tr, idx) => {
-                  const lat = tr.lat || (28.6430 - (idx % 10) * 0.7);
-                  const lng = tr.lng || (77.2194 + (idx % 8) * 0.6);
+                  const lat = tr.lat || (21.1458 + (idx * 0.15) - 0.5);
+                  const lng = tr.lng || (79.0882 + (idx * 0.12) - 0.4);
                   return (
-                    <Marker key={`tr-${idx}`} position={[lat, lng]}>
+                    <Marker key={idx} position={[lat, lng]}>
                       <Popup>
-                        <div className="text-xs space-y-1.5 p-0.5">
-                          <div className="font-bold text-blue-900 border-b border-slate-200 pb-1 flex items-center justify-between">
-                            <span>{tr.train_no} - {tr.train_name}</span>
-                          </div>
-                          <p className="text-slate-600 font-mono">
-                            Section: <strong>{tr.current_section || 'Trunk'}</strong><br />
-                            Speed: <strong>{tr.current_speed_kmh || tr.speed_kmh || 95} km/h</strong><br />
-                            Delay: <strong className={tr.delay_minutes > 5 ? 'text-rose-600' : 'text-emerald-600'}>+{tr.delay_minutes || 0}m</strong>
-                          </p>
-                          <div className="flex items-center justify-between pt-1">
-                            <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
-                              {tr.train_type || 'Express'}
-                            </span>
-                            <span className="text-emerald-600 font-extrabold text-[10px] uppercase">
-                              {tr.status || tr.punctuality_status || 'Running'}
-                            </span>
-                          </div>
+                        <div className="text-xs space-y-1">
+                          <strong className="text-blue-700 block">{tr.train_no} - {tr.train_name}</strong>
+                          <p className="text-slate-600">Speed: {tr.speed_kmh || 95} km/h • Delay: +{tr.delay_minutes || 0}m</p>
+                          <span className="text-emerald-600 font-bold block">{tr.status || 'Running'}</span>
                         </div>
                       </Popup>
                     </Marker>
@@ -925,7 +841,6 @@ export default function TrainsView() {
             </div>
           </CardContent>
         </Card>
-
       )}
 
       {/* ================= MODAL 1: TRAIN DETAILS ================= */}

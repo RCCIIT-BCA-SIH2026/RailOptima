@@ -97,9 +97,9 @@ class AlternativeGenerator:
                 "multi_dept_synergy_score": synergy,
                 "blocks": raw_blocks[:10], # Representative preview of first 10 blocks
                 "ai_rationale": (
-                    f"AI Model Prediction: Strategy '{strat['name']}' produces {len(raw_blocks)} blocks across corridor sections, "
-                    f"clearing {defects_cleared} defects with projected total train delay of {total_delay} mins "
-                    f"and {synergy}% multi-department synergy index."
+                    f"Strategy '{strat['name']}' produces {len(raw_blocks)} blocks across corridor sections. "
+                    f"Projected total train delay is {total_delay} minutes, clearing {defects_cleared} tasks. "
+                    f"Multi-department synergy index achieved is {synergy}%."
                 )
             }
             alternatives.append(alt_summary)

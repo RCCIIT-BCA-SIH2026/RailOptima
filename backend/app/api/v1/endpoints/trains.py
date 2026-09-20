@@ -30,40 +30,6 @@ def check_train_access(current_user: Optional[User]):
         )
 
 def serialize_train(t: Train) -> Dict[str, Any]:
-    now = datetime.utcnow()
-    # Generate realistic schedule times if database dates are null
-    base_hour = (t.id * 1.5) % 24
-    st_hour = int(base_hour)
-    st_min = int((base_hour % 1) * 60)
-    dur_hrs = 6.0 if not t.is_freight else 10.0
-
-    sched_dep = t.scheduled_departure
-    if not sched_dep:
-        sched_dep = datetime(now.year, now.month, now.day, st_hour, st_min)
-
-    sched_arr = t.scheduled_arrival
-    if not sched_arr:
-        sched_arr = sched_dep + timedelta(hours=dur_hrs)
-
-    delay = t.delay_minutes or 0
-
-    exp_dep = t.expected_departure
-    if not exp_dep:
-        exp_dep = sched_dep + timedelta(minutes=delay)
-
-    exp_arr = t.expected_arrival
-    if not exp_arr:
-        exp_arr = sched_arr + timedelta(minutes=delay)
-
-    # Format ISO strings safely
-    sched_dep_str = sched_dep.isoformat() if isinstance(sched_dep, datetime) else str(sched_dep)
-    sched_arr_str = sched_arr.isoformat() if isinstance(sched_arr, datetime) else str(sched_arr)
-    exp_dep_str = exp_dep.isoformat() if isinstance(exp_dep, datetime) else str(exp_dep)
-    exp_arr_str = exp_arr.isoformat() if isinstance(exp_arr, datetime) else str(exp_arr)
-
-    ml_confidence = round(0.92 + (0.07 * ((t.id % 5) / 5.0)), 2)
-    ml_pred_delay = delay + (3 if t.is_freight else 0)
-
     return {
         "id": t.id,
         "train_no": t.train_no,
@@ -75,22 +41,13 @@ def serialize_train(t: Train) -> Dict[str, Any]:
         "origin": t.origin or "New Delhi (NDLS)",
         "destination": t.destination or "Bhopal Junction (BPL)",
         "route": t.route or "NDLS - AGC - GWL - VGLJ - BPL",
-        "scheduled_departure": sched_dep_str,
-        "scheduled_arrival": sched_arr_str,
-        "expected_departure": exp_dep_str,
-        "expected_arrival": exp_arr_str,
-        "delay_minutes": delay,
-        "status": t.status or ("On Time" if delay <= 5 else "Delayed"),
-        # Unified 90-Attribute ML Telemetry Enrichment
-        "ml_predicted_delay_minutes": ml_pred_delay,
-        "ml_confidence_score": ml_confidence,
-        "ml_punctuality_index": 98.2 if delay <= 5 else 84.5,
-        "ml_speed_recommendation": f"{t.max_speed or 110} km/h",
-        "ml_track_health_index": 88.5,
-        "ml_rail_wear_mm": 1.45,
-        "ml_vibration_level": 0.28
+        "scheduled_departure": t.scheduled_departure,
+        "scheduled_arrival": t.scheduled_arrival,
+        "expected_departure": t.expected_departure,
+        "expected_arrival": t.expected_arrival,
+        "delay_minutes": t.delay_minutes or 0,
+        "status": t.status or ("On Time" if (t.delay_minutes or 0) == 0 else "Delayed")
     }
-
 
 @router.get("/statistics", response_model=TrainStatisticsResponse)
 def get_train_statistics(

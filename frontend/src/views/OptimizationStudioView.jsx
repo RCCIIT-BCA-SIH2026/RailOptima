@@ -25,7 +25,6 @@ export default function OptimizationStudioView({ onNavigate }) {
   const [submittingPlan, setSubmittingPlan] = useState(false);
   const [submittedSuccess, setSubmittedSuccess] = useState(null);
   const [explainingBlockId, setExplainingBlockId] = useState(null);
-  const [adoptedStrategyId, setAdoptedStrategyId] = useState(null);
 
   useEffect(() => {
     fetchLatestAlternatives();
@@ -34,7 +33,6 @@ export default function OptimizationStudioView({ onNavigate }) {
   const fetchLatestAlternatives = async () => {
     try {
       const res = await apiClient.get('/optimization/alternatives');
-      setOptimizationResult(res.data);
       setAlternatives(res.data.alternatives || []);
     } catch (err) {
       console.error("Failed to load alternatives", err);
@@ -63,10 +61,8 @@ export default function OptimizationStudioView({ onNavigate }) {
   const handleAdoptAlternative = async (stratId) => {
     try {
       setSubmittingPlan(true);
-      setSelectedAlternativeId(stratId);
       const res = await apiClient.post(`/optimization/select-alternative/${stratId}`);
       setSubmittedSuccess(res.data);
-      setAdoptedStrategyId(stratId);
     } catch (err) {
       console.error("Plan adoption failed", err);
     } finally {
@@ -195,28 +191,6 @@ export default function OptimizationStudioView({ onNavigate }) {
         </div>
       )}
 
-      {/* AI Executive Recommendation Banner */}
-      {optimizationResult?.ai_insights?.executive_recommendation && (
-        <div className="bg-gradient-to-r from-slate-900 to-teal-950 text-white p-4.5 rounded-xl shadow-xl border border-teal-500/30 flex items-start space-x-3.5">
-          <div className="p-2.5 bg-emerald-500/20 rounded-xl text-emerald-400 mt-0.5 shrink-0 border border-emerald-500/30">
-            <Sparkles className="w-5 h-5 animate-pulse" />
-          </div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400 font-mono">
-                AI Executive Recommendation (OpenRouter Llama 3.3 70B)
-              </h4>
-              <span className="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded font-mono font-semibold">
-                DRM Decision Support
-              </span>
-            </div>
-            <p className="text-xs text-slate-200 mt-1.5 leading-relaxed font-sans">
-              {optimizationResult.ai_insights.executive_recommendation}
-            </p>
-          </div>
-        </div>
-      )}
-
       {/* 3 Strategy Alternatives Cards */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
@@ -250,16 +224,11 @@ export default function OptimizationStudioView({ onNavigate }) {
                       <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 font-mono">
                         Alternative #{alt.strategy_id}
                       </span>
-                      {adoptedStrategyId === alt.strategy_id ? (
-                        <span className="text-[10px] font-bold bg-emerald-600 text-white px-2 py-0.5 rounded-full shadow flex items-center space-x-1 animate-pulse">
-                          <CheckCircle2 className="w-3 h-3" />
-                          <span>APPROVED & ACTIVE</span>
-                        </span>
-                      ) : alt.is_recommended ? (
+                      {alt.is_recommended && (
                         <span className="text-[10px] font-bold bg-emerald-600 text-white px-2 py-0.5 rounded-full shadow">
                           RECOMMENDED
                         </span>
-                      ) : null}
+                      )}
                     </div>
                     <h4 className="font-bold text-slate-900 text-sm">{alt.title}</h4>
                     <p className="text-xs text-slate-600 mt-1">{alt.tagline}</p>
@@ -294,28 +263,21 @@ export default function OptimizationStudioView({ onNavigate }) {
 
                 {/* Card Footer Action */}
                 <div className="p-4 pt-0">
-                  {adoptedStrategyId === alt.strategy_id ? (
-                    <div className="w-full py-2.5 px-3 rounded-lg text-xs font-bold bg-emerald-700 text-white shadow-md flex items-center justify-center space-x-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-300" />
-                      <span>Strategy #{alt.strategy_id} Approved & Active</span>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAdoptAlternative(alt.strategy_id);
-                      }}
-                      disabled={submittingPlan}
-                      className={`w-full py-2.5 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-2 cursor-pointer ${
-                        isSelected
-                          ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-md shadow-emerald-500/20'
-                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                      }`}
-                    >
-                      <span>Adopt & Submit Strategy #{alt.strategy_id}</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                  )}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAdoptAlternative(alt.strategy_id);
+                    }}
+                    disabled={submittingPlan}
+                    className={`w-full py-2.5 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-2 cursor-pointer ${
+                      isSelected
+                        ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-md shadow-emerald-500/20'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                    }`}
+                  >
+                    <span>Adopt & Submit Strategy #{alt.strategy_id}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
             );
@@ -328,16 +290,9 @@ export default function OptimizationStudioView({ onNavigate }) {
         <div className="glass-card p-5 shadow-xl border border-slate-200/80 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <div className="flex items-center space-x-2">
-                <h4 className="font-bold text-slate-900 text-sm">
-                  Candidate Blocks for Strategy #{selectedAlternativeId}: {alternatives.find(a => a.strategy_id === selectedAlternativeId)?.title}
-                </h4>
-                {adoptedStrategyId === selectedAlternativeId && (
-                  <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded font-mono">
-                    ✓ ADOPTED PLAN IN MONGODB ATLAS
-                  </span>
-                )}
-              </div>
+              <h4 className="font-bold text-slate-900 text-sm">
+                Candidate Blocks for Strategy #{selectedAlternativeId}: {alternatives.find(a => a.strategy_id === selectedAlternativeId)?.title}
+              </h4>
               <p className="text-xs text-slate-500">Click 'Explain AI Rationale' on any block to inspect the deep multi-objective justification</p>
             </div>
           </div>

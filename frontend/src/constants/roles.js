@@ -148,10 +148,8 @@ export function isRouteAllowed(path, role) {
 
   switch (path) {
     case '/dashboard':
-    case '/ml-query':
     case '/alerts':
     case '/reports':
-
     case '/blocks':
     case '/block-planning':
     case '/optimization-studio':

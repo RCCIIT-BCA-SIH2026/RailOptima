@@ -165,7 +165,6 @@ export default function TopNavbar({ activeUser, setActiveUser }) {
       icon: Sparkles,
       isAi: true,
       items: [
-        { path: "/ml-query", label: "Unified ML Query (90 Features)", icon: Database, isAi: true, badge: "90 FEAT" },
         { path: "/optimization-studio", label: "AI Block Optimization Studio", icon: Cpu, isAi: true, badge: "CP-SAT" },
         { path: "/ai-planning", label: "AI Block Prioritization", icon: Sparkles, isAi: true },
         { path: "/block-planning", label: "Block Possession Planner", icon: Calendar },
@@ -202,14 +201,12 @@ export default function TopNavbar({ activeUser, setActiveUser }) {
   // Quick Direct Pill Links
   const QUICK_PILLS = [
     { path: "/dashboard", label: "Dashboard", icon: Activity },
-    { path: "/ml-query", label: "Unified ML Query", icon: Database, isAi: true, badge: "90" },
     { path: "/optimization-studio", label: "AI Optimizer", icon: Sparkles, isAi: true },
     { path: "/department-coordination", label: "Shadow Blocks", icon: Scale },
     { path: "/corridor-map", label: "GIS Map", icon: MapPin },
     { path: "/trains", label: "Trains", icon: Train },
     { path: "/approvals", label: "Approvals", icon: CheckCircle2, badge: "DRM" }
   ];
-
 
   return (
     <header className="sticky top-0 z-50 glass-header-nav select-none shadow-xs">

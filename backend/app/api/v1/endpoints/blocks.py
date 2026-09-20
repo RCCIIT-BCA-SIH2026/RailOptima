@@ -30,10 +30,8 @@ from backend.app.schemas import (
 )
 from backend.conflicts.conflict_detector import RailwayConflictDetector
 from backend.optimization.conflict_detector import ConflictDetector
-from backend.app.services.mongodb_repository_service import MongoDBRepositoryService
 
 router = APIRouter()
-
 
 def serialize_block(b: Block, user_dept: Optional[str] = None) -> Dict[str, Any]:
     duration = b.duration_minutes
@@ -611,16 +609,7 @@ def create_block(
     db.add(new_block)
     db.commit()
     db.refresh(new_block)
-
-    res_dict = serialize_block(new_block)
-    MongoDBRepositoryService.update_block_status_in_mongo(
-        block_id=new_block.id,
-        block_code=new_block.block_code,
-        new_status=new_block.status,
-        extra_details=res_dict
-    )
-
-    return res_dict
+    return serialize_block(new_block)
 
 @router.put("/{block_id}", response_model=BlockResponse)
 def update_block(
@@ -656,17 +645,7 @@ def update_block(
 
     db.commit()
     db.refresh(block)
-
-    res_dict = serialize_block(block)
-    MongoDBRepositoryService.update_block_status_in_mongo(
-        block_id=block.id,
-        block_code=block.block_code,
-        new_status=block.status,
-        extra_details=res_dict
-    )
-
-    return res_dict
-
+    return serialize_block(block)
 
 @router.delete("/{block_id}", status_code=status.HTTP_200_OK)
 def delete_block(

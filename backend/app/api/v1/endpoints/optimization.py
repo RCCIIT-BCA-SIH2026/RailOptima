@@ -3,17 +3,14 @@ from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from backend.app.api.deps import get_db, get_current_user_optional, normalize_role
+from backend.app.api.deps import get_db, get_current_user, require_roles
 from backend.app.models import (
     MaintenanceTask, TrainSchedule, Resource, Block, BlockTask,
     BlockPlan, AIRecommendation, User, Department, RailwaySection
 )
 from backend.app.schemas import OptimizeRequest
 from backend.optimization import block_optimizer, alternative_generator
-import uuid
-from backend.app.services.llm_service import OpenRouterLLMService
-from backend.app.services.mongodb_repository_service import MongoDBRepositoryService
-
+from ml.explainer import explainer
 
 router = APIRouter()
 
@@ -24,9 +21,8 @@ _CACHED_ALTERNATIVES = []
 def run_automatic_optimization(
     payload: OptimizeRequest,
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(get_current_user_optional)
+    current_user: User = Depends(require_roles(["Admin", "DRM", "Sr_DOM", "Sr_DEN", "Sr_DSTE", "Sr_DEE"]))
 ):
-
 
     """
     Core SIH Demo Action: Runs Google OR-Tools CP-SAT Block Optimizer.
@@ -76,26 +72,16 @@ def run_automatic_optimization(
 
     _CACHED_ALTERNATIVES = alternatives
 
-    policy_name = getattr(payload, 'policy', None) or getattr(payload, 'strategy_code', None) or "Balanced Strategy"
-    ai_insights = OpenRouterLLMService.generate_optimization_studio_insights(
-        policy=policy_name,
-        horizon_hours=getattr(payload, 'horizon_hours', 24),
-        alternatives=alternatives
-    )
-
-
     return {
         "status": "Success",
-        "solver": "Google OR-Tools CP-SAT & OpenRouter LLM Llama 3.3 70B",
+        "solver": "Google OR-Tools CP-SAT Engine",
         "horizon_hours": payload.horizon_hours,
         "tasks_evaluated": len(tasks_data),
         "alternatives_count": len(alternatives),
         "alternatives": alternatives,
         "recommended_strategy": "Balanced Operational Plan",
-        "ai_insights": ai_insights,
-        "data_mode": "LIVE OPENROUTER AI & GOOGLE OR-TOOLS CP-SAT"
+        "data_mode": "SIMULATED DEMO DATA"
     }
-
 
 @router.get("/alternatives")
 def get_latest_alternatives(db: Session = Depends(get_db)):
@@ -114,75 +100,56 @@ def get_latest_alternatives(db: Session = Depends(get_db)):
         } for t in tasks]
         _CACHED_ALTERNATIVES = alternative_generator.generate_alternatives(t_data, [], [], 24)
 
-    # Ensure OpenRouter LLM insights are attached
-    ai_insights = OpenRouterLLMService.generate_optimization_studio_insights("Balanced Strategy", 24, _CACHED_ALTERNATIVES)
-
     return {
         "alternatives": _CACHED_ALTERNATIVES,
-        "ai_insights": ai_insights,
-        "data_mode": "LIVE OPENROUTER AI & GOOGLE OR-TOOLS CP-SAT"
+        "data_mode": "SIMULATED DEMO DATA"
     }
 
 @router.post("/select-alternative/{strategy_id}")
 def select_and_apply_alternative(
     strategy_id: int,
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(get_current_user_optional)
+    current_user: User = Depends(require_roles(["Admin", "DRM", "Sr_DOM", "Sr_DEN", "Sr_DSTE", "Sr_DEE"]))
 ):
+
     """
     Officer selects one of the 3 alternatives to instantiate official 'Proposed' Blocks
     and attach AI Recommendations ready for DRM approval.
     """
     global _CACHED_ALTERNATIVES
-    if not _CACHED_ALTERNATIVES:
-        tasks = db.query(MaintenanceTask).limit(20).all()
-        t_data = [{
-            "id": t.id,
-            "title": t.title,
-            "section_id": t.section_id,
-            "department_id": t.department_id,
-            "department_code": t.department.code if t.department else "ENG",
-            "duration_minutes": t.estimated_duration_minutes,
-            "priority_score": 75.0
-        } for t in tasks]
-        _CACHED_ALTERNATIVES = alternative_generator.generate_alternatives(t_data, [], [], 24)
-
     matched = [a for a in _CACHED_ALTERNATIVES if a["strategy_id"] == strategy_id]
     if not matched:
+        # Fallback to recommended strategy #1
         matched = _CACHED_ALTERNATIVES[:1]
     
     selected_alt = matched[0] if matched else None
     if not selected_alt:
         raise HTTPException(status_code=400, detail="No active optimization alternatives found. Please run optimization first.")
 
-    user_id = current_user.id if current_user else 1
-
     now = datetime.utcnow()
     # Create or retrieve active block plan
     plan = BlockPlan(
-        plan_code=f"PLN-OPT-{now.strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:4].upper()}",
+        plan_code=f"PLN-OPT-{now.strftime('%Y%m%d%H%M')}",
         plan_type="Weekly",
         status="Under_Review",
         horizon_start=now,
         horizon_end=now + timedelta(days=7),
         total_blocks=selected_alt["total_blocks"],
         total_delay_impact_minutes=selected_alt["total_delay_minutes"],
-        created_by=user_id
+        created_by=current_user.id
     )
-
     db.add(plan)
     db.flush()
 
     blocks_created = []
-    for idx, b_data in enumerate(selected_alt["blocks"]):
+    for b_data in selected_alt["blocks"]:
         st = datetime.fromisoformat(b_data["start_time"])
         et = datetime.fromisoformat(b_data["end_time"])
         dept = db.query(Department).filter(Department.code == b_data["lead_department"]).first()
         dept_id = dept.id if dept else 1
-        unique_bcode = f"{b_data['block_code']}-{now.strftime('%H%M%S')}-{idx+1:02d}"
 
         new_block = Block(
-            block_code=unique_bcode,
+            block_code=b_data["block_code"],
             plan_id=plan.id,
             section_id=b_data["section_id"],
             block_type=b_data["block_type"],
@@ -207,46 +174,17 @@ def select_and_apply_alternative(
             rationale_text=selected_alt["ai_rationale"]
         )
         db.add(ai_rec)
-        blocks_created.append({
-            "block_id": new_block.id,
-            "block_code": unique_bcode,
-            "plan_code": plan.plan_code,
-            "block_type": b_data["block_type"],
-            "section_id": b_data["section_id"],
-            "lead_department": b_data["lead_department"],
-            "start_time": b_data["start_time"],
-            "end_time": b_data["end_time"],
-            "status": "Proposed",
-            "ai_rationale": selected_alt["ai_rationale"]
-        })
+        blocks_created.append(new_block.id)
 
     db.commit()
 
-    # Persist to MongoDB Atlas
-    plan_mongo_doc = {
-        "plan_id": plan.id,
-        "plan_code": plan.plan_code,
-        "strategy_id": strategy_id,
-        "strategy_name": selected_alt["title"],
-        "status": "Under_Review",
-        "total_blocks": len(blocks_created),
-        "total_delay_minutes": selected_alt["total_delay_minutes"],
-        "defects_cleared": selected_alt["defects_cleared"],
-        "synergy_score": selected_alt["multi_dept_synergy_score"],
-        "ai_rationale": selected_alt["ai_rationale"],
-        "created_at": datetime.utcnow().isoformat()
-    }
-    mongo_saved = MongoDBRepositoryService.save_block_plan_in_mongo(plan_mongo_doc, blocks_created)
-
     return {
-        "status": "Success",
-        "message": f"Strategy '{selected_alt['title']}' approved and saved to MongoDB & PostgreSQL database!",
+        "message": f"Successfully adopted Strategy '{selected_alt['title']}'. Created {len(blocks_created)} proposed blocks for officer approval.",
         "plan_id": plan.id,
         "plan_code": plan.plan_code,
         "blocks_count": len(blocks_created),
         "status": "Under_Review",
-        "stored_in_mongodb": mongo_saved,
-        "data_mode": "LIVE OPENROUTER AI & MONGODB ATLAS"
+        "data_mode": "SIMULATED DEMO DATA"
     }
 
 @router.get("/explain/{block_id}")

@@ -1,8 +1,8 @@
-from typing import List, Optional
+from typing import List
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from backend.app.api.deps import get_db, get_current_user_optional
+from backend.app.api.deps import get_db, require_roles
 from backend.app.models import AuditLog, User
 
 router = APIRouter()
@@ -11,9 +11,8 @@ router = APIRouter()
 def get_audit_logs(
     limit: int = Query(50, le=200),
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(get_current_user_optional)
+    current_user: User = Depends(require_roles(["Admin", "DRM", "Sr_DOM", "Sr_DEN", "Sr_DSTE", "Sr_DEE"]))
 ):
-
 
     """Immutable audit trail of all system decisions, approvals, and optimizations."""
     logs = db.query(AuditLog).order_by(AuditLog.timestamp.desc()).limit(limit).all()
