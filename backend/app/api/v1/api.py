@@ -19,7 +19,8 @@ from backend.app.api.v1.endpoints import (
     reports,
     ai_priority,
     ai_recommendations,
-    conflicts
+    conflicts,
+    chatbot
 )
 
 api_router = APIRouter()
@@ -44,6 +45,8 @@ api_router.include_router(ai_priority.router, prefix="/ai", tags=["AI Maintenanc
 api_router.include_router(ai_recommendations.router, prefix="/ai/recommendations", tags=["AI Governance & Approval Workflow"])
 api_router.include_router(conflicts.router, prefix="/conflicts", tags=["Conflict Detection & Resolution"])
 api_router.include_router(conflicts.coordination_router, prefix="/coordination", tags=["Multi-Department Coordination"])
+api_router.include_router(chatbot.router, prefix="/chatbot", tags=["RAG Agentic AI Assistant"])
+
 
 
 

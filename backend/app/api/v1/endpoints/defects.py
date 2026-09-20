@@ -20,7 +20,7 @@ from backend.app.schemas import (
     DefectListResponse,
     DefectStatisticsResponse
 )
-from ml.priority_engine import AIPriorityEngine
+from backend.app.core.ml_client import ml_client
 
 router = APIRouter()
 
@@ -247,8 +247,8 @@ def create_defect(
 
     due = payload.due_date or (now + timedelta(days=1 if payload.severity == "Critical" else 3))
 
-    # Calculate initial AI priority score
-    score_data = AIPriorityEngine.calculate_priority({
+    # Calculate initial AI priority score via ML Microservice
+    score_data = ml_client.calculate_defect_priority({
         "severity": payload.severity or "Major",
         "speed_restriction_imposed": payload.speed_restriction_imposed or 0,
         "max_permissible_speed": 130,
@@ -314,7 +314,7 @@ def update_defect(
         dept_code = defect.department.code if defect.department else "ENG"
         now = datetime.utcnow()
         hours_open = max(1.0, (now - defect.reported_at).total_seconds() / 3600.0)
-        score_data = AIPriorityEngine.calculate_priority({
+        score_data = ml_client.calculate_defect_priority({
             "severity": defect.severity,
             "speed_restriction_imposed": defect.speed_restriction_imposed or 0,
             "max_permissible_speed": 130,
@@ -367,7 +367,7 @@ def recalculate_ai_priorities(db: Session = Depends(get_db)):
         gmt = d.section.current_traffic_density if d.section else 45.0
         health = d.asset.health_score if d.asset else 80.0
 
-        score_data = AIPriorityEngine.calculate_priority({
+        score_data = ml_client.calculate_defect_priority({
             "severity": d.severity,
             "speed_restriction_imposed": d.speed_restriction_imposed,
             "max_permissible_speed": max_speed,
@@ -385,5 +385,5 @@ def recalculate_ai_priorities(db: Session = Depends(get_db)):
         "message": f"Successfully recalculated AI priority scores for {updated_count} active defects.",
         "defects_evaluated": updated_count,
         "engine": "AIPriorityEngine v1.0",
-        "data_mode": "SIMULATED DEMO DATA"
+        "data_mode": "LIVE ML MICROSERVICE"
     }

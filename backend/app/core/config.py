@@ -18,6 +18,29 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = "sqlite:///./data/railway_planner.db"
     
+    # ML & Optimization Microservice URL (Port 8001)
+    ML_SERVICE_URL: str = "http://127.0.0.1:8001"
+
+    # AI & Vector Engine Keys (Gemini & Pinecone)
+    GEMINI_API_KEY: str = "AIzaSyAT8fSsDUfpuxICd-_PZKQkrnLFZicgR54"
+    GEMINI_API_KEY_1: str = "AQ.Ab8RN6JXxjmDeYbotsyTqjbFdylAvY3WFRbaJb-63MEBI3iSAg"
+    GEMINI_API_KEY_2: str = "AQ.Ab8RN6KD8cINMCw0MjH2ASWRApOLl1EIu96UP6WoYYZ6NTKtmA"
+    GEMINI_API_KEY_3: str = "AIzaSyAT8fSsDUfpuxICd-_PZKQkrnLFZicgR54"
+    
+    PINECONE_API_KEY: str = "pcsk_3GdioE_6er4vnkiz69Heit1xKiEzoZPTePZs8s6Mr14NKQqifVBaLkLtFY9V9ZmBc6daYE"
+    PINECONE_API_KEY_1: str = "pcsk_3GdioE_6er4vnkiz69Heit1xKiEzoZPTePZs8s6Mr14NKQqifVBaLkLtFY9V9ZmBc6daYE"
+    PINECONE_API_KEY_2: str = "pcsk_2DQHgA_6Wvscc4aThZGbo7Xq43Kxgbb8pHuG6TgzBzy8Sztam6ET77Kwjdw5CaKV8gkDom"
+
+    GEMINI_API_KEYS: List[str] = [
+        "AIzaSyAT8fSsDUfpuxICd-_PZKQkrnLFZicgR54",
+        "AQ.Ab8RN6JXxjmDeYbotsyTqjbFdylAvY3WFRbaJb-63MEBI3iSAg",
+        "AQ.Ab8RN6KD8cINMCw0MjH2ASWRApOLl1EIu96UP6WoYYZ6NTKtmA"
+    ]
+    PINECONE_API_KEYS: List[str] = [
+        "pcsk_3GdioE_6er4vnkiz69Heit1xKiEzoZPTePZs8s6Mr14NKQqifVBaLkLtFY9V9ZmBc6daYE",
+        "pcsk_2DQHgA_6Wvscc4aThZGbo7Xq43Kxgbb8pHuG6TgzBzy8Sztam6ET77Kwjdw5CaKV8gkDom"
+    ]
+    
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = [
         "http://localhost:3000",

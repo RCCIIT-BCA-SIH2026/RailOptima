@@ -76,7 +76,7 @@ export default function ApprovalsView() {
               <CheckCircle2 className="w-6 h-6 text-amber-600" />
               <span>Officer Approval Workflow & Digital Signatures</span>
             </h2>
-            <Badge variant="warning">SIMULATED DEMO DATA</Badge>
+            <Badge variant="success">LIVE DRM WORKFLOW</Badge>
           </div>
           <p className="text-xs text-slate-500 mt-1">
             Divisional Railway Manager (DRM) and Branch Officers (Sr.DEN, Sr.DOM, Sr.DSTE) multi-tier concurrence queue.

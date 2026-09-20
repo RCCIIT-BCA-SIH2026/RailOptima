@@ -1,6 +1,7 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import TopNavbar from './TopNavbar';
+import FloatingChatbot from './FloatingChatbot';
 
 export default function AppLayout({ activeUser, setActiveUser }) {
   return (
@@ -14,7 +15,11 @@ export default function AppLayout({ activeUser, setActiveUser }) {
         <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24">
           <Outlet context={{ activeUser, setActiveUser }} />
         </main>
+
+        {/* Global Floatable RAG Agentic AI Assistant */}
+        <FloatingChatbot activeUser={activeUser} />
       </div>
     </div>
   );
 }
+

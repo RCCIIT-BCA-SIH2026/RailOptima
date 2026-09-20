@@ -65,7 +65,10 @@ class TrainDelayPredictionEngine:
         """Safely loads the scikit-learn regression pipeline without retraining."""
         if os.path.exists(self.model_path):
             try:
-                self.pipeline = joblib.load(self.model_path)
+                import warnings
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore")
+                    self.pipeline = joblib.load(self.model_path)
                 self.is_loaded = True
                 logger.info("Loaded train delay prediction pipeline from %s", self.model_path)
             except Exception as e:

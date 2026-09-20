@@ -9,7 +9,7 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 from sqlalchemy.orm import Session
 from backend.app.models import MaintenanceTask, Defect, RailwaySection, Asset, Department
-from ml.survival_engine import predict_failure_risk_30d
+from backend.app.core.ml_client import ml_client
 
 # Criticality normalization mapping (1 to 5 scale)
 CRITICALITY_LEVEL_MAP = {
@@ -111,10 +111,10 @@ def audit_department_task_pool(db: Session) -> Dict[str, Any]:
         sec = t.section
         sec_code = sec.section_code if sec else "SEC-MAIN"
         
-        # Calculate risk based on section physical parameters
+        # Calculate risk based on section physical parameters via ML Microservice
         age = 18.0
         gmt = sec.current_traffic_density if sec else 45.0
-        risk_res = predict_failure_risk_30d(age_years=age, gmt_density=gmt)
+        risk_res = ml_client.predict_survival(age_years=age, gmt_density=gmt)
         risk_pct = risk_res["risk_percentage"]
 
         has_sr = False
