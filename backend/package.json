@@ -1,0 +1,8 @@
+{
+  "name": "rail-optima-backend",
+  "version": "1.0.0",
+  "description": "RailOptima FastAPI Backend Server",
+  "scripts": {
+    "start": "cd .. && .venv/bin/uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload"
+  }
+}
