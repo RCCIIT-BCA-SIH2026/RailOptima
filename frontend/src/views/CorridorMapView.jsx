@@ -1,7 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Polyline, Marker, Popup, Tooltip } from 'react-leaflet';
+import React, { useEffect, useState, useRef } from 'react';
+import { MapContainer, TileLayer, Polyline, Marker, Popup, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { Layers, AlertTriangle, ShieldCheck, Clock, ShieldAlert, Activity, ArrowUpRight } from 'lucide-react';
+import { 
+  Layers, AlertTriangle, ShieldCheck, Clock, ShieldAlert, 
+  Activity, ArrowUpRight, MapPin, Search, Database, Globe
+} from 'lucide-react';
 import apiClient from '../api/client';
 import { Badge } from '../components/ui/Badge';
 
@@ -13,22 +16,40 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-// Custom Station Icons
+// Custom Station Pins
 const stationIcon = L.divIcon({
   className: 'custom-station-pin',
-  html: `<div style="background-color: #059669; width: 10px; height: 10px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 6px rgba(5,150,105,0.6);"></div>`,
-  iconSize: [10, 10],
-  iconAnchor: [5, 5]
+  html: `<div style="background-color: #059669; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 8px rgba(5,150,105,0.8);"></div>`,
+  iconSize: [12, 12],
+  iconAnchor: [6, 6]
 });
+
+// Helper component to pan/zoom map programmatically
+function MapController({ targetPos }) {
+  const map = useMap();
+  useEffect(() => {
+    if (targetPos) {
+      map.flyTo(targetPos, 9, { duration: 1.5 });
+    }
+  }, [targetPos, map]);
+  return null;
+}
 
 export default function CorridorMapView() {
   const [sections, setSections] = useState([]);
   const [survivalMap, setSurvivalMap] = useState({});
   const [selectedSection, setSelectedSection] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [panTarget, setPanTarget] = useState(null);
+  const [mapLayer, setMapLayer] = useState('dark'); // 'dark', 'google_sat', 'google_hybrid', 'google_terrain'
+  const [mongoStatus, setMongoStatus] = useState('connecting');
+
+  const googleApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || import.meta.env.VITE_MAP_API_KEY || 'AIzaSyAnidLeEYWpn5GYU7h7GWKrkWr7f58lbd0';
 
   useEffect(() => {
     fetchMapData();
+    checkMongoDB();
   }, []);
 
   const fetchMapData = async () => {
@@ -53,6 +74,59 @@ export default function CorridorMapView() {
     }
   };
 
+  const checkMongoDB = async () => {
+    try {
+      const res = await apiClient.get('/mongodb/status');
+      if (res.data?.connection?.connected) {
+        setMongoStatus('connected');
+      } else {
+        setMongoStatus('standby');
+      }
+    } catch {
+      setMongoStatus('standby');
+    }
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    const query = searchQuery.trim().toLowerCase();
+    
+    // Search in section codes or station names
+    const match = sections.find(s => 
+      s.section_code?.toLowerCase().includes(query) ||
+      s.start_station?.toLowerCase().includes(query) ||
+      s.end_station?.toLowerCase().includes(query)
+    );
+
+    if (match && match.start_lat && match.start_lng) {
+      setPanTarget([match.start_lat, match.start_lng]);
+      setSelectedSection({ ...match, survival: survivalMap[match.section_code] || {} });
+    }
+  };
+
+  // Map Tile Configuration
+  const getTileUrl = () => {
+    switch (mapLayer) {
+      case 'google_sat':
+        return `https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}&key=${googleApiKey}`;
+      case 'google_hybrid':
+        return `https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}&key=${googleApiKey}`;
+      case 'google_terrain':
+        return `https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}&key=${googleApiKey}`;
+      case 'dark':
+      default:
+        return 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+    }
+  };
+
+  const getTileAttribution = () => {
+    if (mapLayer.startsWith('google')) {
+      return '&copy; <a href="https://maps.google.com">Google Maps</a> Telemetry';
+    }
+    return '&copy; <a href="https://carto.com/">CartoDB</a> Dark';
+  };
+
   // Center on central Indian Railways trunk (Jhansi / Bhopal hub)
   const mapCenter = [25.4484, 78.5685];
 
@@ -64,7 +138,7 @@ export default function CorridorMapView() {
           <h2 className="text-xl font-bold text-slate-900 flex items-center space-x-2">
             <span>GIS Corridor & Section Risk Heatmap</span>
             <span className="text-xs font-mono font-semibold text-emerald-800 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded">
-              Weibull AFT + XGBoost Telemetry
+              Google Maps &bull; Weibull AFT Telemetry
             </span>
           </h2>
           <p className="text-xs text-slate-600 mt-1">
@@ -72,8 +146,74 @@ export default function CorridorMapView() {
           </p>
         </div>
 
+        {/* Status Indicators & Search */}
+        <div className="flex flex-wrap items-center gap-3">
+          <form onSubmit={handleSearch} className="relative">
+            <input
+              type="text"
+              placeholder="Search station or section (e.g. Jhansi, NDLS)..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 w-64"
+            />
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+          </form>
+
+          {/* Cloud Sync Badge */}
+          <div className="flex items-center space-x-1 text-xs px-2.5 py-1 bg-white border border-slate-200 rounded-lg shadow-sm text-slate-600">
+            <Database className="w-3.5 h-3.5 text-emerald-600" />
+            <span>MongoDB Atlas:</span>
+            <span className={`font-semibold ${mongoStatus === 'connected' ? 'text-emerald-600' : 'text-amber-600'}`}>
+              {mongoStatus === 'connected' ? 'Live Synced' : 'Online / Buffered'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Layer Switcher & Risk Legend Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 glass-card px-4 py-2 border border-slate-200/80 shadow-sm text-xs">
+        {/* Layer Toggle */}
+        <div className="flex items-center space-x-2">
+          <Layers className="w-3.5 h-3.5 text-slate-500" />
+          <span className="font-semibold text-slate-700">Map View:</span>
+          <div className="inline-flex rounded-md shadow-sm">
+            <button
+              onClick={() => setMapLayer('dark')}
+              className={`px-2.5 py-1 text-xs font-medium rounded-l-md border ${
+                mapLayer === 'dark' ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+              }`}
+            >
+              Dark Matter
+            </button>
+            <button
+              onClick={() => setMapLayer('google_sat')}
+              className={`px-2.5 py-1 text-xs font-medium border-t border-b ${
+                mapLayer === 'google_sat' ? 'bg-emerald-700 text-white border-emerald-700' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+              }`}
+            >
+              Google Satellite
+            </button>
+            <button
+              onClick={() => setMapLayer('google_hybrid')}
+              className={`px-2.5 py-1 text-xs font-medium border-t border-b ${
+                mapLayer === 'google_hybrid' ? 'bg-emerald-700 text-white border-emerald-700' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+              }`}
+            >
+              Google Hybrid
+            </button>
+            <button
+              onClick={() => setMapLayer('google_terrain')}
+              className={`px-2.5 py-1 text-xs font-medium rounded-r-md border ${
+                mapLayer === 'google_terrain' ? 'bg-emerald-700 text-white border-emerald-700' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+              }`}
+            >
+              Google Topo
+            </button>
+          </div>
+        </div>
+
         {/* Legend */}
-        <div className="flex flex-wrap items-center gap-3 glass-card px-4 py-2 border border-slate-200/80 shadow-sm text-xs">
+        <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center space-x-1.5">
             <span className="w-3 h-1.5 bg-rose-500 rounded"></span>
             <span className="text-slate-700 font-medium">Critical Risk (RUL &le; 30d)</span>
@@ -94,12 +234,15 @@ export default function CorridorMapView() {
         <MapContainer
           center={mapCenter}
           zoom={6}
-          style={{ height: '100%', width: '100%', backgroundColor: '#0f172a' }}
+          key={mapLayer} // Re-render tile engine when user toggles Google Maps
+          style={{ height: '100%', width: '100%', backgroundColor: mapLayer.startsWith('google') ? '#1e293b' : '#0f172a' }}
         >
-          {/* CartoDB Dark Matter Tiles */}
+          <MapController targetPos={panTarget} />
+
+          {/* Active Tile Layer (CartoDB or Google Maps) */}
           <TileLayer
-            attribution='&copy; <a href="https://carto.com/">CartoDB</a> contributors'
-            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            attribution={getTileAttribution()}
+            url={getTileUrl()}
           />
 
           {sections.map((sec) => {
@@ -131,7 +274,7 @@ export default function CorridorMapView() {
                   positions={positions}
                   color={color}
                   weight={weight}
-                  opacity={0.88}
+                  opacity={0.92}
                   eventHandlers={{
                     click: () => setSelectedSection({ ...sec, survival: survInfo })
                   }}
@@ -169,7 +312,7 @@ export default function CorridorMapView() {
 
         {/* Selected Section Flyout Overlay */}
         {selectedSection && (
-          <div className="absolute bottom-4 right-4 z-[1000] glass-card bg-white/95 border border-slate-200/90 p-5 rounded-xl shadow-2xl max-w-sm backdrop-blur space-y-3">
+          <div className="absolute bottom-4 right-4 z-[1000] glass-card bg-white/95 border border-slate-200/90 p-5 rounded-xl shadow-2xl max-w-sm backdrop-blur space-y-3 animate-in fade-in duration-200">
             <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
               <div>
                 <h4 className="font-bold text-slate-900 text-sm">{selectedSection.section_code}</h4>

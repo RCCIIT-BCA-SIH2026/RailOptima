@@ -18,6 +18,27 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = "sqlite:///./data/railway_planner.db"
     
+    # MongoDB Atlas Cluster Credentials
+    MONGODB_USER: str = "ankitkarmakar200512_db_user"
+    MONGODB_PASSWORD: str = "iaRBstUjDm2HrFq3"
+    MONGODB_HOST: str = "railoptima.uhkmnya.mongodb.net"
+    MONGODB_URL: str = "mongodb+srv://ankitkarmakar200512_db_user:iaRBstUjDm2HrFq3@railoptima.uhkmnya.mongodb.net/railway_planner?retryWrites=true&w=majority"
+    MONGODB_URI: str = "mongodb+srv://ankitkarmakar200512_db_user:iaRBstUjDm2HrFq3@railoptima.uhkmnya.mongodb.net/railway_planner?retryWrites=true&w=majority"
+    DB_USER: str = "ankitkarmakar200512_db_user"
+    DB_PASSWORD: str = "iaRBstUjDm2HrFq3"
+    
+    # Google Maps Integration API Key
+    MAP_API_KEY: str = "AIzaSyAnidLeEYWpn5GYU7h7GWKrkWr7f58lbd0"
+    VITE_MAP_API_KEY: str = "AIzaSyAnidLeEYWpn5GYU7h7GWKrkWr7f58lbd0"
+    VITE_GOOGLE_MAPS_API_KEY: str = "AIzaSyAnidLeEYWpn5GYU7h7GWKrkWr7f58lbd0"
+
+    # OpenRouter AI & LLM Model Keys
+    OPENROUTER_API_KEY: str = "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"
+    AI_API_KEY: str = "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"
+    OPENAI_API_KEY: str = "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"
+    VITE_OPENROUTER_API_KEY: str = "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"
+    VITE_AI_API_KEY: str = "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"
+    
     # ML & Optimization Microservice URL (Port 8001)
     ML_SERVICE_URL: str = "http://127.0.0.1:8001"
 

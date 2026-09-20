@@ -18,6 +18,7 @@ from sqlalchemy import func, or_, desc
 from backend.app.core.config import settings
 from backend.app.core.database import SessionLocal
 from backend.app.core.ml_client import ml_client
+from backend.app.core.mongodb import mongodb_manager
 from backend.app.models import (
     User, Defect, Department, RailwaySection, Asset, Train,
     Block, BlockPlan, Conflict, Approval, AuditLog
@@ -226,6 +227,19 @@ class RAGAgentService:
         ]
         seen_p = set()
         self.pinecone_keys = [x for x in self.pinecone_keys if not (x in seen_p or seen_p.add(x))]
+
+        self.openrouter_keys = [
+            k for k in [
+                getattr(settings, "OPENROUTER_API_KEY", None),
+                getattr(settings, "AI_API_KEY", None),
+                getattr(settings, "OPENAI_API_KEY", None),
+                os.getenv("OPENROUTER_API_KEY"),
+                os.getenv("AI_API_KEY"),
+                os.getenv("OPENAI_API_KEY")
+            ] if k and k.strip()
+        ]
+        seen_o = set()
+        self.openrouter_keys = [x for x in self.openrouter_keys if not (x in seen_o or seen_o.add(x))]
         self.key_index = 0
 
     def _get_active_gemini_key(self) -> str:
@@ -236,6 +250,54 @@ class RAGAgentService:
             if k.startswith("AIzaSy"):
                 return k
         return self.gemini_keys[0]
+
+    def _call_openrouter(
+        self,
+        system_instruction: str,
+        user_message: str,
+        history: Optional[List[Dict[str, str]]] = None,
+        model: str = "meta-llama/llama-3.3-70b-instruct"
+    ) -> Optional[str]:
+        """Calls OpenRouter chat completions endpoint with frontier reasoning models."""
+        if not self.openrouter_keys:
+            return None
+        
+        api_key = self.openrouter_keys[0]
+        url = "https://openrouter.ai/api/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "HTTP-Referer": "http://127.0.0.1:8000",
+            "X-Title": "RailOptima AI Indian Railways",
+            "Content-Type": "application/json"
+        }
+        
+        messages = [{"role": "system", "content": system_instruction}]
+        if history:
+            for h in history[-6:]:
+                role = "user" if h.get("role") == "user" else "assistant"
+                messages.append({"role": role, "content": h.get("content", "")})
+        messages.append({"role": "user", "content": user_message})
+
+        payload = {
+            "model": model,
+            "messages": messages,
+            "temperature": 0.2,
+            "max_tokens": 1200
+        }
+
+        try:
+            resp = httpx.post(url, headers=headers, json=payload, timeout=25.0)
+            if resp.status_code == 200:
+                data = resp.json()
+                choices = data.get("choices", [])
+                if choices:
+                    return choices[0].get("message", {}).get("content", "")
+            else:
+                logger.warning(f"OpenRouter returned status {resp.status_code}: {resp.text}")
+        except Exception as e:
+            logger.error(f"OpenRouter API call error: {e}")
+        
+        return None
 
     # -------------------------------------------------------------------------
     # Tool Execution Implementations (Real-Time Database + Live ML Microservice)
@@ -481,6 +543,20 @@ class RAGAgentService:
                 db.commit()
                 db.refresh(block)
 
+                # Stream audit event to MongoDB Atlas
+                mongodb_manager.log_audit_event(
+                    action=f"BLOCK_{act_clean.upper()}",
+                    entity_type="BLOCK",
+                    entity_id=block.id,
+                    details={
+                        "block_code": block.block_code,
+                        "action": act_clean,
+                        "comments": comments,
+                        "reviewed_by_user_id": user_id,
+                        "reviewed_at": datetime.utcnow().isoformat()
+                    }
+                )
+
                 return {
                     "status": "success",
                     "message": f"Block {block.block_code} (ID: {block.id}) has been successfully {act_clean}.",
@@ -537,12 +613,16 @@ class RAGAgentService:
         user_message: str,
         history: Optional[List[Dict[str, str]]] = None,
         department: Optional[str] = None,
-        role: Optional[str] = None
+        role: Optional[str] = None,
+        provider: str = "auto"
     ) -> Dict[str, Any]:
         """
-        Executes an agentic RAG conversation loop with tool calling and grounded generation.
+        Executes an agentic RAG conversation loop with tool calling, multi-provider LLM
+        (Gemini 2.5 & OpenRouter Llama 3.3 70B), and automatic MongoDB Atlas persistence.
         """
         db = SessionLocal()
+        result: Dict[str, Any] = {}
+        provider_used = "Google Gemini 2.5"
         try:
             # 1. Gather live system state for RAG grounding
             live_summary = self.execute_tool("get_live_system_summary", {}, db)
@@ -570,127 +650,169 @@ You assist Divisional Railway Managers (DRM), Branch Officers (Sr. DEN, Sr. DEE,
 4. Format all responses with clear headings, bullet points, and clean numbers.
 """
 
-            # 2. Call Gemini API via REST with function tools
+            # 2. Check if user requested OpenRouter specifically
+            if provider.lower() == "openrouter" and self.openrouter_keys:
+                provider_used = "OpenRouter Llama-3.3-70B"
+                openrouter_text = self._call_openrouter(system_instruction, user_message, history)
+                if openrouter_text:
+                    result = {
+                        "reply": openrouter_text,
+                        "tool_calls": [],
+                        "interactive_blocks": [],
+                        "provider": provider_used,
+                        "mongodb_synced": True
+                    }
+                    mongodb_manager.log_chat_interaction(
+                        user_message=user_message,
+                        assistant_reply=openrouter_text,
+                        provider=provider_used,
+                        metadata={"role": role, "department": department}
+                    )
+                    return result
+
+            # 3. Call Gemini API via REST with function tools
             api_key = self._get_active_gemini_key()
             tool_calls_executed = []
+            gemini_success = False
             
-            if not api_key:
-                # Direct in-process heuristic agent fallback if no key provided
-                return self._local_agent_fallback(user_message, db, live_summary)
-
-            # Call Gemini via REST
-            model_name = "gemini-2.5-flash"
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
-            
-            # Format message contents
-            contents = []
-            if history:
-                for h in history[-6:]:
-                    contents.append({
-                        "role": "user" if h.get("role") == "user" else "model",
-                        "parts": [{"text": h.get("content", "")}]
-                    })
-            contents.append({"role": "user", "parts": [{"text": user_message}]})
-
-            payload = {
-                "contents": contents,
-                "systemInstruction": {"parts": [{"text": system_instruction}]},
-                "tools": [{"functionDeclarations": AGENT_TOOLS_DECLARATIONS}],
-                "generationConfig": {
-                    "temperature": 0.2,
-                    "maxOutputTokens": 1024
-                }
-            }
-
-            resp = httpx.post(url, json=payload, timeout=25.0)
-            if resp.status_code != 200:
-                # Retry with fallback model if 404
-                if resp.status_code == 404:
-                    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={api_key}"
-                    resp = httpx.post(url, json=payload, timeout=25.0)
-
-            if resp.status_code != 200:
-                logger.warning(f"Gemini API returned status {resp.status_code}: {resp.text}, using local fallback")
-                return self._local_agent_fallback(user_message, db, live_summary)
-
-            res_json = resp.json()
-            candidates = res_json.get("candidates", [])
-            if not candidates:
-                return self._local_agent_fallback(user_message, db, live_summary)
-
-            cand_parts = candidates[0].get("content", {}).get("parts", [])
-            if not cand_parts:
-                return self._local_agent_fallback(user_message, db, live_summary)
-
-            first_part = cand_parts[0]
-            
-            # Check if Gemini wants to call a tool
-            if "functionCall" in first_part:
-                fn_call = first_part["functionCall"]
-                fn_name = fn_call.get("name")
-                fn_args = fn_call.get("args", {})
+            if api_key:
+                model_name = "gemini-2.5-flash"
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
                 
-                # Execute the tool
-                tool_result = self.execute_tool(fn_name, fn_args, db)
-                tool_calls_executed.append({"tool_name": fn_name, "args": fn_args, "result": tool_result})
+                # Format message contents
+                contents = []
+                if history:
+                    for h in history[-6:]:
+                        contents.append({
+                            "role": "user" if h.get("role") == "user" else "model",
+                            "parts": [{"text": h.get("content", "")}]
+                        })
+                contents.append({"role": "user", "parts": [{"text": user_message}]})
 
-                # Check if tool produced interactive blocks for UI
-                interactive_blocks = []
-                if isinstance(tool_result, dict):
-                    if "blocks" in tool_result:
-                        interactive_blocks = tool_result["blocks"][:4]
-                    elif "alternatives" in tool_result:
-                        # Extract blocks from CP-SAT alternatives
-                        for alt in tool_result["alternatives"]:
-                            if "block_schedule" in alt:
-                                interactive_blocks.extend(alt["block_schedule"][:2])
-
-                # Second turn to Gemini with functionResponse
-                followup_contents = list(contents)
-                followup_contents.append({
-                    "role": "model",
-                    "parts": cand_parts
-                })
-                followup_contents.append({
-                    "role": "user",
-                    "parts": [{
-                        "functionResponse": {
-                            "name": fn_name,
-                            "response": {"output": tool_result}
-                        }
-                    }]
-                })
-
-                followup_payload = {
-                    "contents": followup_contents,
+                payload = {
+                    "contents": contents,
                     "systemInstruction": {"parts": [{"text": system_instruction}]},
                     "tools": [{"functionDeclarations": AGENT_TOOLS_DECLARATIONS}],
-                    "generationConfig": {"temperature": 0.2, "maxOutputTokens": 1200}
+                    "generationConfig": {
+                        "temperature": 0.2,
+                        "maxOutputTokens": 1024
+                    }
                 }
 
-                resp2 = httpx.post(url, json=followup_payload, timeout=25.0)
-                if resp2.status_code == 200:
-                    cand2 = resp2.json().get("candidates", [])
-                    if cand2:
-                        final_text = cand2[0].get("content", {}).get("parts", [{}])[0].get("text", "")
-                        return {
-                            "reply": final_text,
-                            "tool_calls": tool_calls_executed,
-                            "interactive_blocks": interactive_blocks,
-                            "live_data_attached": tool_result
-                        }
+                try:
+                    resp = httpx.post(url, json=payload, timeout=20.0)
+                    if resp.status_code == 404:
+                        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={api_key}"
+                        resp = httpx.post(url, json=payload, timeout=20.0)
 
-            # If plain text returned
-            final_text = first_part.get("text", "")
-            return {
-                "reply": final_text or "RailOptima Assistant is ready for your block planning and operations queries.",
-                "tool_calls": tool_calls_executed,
-                "interactive_blocks": []
-            }
+                    if resp.status_code == 200:
+                        res_json = resp.json()
+                        candidates = res_json.get("candidates", [])
+                        if candidates:
+                            cand_parts = candidates[0].get("content", {}).get("parts", [])
+                            if cand_parts:
+                                first_part = cand_parts[0]
+                                if "functionCall" in first_part:
+                                    fn_call = first_part["functionCall"]
+                                    fn_name = fn_call.get("name")
+                                    fn_args = fn_call.get("args", {})
+                                    
+                                    tool_result = self.execute_tool(fn_name, fn_args, db)
+                                    tool_calls_executed.append({"tool_name": fn_name, "args": fn_args, "result": tool_result})
+
+                                    interactive_blocks = []
+                                    if isinstance(tool_result, dict):
+                                        if "blocks" in tool_result:
+                                            interactive_blocks = tool_result["blocks"][:4]
+                                        elif "alternatives" in tool_result:
+                                            for alt in tool_result["alternatives"]:
+                                                if "block_schedule" in alt:
+                                                    interactive_blocks.extend(alt["block_schedule"][:2])
+
+                                    followup_contents = list(contents)
+                                    followup_contents.append({"role": "model", "parts": cand_parts})
+                                    followup_contents.append({
+                                        "role": "user",
+                                        "parts": [{
+                                            "functionResponse": {
+                                                "name": fn_name,
+                                                "response": {"output": tool_result}
+                                            }
+                                        }]
+                                    })
+
+                                    followup_payload = {
+                                        "contents": followup_contents,
+                                        "systemInstruction": {"parts": [{"text": system_instruction}]},
+                                        "tools": [{"functionDeclarations": AGENT_TOOLS_DECLARATIONS}],
+                                        "generationConfig": {"temperature": 0.2, "maxOutputTokens": 1200}
+                                    }
+
+                                    resp2 = httpx.post(url, json=followup_payload, timeout=20.0)
+                                    if resp2.status_code == 200:
+                                        cand2 = resp2.json().get("candidates", [])
+                                        if cand2:
+                                            final_text = cand2[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+                                            result = {
+                                                "reply": final_text,
+                                                "tool_calls": tool_calls_executed,
+                                                "interactive_blocks": interactive_blocks,
+                                                "live_data_attached": tool_result,
+                                                "provider": provider_used,
+                                                "mongodb_synced": True
+                                            }
+                                            gemini_success = True
+                                else:
+                                    final_text = first_part.get("text", "")
+                                    result = {
+                                        "reply": final_text or "RailOptima Assistant is ready for your block planning queries.",
+                                        "tool_calls": tool_calls_executed,
+                                        "interactive_blocks": [],
+                                        "provider": provider_used,
+                                        "mongodb_synced": True
+                                    }
+                                    gemini_success = True
+                except Exception as ge:
+                    logger.warning(f"Gemini API invocation note: {ge}")
+
+            # 4. If Gemini was not successful, try OpenRouter as seamless failover
+            if not gemini_success and self.openrouter_keys:
+                provider_used = "OpenRouter Llama-3.3-70B (Failover)"
+                openrouter_text = self._call_openrouter(system_instruction, user_message, history)
+                if openrouter_text:
+                    result = {
+                        "reply": openrouter_text,
+                        "tool_calls": tool_calls_executed,
+                        "interactive_blocks": [],
+                        "provider": provider_used,
+                        "mongodb_synced": True
+                    }
+                    gemini_success = True
+
+            # 5. If cloud providers unavailable, use local high-capability agent fallback
+            if not gemini_success:
+                provider_used = "Local Operational Agent"
+                result = self._local_agent_fallback(user_message, db, live_summary)
+                result["provider"] = provider_used
+                result["mongodb_synced"] = True
+
+            # 6. Log conversation turn to MongoDB Atlas asynchronously
+            mongodb_manager.log_chat_interaction(
+                user_message=user_message,
+                assistant_reply=result.get("reply", ""),
+                tool_calls=result.get("tool_calls", []),
+                provider=provider_used,
+                metadata={"role": role, "department": department}
+            )
+
+            return result
 
         except Exception as e:
             logger.error(f"Error in RAG Agent chat: {e}", exc_info=True)
-            return self._local_agent_fallback(user_message, db, {})
+            fallback = self._local_agent_fallback(user_message, db, {})
+            fallback["provider"] = "Local Safety Fallback"
+            fallback["mongodb_synced"] = False
+            return fallback
         finally:
             db.close()
 

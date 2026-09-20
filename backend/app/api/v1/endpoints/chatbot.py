@@ -25,6 +25,7 @@ class ChatRequest(BaseModel):
     history: Optional[List[ChatMessage]] = None
     department: Optional[str] = None
     role: Optional[str] = None
+    provider: Optional[str] = "auto" # "auto", "gemini", "openrouter"
 
 class ToolCallRequest(BaseModel):
     tool_name: str
@@ -38,7 +39,8 @@ def chat_with_agent(
 ):
     """
     Main RAG Agentic Chat endpoint.
-    Orchestrates Gemini LLM, Pinecone memory, live Database queries, and ML Microservice.
+    Orchestrates Gemini LLM, OpenRouter Llama-3.3-70B, Pinecone memory,
+    MongoDB Atlas archiving, live Database queries, and ML Microservice.
     """
     if not payload.message or not payload.message.strip():
         raise HTTPException(status_code=400, detail="Message cannot be empty.")
@@ -55,7 +57,8 @@ def chat_with_agent(
         user_message=payload.message.strip(),
         history=hist_dicts,
         department=user_dept,
-        role=user_role
+        role=user_role,
+        provider=payload.provider or "auto"
     )
 
     return result
