@@ -42,7 +42,7 @@ export default function CorridorMapView() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [panTarget, setPanTarget] = useState(null);
-  const [mapLayer, setMapLayer] = useState('dark'); // 'dark', 'google_sat', 'google_hybrid', 'google_terrain'
+  const [mapLayer, setMapLayer] = useState('google_hybrid'); // 'google_hybrid', 'google_sat', 'google_streets', 'google_terrain'
   const [mongoStatus, setMongoStatus] = useState('connecting');
 
   const googleApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || import.meta.env.VITE_MAP_API_KEY || 'AIzaSyAnidLeEYWpn5GYU7h7GWKrkWr7f58lbd0';
@@ -105,26 +105,23 @@ export default function CorridorMapView() {
     }
   };
 
-  // Map Tile Configuration
+  // Map Tile Configuration (Google Maps API Suite)
   const getTileUrl = () => {
     switch (mapLayer) {
       case 'google_sat':
         return `https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}&key=${googleApiKey}`;
-      case 'google_hybrid':
-        return `https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}&key=${googleApiKey}`;
+      case 'google_streets':
+        return `https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&key=${googleApiKey}`;
       case 'google_terrain':
         return `https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}&key=${googleApiKey}`;
-      case 'dark':
+      case 'google_hybrid':
       default:
-        return 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+        return `https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}&key=${googleApiKey}`;
     }
   };
 
   const getTileAttribution = () => {
-    if (mapLayer.startsWith('google')) {
-      return '&copy; <a href="https://maps.google.com">Google Maps</a> Telemetry';
-    }
-    return '&copy; <a href="https://carto.com/">CartoDB</a> Dark';
+    return '&copy; <a href="https://maps.google.com" target="_blank" rel="noreferrer">Google Maps</a> Telemetry';
   };
 
   // Center on central Indian Railways trunk (Jhansi / Bhopal hub)
@@ -175,39 +172,39 @@ export default function CorridorMapView() {
         {/* Layer Toggle */}
         <div className="flex items-center space-x-2">
           <Layers className="w-3.5 h-3.5 text-slate-500" />
-          <span className="font-semibold text-slate-700">Map View:</span>
+          <span className="font-semibold text-slate-700">Map Mode:</span>
           <div className="inline-flex rounded-md shadow-sm">
             <button
-              onClick={() => setMapLayer('dark')}
-              className={`px-2.5 py-1 text-xs font-medium rounded-l-md border ${
-                mapLayer === 'dark' ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-              }`}
-            >
-              Dark Matter
-            </button>
-            <button
-              onClick={() => setMapLayer('google_sat')}
-              className={`px-2.5 py-1 text-xs font-medium border-t border-b ${
-                mapLayer === 'google_sat' ? 'bg-emerald-700 text-white border-emerald-700' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-              }`}
-            >
-              Google Satellite
-            </button>
-            <button
               onClick={() => setMapLayer('google_hybrid')}
-              className={`px-2.5 py-1 text-xs font-medium border-t border-b ${
-                mapLayer === 'google_hybrid' ? 'bg-emerald-700 text-white border-emerald-700' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+              className={`px-3 py-1 text-xs font-semibold rounded-l-md border ${
+                mapLayer === 'google_hybrid' ? 'bg-emerald-700 text-white border-emerald-700 shadow-xs' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
               }`}
             >
               Google Hybrid
             </button>
             <button
-              onClick={() => setMapLayer('google_terrain')}
-              className={`px-2.5 py-1 text-xs font-medium rounded-r-md border ${
-                mapLayer === 'google_terrain' ? 'bg-emerald-700 text-white border-emerald-700' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+              onClick={() => setMapLayer('google_sat')}
+              className={`px-3 py-1 text-xs font-semibold border-t border-b ${
+                mapLayer === 'google_sat' ? 'bg-emerald-700 text-white border-emerald-700 shadow-xs' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
               }`}
             >
-              Google Topo
+              Satellite (HD)
+            </button>
+            <button
+              onClick={() => setMapLayer('google_streets')}
+              className={`px-3 py-1 text-xs font-semibold border-t border-b ${
+                mapLayer === 'google_streets' ? 'bg-emerald-700 text-white border-emerald-700 shadow-xs' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+              }`}
+            >
+              Road & Rail
+            </button>
+            <button
+              onClick={() => setMapLayer('google_terrain')}
+              className={`px-3 py-1 text-xs font-semibold rounded-r-md border ${
+                mapLayer === 'google_terrain' ? 'bg-emerald-700 text-white border-emerald-700 shadow-xs' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+              }`}
+            >
+              Topography
             </button>
           </div>
         </div>
