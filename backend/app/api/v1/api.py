@@ -20,7 +20,8 @@ from backend.app.api.v1.endpoints import (
     ai_priority,
     ai_recommendations,
     conflicts,
-    chatbot
+    chatbot,
+    mongodb_endpoint
 )
 
 api_router = APIRouter()
@@ -46,6 +47,7 @@ api_router.include_router(ai_recommendations.router, prefix="/ai/recommendations
 api_router.include_router(conflicts.router, prefix="/conflicts", tags=["Conflict Detection & Resolution"])
 api_router.include_router(conflicts.coordination_router, prefix="/coordination", tags=["Multi-Department Coordination"])
 api_router.include_router(chatbot.router, prefix="/chatbot", tags=["RAG Agentic AI Assistant"])
+api_router.include_router(mongodb_endpoint.router, prefix="/mongodb", tags=["MongoDB Atlas Cloud Integration"])
 
 
 

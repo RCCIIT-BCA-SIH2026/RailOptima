@@ -26,11 +26,13 @@ import apiClient from '../api/client';
 export default function FloatingChatbot({ activeUser }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState('auto'); // 'auto', 'gemini', 'openrouter'
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: `👋 **Namaste! I am RailOptima Assistant** — your divisional railway operations and block planning assistant.\n\nI can help you inspect track defects, check train delays, schedule maintenance possessions, and review pending approvals.\n\nHow can I help you today?`,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      content: `👋 **Namaste! I am RailOptima Assistant** — your divisional railway operations and block planning assistant.\n\nPowered by Google Gemini AI & OpenRouter reasoning models with MongoDB Atlas cloud persistence.\n\nI can help you inspect track defects, check train delays, schedule maintenance possessions, and review pending approvals.\n\nHow can I help you today?`,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      provider: 'RailOptima Engine'
     }
   ]);
   const [inputMessage, setInputMessage] = useState('');
@@ -155,7 +157,8 @@ export default function FloatingChatbot({ activeUser }) {
         message: textToSend,
         history: newHistory.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', content: m.content })),
         role: activeUser?.role || 'DRM',
-        department: activeUser?.department || 'ENG'
+        department: activeUser?.department || 'ENG',
+        provider: selectedProvider
       });
 
       const replyData = res.data;
@@ -168,7 +171,9 @@ export default function FloatingChatbot({ activeUser }) {
           content: replyData.reply || "Operation completed.",
           timestamp: botTimestamp,
           live_data_attached: replyData.live_data_attached,
-          tool_calls: replyData.tool_calls
+          tool_calls: replyData.tool_calls,
+          provider: replyData.provider || "RailOptima Intelligence",
+          mongodb_synced: replyData.mongodb_synced
         }
       ]);
 
@@ -328,9 +333,18 @@ export default function FloatingChatbot({ activeUser }) {
                     Online
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-400">
-                  Indian Railways Operations & Planning
-                </p>
+                <div className="flex items-center space-x-2 mt-0.5">
+                  <select
+                    value={selectedProvider}
+                    onChange={(e) => setSelectedProvider(e.target.value)}
+                    className="bg-slate-900 border border-cyan-500/30 text-[10px] text-cyan-200 rounded px-1.5 py-0.5 focus:outline-none"
+                    title="Select AI Engine Provider"
+                  >
+                    <option value="auto">⚡ Auto Router (Gemini + OpenRouter)</option>
+                    <option value="gemini">✨ Google Gemini 2.5 Flash</option>
+                    <option value="openrouter">🦙 OpenRouter Llama 3.3 70B</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -451,9 +465,21 @@ export default function FloatingChatbot({ activeUser }) {
                       </div>
                     )}
 
-                    {/* Footer Meta */}
-                    <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1">
-                      <span>{msg.timestamp}</span>
+                    {/* Footer Meta with Provider & MongoDB Sync info */}
+                    <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-700/30">
+                      <div className="flex items-center space-x-2">
+                        <span>{msg.timestamp}</span>
+                        {msg.provider && (
+                          <span className="text-[9px] px-1.5 py-0.2 bg-slate-900 border border-slate-700 text-cyan-300 rounded">
+                            {msg.provider}
+                          </span>
+                        )}
+                      </div>
+                      {msg.mongodb_synced && (
+                        <span className="text-[9px] text-emerald-400 flex items-center space-x-1">
+                          <span>🍃 Atlas Synced</span>
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
