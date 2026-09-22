@@ -21,6 +21,7 @@ from backend.app.schemas import (
     DefectStatisticsResponse
 )
 from backend.app.core.ml_client import ml_client
+from backend.app.services.duplicate_detection import assess_duplicate, DEFAULT_POLICY
 
 router = APIRouter()
 
@@ -280,7 +281,50 @@ def create_defect(
     db.add(new_defect)
     db.commit()
     db.refresh(new_defect)
-    return serialize_defect(new_defect)
+
+    # ── Advisory Duplicate Detection (Pashupatastra-inspired) ──────────────
+    # Runs AFTER the defect is saved. Advisory only — never blocks or modifies.
+    duplicate_advisory = {"has_likely_duplicates": False, "advisory": "", "candidates": []}
+    try:
+        recent_open = (
+            db.query(Defect)
+            .filter(
+                Defect.status.notin_(["Resolved", "Closed", "Cancelled"]),
+                Defect.id != new_defect.id,
+            )
+            .order_by(desc(Defect.reported_at))
+            .limit(20)
+            .all()
+        )
+        existing_dicts = [
+            {
+                "id": d.id,
+                "defect_code": d.defect_code,
+                "department_id": d.department_id,
+                "section_id": d.section_id,
+                "severity": d.severity,
+                "defect_type": d.defect_type,
+                "location": d.location,
+                "reported_at": d.reported_at,
+                "status": d.status,
+            }
+            for d in recent_open
+        ]
+        new_dict = {
+            "department_id": new_defect.department_id,
+            "section_id": new_defect.section_id,
+            "severity": new_defect.severity,
+            "defect_type": new_defect.defect_type,
+            "location": new_defect.location,
+        }
+        assessment = assess_duplicate(new_dict, existing_dicts, reported_at=now, policy=DEFAULT_POLICY)
+        duplicate_advisory = assessment.to_dict()
+    except Exception as _dup_err:
+        pass  # advisory failure must never break defect creation
+
+    serialised = serialize_defect(new_defect)
+    serialised["duplicate_advisory"] = duplicate_advisory
+    return serialised
 
 @router.put("/{defect_id}", response_model=DefectResponse)
 def update_defect(

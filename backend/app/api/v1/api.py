@@ -21,7 +21,9 @@ from backend.app.api.v1.endpoints import (
     ai_recommendations,
     conflicts,
     chatbot,
-    mongodb_endpoint
+    mongodb_endpoint,
+    asset_prognostics,
+    sla,
 )
 
 api_router = APIRouter()
@@ -48,6 +50,10 @@ api_router.include_router(conflicts.router, prefix="/conflicts", tags=["Conflict
 api_router.include_router(conflicts.coordination_router, prefix="/coordination", tags=["Multi-Department Coordination"])
 api_router.include_router(chatbot.router, prefix="/chatbot", tags=["RAG Agentic AI Assistant"])
 api_router.include_router(mongodb_endpoint.router, prefix="/mongodb", tags=["MongoDB Atlas Cloud Integration"])
+api_router.include_router(asset_prognostics.router, prefix="/ai/prognostics", tags=["Asset Prognostics DNN Engine"])
+api_router.include_router(asset_prognostics.router, prefix="/asset-prognostics", tags=["Asset Prognostics DNN Engine"])
+api_router.include_router(sla.router, prefix="/ai/sla", tags=["SLA Compliance Policy Engine"])
+api_router.include_router(sla.router, prefix="/sla", tags=["SLA Compliance Policy Engine"])
 
 
 
