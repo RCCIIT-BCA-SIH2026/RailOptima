@@ -274,14 +274,69 @@ def generate_comparative_explanation(payload: ExplainerInput):
         logger.error(f"Explainer error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/ml/explainer/block")
-def generate_single_block_explanation(payload: ExplainerInput):
-    """Generates natural language rationale for a specific block allocation."""
+from ml.asset_prognostics_dnn import AssetPrognosticsEngine
+
+# Singleton prognostics engine
+try:
+    prognostics_engine = AssetPrognosticsEngine()
+except Exception as _pe_err:
+    prognostics_engine = None
+    logger.warning("Could not initialize AssetPrognosticsEngine in ML microservice: %s", _pe_err)
+
+class PrognosticsInput(BaseModel):
+    gmt_tonnage: Optional[float] = 45.0
+    asset_age_years: Optional[float] = 8.0
+    operating_temp_c: Optional[float] = 32.0
+    curvature_deg: Optional[float] = 1.0
+    days_since_maintenance: Optional[float] = 30.0
+    prior_flaw_count: Optional[float] = 1.0
+    has_speed_restriction: Optional[bool] = False
+    traffic_density_trains_per_day: Optional[float] = 140.0
+    coastal_salinity_factor: Optional[float] = 0.0
+    asset_id: Optional[int] = None
+    asset_code: Optional[str] = None
+
+class PrognosticsBatchInput(BaseModel):
+    assets: List[PrognosticsInput]
+
+@app.post("/ml/prognostics")
+def predict_prognostics(payload: PrognosticsInput):
+    """Runs Asset Prognostics DNN / sklearn model for failure prob, RUL, and delay cascade."""
+    if prognostics_engine is None:
+        raise HTTPException(status_code=503, detail="Asset Prognostics Engine unavailable")
     try:
-        result = explainer.generate_block_explanation(payload.block_info or {})
-        return result
+        data = payload.dict()
+        res = prognostics_engine.predict(data)
+        return {
+            "asset_id": payload.asset_id,
+            "asset_code": payload.asset_code,
+            "prognostics": res
+        }
     except Exception as e:
-        logger.error(f"Block explanation error: {e}")
+        logger.error(f"Prognostics inference error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/ml/prognostics/batch")
+def predict_prognostics_batch(payload: PrognosticsBatchInput):
+    """Batch scoring for up to 100 asset telemetry records."""
+    if prognostics_engine is None:
+        raise HTTPException(status_code=503, detail="Asset Prognostics Engine unavailable")
+    try:
+        results = []
+        for item in payload.assets:
+            data = item.dict()
+            res = prognostics_engine.predict(data)
+            results.append({
+                "asset_id": item.asset_id,
+                "asset_code": item.asset_code,
+                "prognostics": res
+            })
+        return {
+            "total_evaluated": len(results),
+            "results": results
+        }
+    except Exception as e:
+        logger.error(f"Prognostics batch inference error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

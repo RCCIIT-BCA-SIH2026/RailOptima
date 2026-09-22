@@ -142,6 +142,7 @@ class DefectResponse(BaseModel):
     section_code: Optional[str] = None
     asset_code: Optional[str] = None
     asset_name: Optional[str] = None
+    duplicate_advisory: Optional[Dict[str, Any]] = None
 
     model_config = ConfigDict(from_attributes=True)
 

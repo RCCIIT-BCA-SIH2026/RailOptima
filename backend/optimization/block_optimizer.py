@@ -79,7 +79,7 @@ class ORToolsBlockOptimizer:
         # Constraint 1: Section Non-Interference (Tasks on same section must not overlap unless shadow-blocked)
         section_tasks = {}
         for t in tasks:
-            sec_id = t["section_id"]
+            sec_id = t.get("section_id", 1)
             section_tasks.setdefault(sec_id, []).append(t)
 
         for sec_id, sec_t_list in section_tasks.items():
@@ -493,6 +493,30 @@ class AutomaticBlockPlanningEngine:
                         window_specs[w_idx]["window_code"],
                     )
 
+        # x[i, w]: 1 if task i is scheduled in window w
+        x = {}
+        task_starts = {}
+        task_ends = {}
+
+        for i in range(num_tasks):
+            t_dur = int(tasks[i].get("duration_minutes", 120))
+            task_starts[i] = model.NewIntVar(-10000, 100000, f"t_start_{i}")
+            task_ends[i] = model.NewIntVar(-10000, 100000, f"t_end_{i}")
+            model.Add(task_ends[i] == task_starts[i] + t_dur)
+
+            for w in range(num_windows):
+                x[i, w] = model.NewBoolVar(f"x_{i}_{w}")
+                # Can only schedule task in window if window is selected
+                model.Add(x[i, w] <= y[w])
+
+                # Window boundaries
+                w_info = window_specs[w]
+                model.Add(task_starts[i] >= w_info["start_min"]).OnlyEnforceIf(x[i, w])
+                model.Add(task_ends[i] <= w_info["end_min"]).OnlyEnforceIf(x[i, w])
+
+            # Each task can be scheduled in at most one window
+            model.Add(sum(x[i, w] for w in range(num_windows)) <= 1)
+
         # ── Pashupatastra-inspired: Committed-Block Pinning ───────────────────
         # Tasks whose status is APPROVED or ACTIVE are treated as committed:
         # they are pinned to their existing time slot (or to the closest window).
@@ -520,32 +544,8 @@ class AutomaticBlockPlanningEngine:
                             t.get("task_code", i),
                             window_specs[best_w]["window_code"],
                         )
-                    except Exception:
-                        pass  # pinning failure is non-fatal; task remains flexible
-
-        # x[i, w]: 1 if task i is scheduled in window w
-        x = {}
-        task_starts = {}
-        task_ends = {}
-
-        for i in range(num_tasks):
-            t_dur = int(tasks[i].get("duration_minutes", 120))
-            task_starts[i] = model.NewIntVar(-10000, 100000, f"t_start_{i}")
-            task_ends[i] = model.NewIntVar(-10000, 100000, f"t_end_{i}")
-            model.Add(task_ends[i] == task_starts[i] + t_dur)
-
-            for w in range(num_windows):
-                x[i, w] = model.NewBoolVar(f"x_{i}_{w}")
-                # Can only schedule task in window if window is selected
-                model.Add(x[i, w] <= y[w])
-
-                # Window boundaries
-                w_info = window_specs[w]
-                model.Add(task_starts[i] >= w_info["start_min"]).OnlyEnforceIf(x[i, w])
-                model.Add(task_ends[i] <= w_info["end_min"]).OnlyEnforceIf(x[i, w])
-
-            # Each task can be scheduled in at most one window
-            model.Add(sum(x[i, w] for w in range(num_windows)) <= 1)
+                    except Exception as exc:
+                        logger.warning("Committed-block pinning failed for task %s: %s", t.get("task_code", i), exc)
 
         # Resource Non-Contention Constraint
         # Tasks requiring the same machine must not overlap if scheduled in same window
