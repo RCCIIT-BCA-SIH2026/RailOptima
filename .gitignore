@@ -50,6 +50,7 @@ frontend/.vite/
 *.env
 frontend/.env
 .env.example
+.env.example
 
 # IDE & OS
 .vscode/
