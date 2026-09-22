@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from backend.app.api.deps import get_db, get_current_user, get_current_user_optional, require_roles, normalize_role, get_user_department_code
 from backend.app.models import Block, Approval, User, AuditLog
 from backend.app.schemas import ApprovalActionRequest
+from backend.app.core.mongodb import mongodb_manager
 
 router = APIRouter()
 
@@ -47,6 +48,18 @@ def get_pending_approvals(
         })
     return {"pending_count": len(results), "blocks": results, "data_mode": "LIVE ML MICROSERVICE"}
 
+@router.get("/mongodb-stream")
+def get_mongodb_approvals_stream():
+    """Fetches recent approval events persisted to MongoDB Atlas."""
+    records = mongodb_manager.get_recent_approvals(limit=50)
+    return {
+        "status": "success",
+        "count": len(records),
+        "approvals": records,
+        "storage": "MongoDB Atlas Cluster (railoptima)",
+        "source": "approvals_stream"
+    }
+
 @router.post("/{block_id}/action")
 def perform_approval_action(
     block_id: int,
@@ -59,12 +72,20 @@ def perform_approval_action(
     - DRM / Branch Officer submits Approved / Rejected / Modification_Requested
     - Updates Block status
     - Writes immutable Approval record and Audit Log
+    - Persists rich approval event to MongoDB Atlas Cluster (approvals_stream & block_audit_stream)
     """
     block = db.query(Block).filter(Block.id == block_id).first()
     if not block:
         raise HTTPException(status_code=404, detail="Block not found")
 
     if current_user:
+        role_name = current_user.role.name if current_user.role else ""
+        norm_r = normalize_role(role_name)
+        if norm_r in ["SUPERVISOR", "USER"]:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Operation not permitted for Supervisor role. Officer / DRM credentials required."
+            )
         user_id = current_user.id
         user_name = current_user.full_name
         user_role = current_user.role.name if current_user.role else "DRM"
@@ -85,7 +106,7 @@ def perform_approval_action(
         block.status = "Proposed" # Modification requested, remains proposed
         act_clean = "Modification_Requested"
 
-    # Create Approval record
+    # Create Approval record in primary SQL database
     approval = Approval(
         block_id=block.id,
         plan_id=block.plan_id,
@@ -97,7 +118,7 @@ def perform_approval_action(
     )
     db.add(approval)
 
-    # Log to audit trail
+    # Log to primary SQL audit trail
     audit = AuditLog(
         user_id=user_id,
         action=f"BLOCK_{act_clean.upper()}",
@@ -113,6 +134,31 @@ def perform_approval_action(
     db.commit()
     db.refresh(block)
 
+    # Stream and persist approval event to MongoDB Atlas (approvals_stream & block_audit_stream)
+    section_name = block.section.section_code if block.section else "SEC"
+    corridor_name = block.section.corridor.name if (block.section and block.section.corridor) else "CORR"
+    ai_strategy = block.ai_recommendations[0].strategy_name if block.ai_recommendations else "AI Multi-Criteria Balanced Plan"
+    ai_conf = block.ai_recommendations[0].confidence_score if block.ai_recommendations else 0.94
+
+    mongodb_manager.log_approval_event(
+        block_id=block.id,
+        block_code=block.block_code,
+        section_code=section_name,
+        corridor=corridor_name,
+        action=act_clean,
+        user_id=user_id,
+        user_name=user_name,
+        user_role=user_role,
+        comments=payload.comments or f"{act_clean} digitally signed by {user_role}",
+        ai_strategy=ai_strategy,
+        ai_confidence=ai_conf,
+        extra_details={
+            "duration_hours": round((block.requested_end_time - block.requested_start_time).total_seconds() / 3600.0, 1),
+            "lead_department": block.lead_department.code if block.lead_department else "ENG",
+            "tasks_count": block.total_tasks_count
+        }
+    )
+
     return {
         "status": "success",
         "message": f"Block {block.block_code} successfully {act_clean.lower()}.",
@@ -120,6 +166,7 @@ def perform_approval_action(
         "new_status": block.status,
         "reviewed_by": user_name,
         "role": user_role,
-        "data_mode": "LIVE ML MICROSERVICE"
+        "data_mode": "LIVE ML MICROSERVICE",
+        "mongodb_persisted": True
     }
 

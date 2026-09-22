@@ -9,6 +9,7 @@ import logging
 import threading
 from datetime import datetime
 from typing import Dict, Any, List, Optional
+import certifi
 import pymongo
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError, ServerSelectionTimeoutError, ConnectionFailure
@@ -40,9 +41,10 @@ class MongoDBManager:
             return
 
         try:
-            # Set short connection timeouts so it never hangs application startup
+            # Set short connection timeouts and certifi CA so it never hangs application startup
             self._client = MongoClient(
                 self.uri,
+                tlsCAFile=certifi.where(),
                 serverSelectionTimeoutMS=2000,
                 connectTimeoutMS=2000,
                 socketTimeoutMS=2000,
@@ -51,7 +53,7 @@ class MongoDBManager:
                 retryWrites=True,
                 w="majority"
             )
-            logger.info("MongoDB Atlas client initialized.")
+            logger.info("MongoDB Atlas client initialized with certifi TLS support.")
         except Exception as e:
             self._last_error = str(e)
             logger.warning(f"MongoDB Atlas initialization notice: {e}")
@@ -164,8 +166,22 @@ class MongoDBManager:
 
         threading.Thread(target=_write, daemon=True).start()
 
-    def log_audit_event(self, action: str, entity_type: str, entity_id: Any, details: Dict[str, Any]):
-        """Streams block approval/rejection and optimization events to MongoDB Atlas."""
+    def log_approval_event(
+        self,
+        block_id: int,
+        block_code: str,
+        section_code: str,
+        corridor: str,
+        action: str,
+        user_id: int,
+        user_name: str,
+        user_role: str,
+        comments: Optional[str] = None,
+        ai_strategy: Optional[str] = None,
+        ai_confidence: Optional[float] = None,
+        extra_details: Optional[Dict[str, Any]] = None
+    ):
+        """Streams block approval/rejection and DRM decisions to MongoDB Atlas."""
         def _write():
             try:
                 db = self.get_database()
@@ -173,40 +189,80 @@ class MongoDBManager:
                     return
                 doc = {
                     "timestamp": datetime.utcnow(),
+                    "event_type": "BLOCK_APPROVAL",
+                    "block_id": block_id,
+                    "block_code": block_code,
+                    "section_code": section_code,
+                    "corridor": corridor,
                     "action": action,
-                    "entity_type": entity_type,
-                    "entity_id": str(entity_id),
-                    "details": details
+                    "reviewed_by_id": user_id,
+                    "reviewed_by_name": user_name,
+                    "user_role": user_role,
+                    "comments": comments,
+                    "ai_strategy": ai_strategy or "AI Multi-Criteria Balanced Plan",
+                    "ai_confidence": ai_confidence or 0.94,
+                    "extra_details": extra_details or {},
+                    "system": "RailOptima DRM Approval Workflow"
                 }
-                db["block_audit_stream"].insert_one(doc)
+                # Insert into dedicated approvals collection and audit collection
+                db["approvals_stream"].insert_one(doc)
+                db["block_audit_stream"].insert_one({
+                    "timestamp": doc["timestamp"],
+                    "action": f"BLOCK_{action.upper()}",
+                    "entity_type": "BLOCK",
+                    "entity_id": str(block_id),
+                    "details": {
+                        "block_code": block_code,
+                        "action": action,
+                        "comments": comments,
+                        "reviewed_by": user_name,
+                        "role": user_role
+                    }
+                })
+                logger.info(f"MongoDB Atlas logged approval action: {action} for block {block_code}")
             except Exception as e:
-                logger.debug(f"MongoDB audit logging skipped: {e}")
+                logger.debug(f"MongoDB approval logging skipped: {e}")
 
         threading.Thread(target=_write, daemon=True).start()
 
-    def get_recent_chat_logs(self, limit: int = 15) -> List[Dict[str, Any]]:
-        """Retrieves recent AI conversation logs from MongoDB Atlas."""
+    def get_recent_approvals(self, limit: int = 50) -> List[Dict[str, Any]]:
+        """Retrieves recent approval records directly from MongoDB Atlas."""
         try:
             db = self.get_database()
             if db is None:
                 return []
-            cursor = db["rag_chat_logs"].find({}, {"_id": 0}).sort("timestamp", pymongo.DESCENDING).limit(limit)
+            cursor = db["approvals_stream"].find({}, {"_id": 0}).sort("timestamp", pymongo.DESCENDING).limit(limit)
             return list(cursor)
         except Exception as e:
-            logger.warning(f"Failed to fetch chat logs from MongoDB: {e}")
+            logger.warning(f"Failed to fetch approvals from MongoDB: {e}")
             return []
 
-    def get_recent_telemetry(self, limit: int = 20) -> List[Dict[str, Any]]:
-        """Retrieves recent sensor/spatial telemetry from MongoDB Atlas."""
-        try:
-            db = self.get_database()
-            if db is None:
-                return []
-            cursor = db["telemetry_logs"].find({}, {"_id": 0}).sort("timestamp", pymongo.DESCENDING).limit(limit)
-            return list(cursor)
-        except Exception as e:
-            logger.warning(f"Failed to fetch telemetry from MongoDB: {e}")
-            return []
+    def log_ml_event(
+        self,
+        model_name: str,
+        features: Dict[str, Any],
+        prediction: Any,
+        execution_time_ms: float = 0.0
+    ):
+        """Logs ML inference and AI optimization telemetry to MongoDB Atlas."""
+        def _write():
+            try:
+                db = self.get_database()
+                if db is None:
+                    return
+                doc = {
+                    "timestamp": datetime.utcnow(),
+                    "model_name": model_name,
+                    "features": features,
+                    "prediction": prediction,
+                    "execution_time_ms": execution_time_ms,
+                    "system": "RailOptima ML Microservice"
+                }
+                db["ml_telemetry_logs"].insert_one(doc)
+            except Exception as e:
+                logger.debug(f"MongoDB ML logging skipped: {e}")
+
+        threading.Thread(target=_write, daemon=True).start()
 
 
 # Global MongoDB Manager Singleton

@@ -44,12 +44,14 @@ frontend/dist/
 frontend/.vite/
 *.local
 
-# Environment Variables & Secrets
+# Environment Variables, Secrets & Example Files
 .env
 .env.*
 *.env
+*.env.*
 frontend/.env
-!.env.example
+frontend/.env.*
+.env.example
 
 # IDE & OS
 .vscode/
@@ -58,3 +60,4 @@ frontend/.env
 Thumbs.db
 *.log
 scratch/
+docs/

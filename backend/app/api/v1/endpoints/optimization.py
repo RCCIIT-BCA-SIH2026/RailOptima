@@ -11,6 +11,7 @@ from backend.app.models import (
 from backend.app.schemas import OptimizeRequest
 from backend.optimization import block_optimizer, alternative_generator
 from backend.app.core.ml_client import ml_client
+from backend.app.core.mongodb import mongodb_manager
 
 router = APIRouter()
 
@@ -184,6 +185,28 @@ def select_and_apply_alternative(
         blocks_created.append(new_block.id)
 
     db.commit()
+
+    # Log ML Strategy selection and block generation to MongoDB Atlas
+    mongodb_manager.log_ml_event(
+        model_name="OR-Tools CP-SAT & Strategy Optimizer",
+        features={"strategy_id": strategy_id, "strategy_title": selected_alt.get("title")},
+        prediction={
+            "plan_code": plan.plan_code,
+            "blocks_count": len(blocks_created),
+            "throughput_score": selected_alt.get("overall_score", 85.0),
+            "ai_rationale": selected_alt.get("ai_rationale", "")
+        }
+    )
+    mongodb_manager.log_audit_event(
+        action="STRATEGY_ADOPTED",
+        entity_type="PLAN",
+        entity_id=plan.id,
+        details={
+            "strategy_title": selected_alt.get("title"),
+            "blocks_count": len(blocks_created),
+            "plan_code": plan.plan_code
+        }
+    )
 
     return {
         "message": f"Successfully adopted Strategy '{selected_alt['title']}'. Created {len(blocks_created)} proposed blocks for officer approval.",
