@@ -79,6 +79,13 @@ def perform_approval_action(
         raise HTTPException(status_code=404, detail="Block not found")
 
     if current_user:
+        role_name = current_user.role.name if current_user.role else ""
+        norm_r = normalize_role(role_name)
+        if norm_r in ["SUPERVISOR", "USER"]:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Operation not permitted for Supervisor role. Officer / DRM credentials required."
+            )
         user_id = current_user.id
         user_name = current_user.full_name
         user_role = current_user.role.name if current_user.role else "DRM"
