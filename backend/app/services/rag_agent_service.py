@@ -372,9 +372,9 @@ class RAGAgentService:
                 if train_type:
                     q = q.filter(Train.train_type.ilike(f"%{train_type}%"))
                 if is_delayed:
-                    q = q.filter(Train.current_delay_minutes > 5)
+                    q = q.filter(Train.delay_minutes > 5)
                 
-                trains = q.order_by(desc(Train.current_delay_minutes)).limit(limit).all()
+                trains = q.order_by(desc(Train.delay_minutes)).limit(limit).all()
                 items = []
                 for t in trains:
                     items.append({
@@ -382,11 +382,13 @@ class RAGAgentService:
                         "train_no": t.train_no,
                         "train_name": t.train_name,
                         "train_type": t.train_type,
-                        "priority_tier": t.priority_tier,
-                        "scheduled_departure": t.scheduled_departure,
-                        "scheduled_arrival": t.scheduled_arrival,
-                        "current_delay_minutes": t.current_delay_minutes,
-                        "status": "Delayed" if t.current_delay_minutes > 5 else "On Time"
+                        "priority_level": t.priority_level,
+                        "origin": t.origin,
+                        "destination": t.destination,
+                        "scheduled_departure": t.scheduled_departure.isoformat() if t.scheduled_departure else None,
+                        "scheduled_arrival": t.scheduled_arrival.isoformat() if t.scheduled_arrival else None,
+                        "delay_minutes": t.delay_minutes,
+                        "status": t.status or ("Delayed" if t.delay_minutes > 5 else "On Time")
                     })
                 return {"status": "success", "count": len(items), "trains": items}
 
