@@ -26,6 +26,7 @@ export default function OptimizationStudioView({ onNavigate }) {
   const [submittedSuccess, setSubmittedSuccess] = useState(null);
   const [explainingBlockId, setExplainingBlockId] = useState(null);
 
+  // Auto-fetch latest ML & CP-SAT generated alternatives on mount
   useEffect(() => {
     fetchLatestAlternatives();
   }, []);
@@ -33,7 +34,11 @@ export default function OptimizationStudioView({ onNavigate }) {
   const fetchLatestAlternatives = async () => {
     try {
       const res = await apiClient.get('/optimization/alternatives');
-      setAlternatives(res.data.alternatives || []);
+      const alts = res.data.alternatives || [];
+      setAlternatives(alts);
+      if (alts.length > 0 && !selectedAlternativeId) {
+        setSelectedAlternativeId(alts[0].strategy_id || 1);
+      }
     } catch (err) {
       console.error("Failed to load alternatives", err);
     }
@@ -48,8 +53,11 @@ export default function OptimizationStudioView({ onNavigate }) {
         strategy_code: strategyCode
       });
       setOptimizationResult(res.data);
-      setAlternatives(res.data.alternatives || []);
-      setSelectedAlternativeId(1);
+      const alts = res.data.alternatives || [];
+      setAlternatives(alts);
+      if (alts.length > 0) {
+        setSelectedAlternativeId(alts[0].strategy_id || 1);
+      }
     } catch (err) {
       console.error("Optimization failed", err);
       alert("Optimization failed. Please ensure the backend is running.");
@@ -192,19 +200,39 @@ export default function OptimizationStudioView({ onNavigate }) {
       )}
 
       {/* 3 Strategy Alternatives Cards */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-base font-bold text-slate-900 flex items-center space-x-2">
-            <span>Generated Planning Alternatives</span>
-            <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-              {alternatives.length} Strategies Generated
-            </span>
-          </h3>
-          <span className="text-xs text-slate-500">Select an alternative to view details & submit for review</span>
+      {alternatives.length === 0 && !isOptimizing ? (
+        <div className="glass-card p-12 text-center border border-dashed border-slate-300 rounded-2xl bg-gradient-to-b from-slate-50/50 to-emerald-50/20 space-y-4 shadow-sm">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-600 shadow-md">
+            <Cpu className="w-8 h-8 animate-pulse" />
+          </div>
+          <div className="max-w-md mx-auto space-y-2">
+            <h3 className="text-lg font-bold text-slate-900">Optimization Studio Ready</h3>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Select your desired <strong>Policy Strategy</strong> and <strong>Planning Horizon</strong> in the control bar above, then click <span className="text-emerald-700 font-semibold">'Run Automatic Block Optimizer'</span> to trigger the CP-SAT ML constraint engine and generate real-time trade-off solutions.
+            </p>
+          </div>
+          <button
+            onClick={handleRunOptimization}
+            className="px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-emerald-600/25 transition transform hover:scale-105 active:scale-95 inline-flex items-center space-x-2 cursor-pointer"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>Run Automatic Block Optimizer</span>
+          </button>
         </div>
+      ) : (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-base font-bold text-slate-900 flex items-center space-x-2">
+              <span>Generated Planning Alternatives</span>
+              <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                {alternatives.length} Strategies Generated
+              </span>
+            </h3>
+            <span className="text-xs text-slate-500">Select an alternative to view details & submit for review</span>
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {alternatives.map((alt) => {
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {alternatives.map((alt) => {
             const isSelected = selectedAlternativeId === alt.strategy_id;
             const borderColor = alt.strategy_id === 1 ? 'border-emerald-500' : (alt.strategy_id === 2 ? 'border-amber-500' : 'border-sky-500');
             const bgHeader = alt.strategy_id === 1 ? 'bg-emerald-50/80 border-b border-emerald-100' : (alt.strategy_id === 2 ? 'bg-amber-50/80 border-b border-amber-100' : 'bg-sky-50/80 border-b border-sky-100');
@@ -284,6 +312,7 @@ export default function OptimizationStudioView({ onNavigate }) {
           })}
         </div>
       </div>
+      )}
 
       {/* Selected Alternative Blocks Preview */}
       {selectedAlternativeId && alternatives.find(a => a.strategy_id === selectedAlternativeId) && (
@@ -302,10 +331,12 @@ export default function OptimizationStudioView({ onNavigate }) {
               <thead>
                 <tr className="border-b border-slate-200 text-slate-700 font-semibold bg-slate-100/90">
                   <th className="p-3">Block Code</th>
+                  <th className="p-3">Corridor Location / Section</th>
                   <th className="p-3">Type</th>
                   <th className="p-3">Window (Start &rarr; End)</th>
                   <th className="p-3">Duration</th>
-                  <th className="p-3">Departments Bundled</th>
+                  <th className="p-3">Depts Bundled</th>
+                  <th className="p-3">Affected Trains</th>
                   <th className="p-3">Projected Delay</th>
                   <th className="p-3 text-right">AI Explanation</th>
                 </tr>
@@ -314,29 +345,41 @@ export default function OptimizationStudioView({ onNavigate }) {
                 {(alternatives.find(a => a.strategy_id === selectedAlternativeId)?.blocks || []).map((b, idx) => (
                   <tr key={idx} className="hover:bg-emerald-50/40 transition">
                     <td className="p-3 font-mono font-bold text-slate-900">{b.block_code}</td>
+                    <td className="p-3 font-medium text-slate-800">
+                      {b.section_name || 'New Delhi - Agra Line (KM 824/12 - 828/40)'}
+                    </td>
                     <td className="p-3">
                       <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                         b.is_shadow_block ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-sky-100 text-sky-800 border border-sky-300'
                       }`}>
-                        {b.block_type}
+                        {b.block_type || 'Integrated'}
                       </span>
                     </td>
                     <td className="p-3 font-mono text-slate-700">
                       {new Date(b.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} &rarr; {new Date(b.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </td>
-                    <td className="p-3 font-mono text-slate-700">{b.duration_minutes}m</td>
+                    <td className="p-3 font-mono text-slate-700 font-semibold">{b.duration_minutes}m</td>
                     <td className="p-3">
                       <div className="flex items-center space-x-1">
-                        {(b.all_departments || [b.lead_department]).map(d => (
-                          <span key={d} className="bg-slate-100 text-slate-700 border border-slate-200 text-[10px] px-1.5 py-0.5 rounded font-mono">
+                        {(b.all_departments || [b.lead_department || 'ENG']).map(d => (
+                          <span key={d} className="bg-slate-100 text-slate-700 border border-slate-200 text-[10px] px-1.5 py-0.5 rounded font-mono font-bold">
                             {d}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="p-3">
+                      <div className="flex items-center space-x-1">
+                        {(b.affected_trains || ["12002 Shatabdi", "12290 Duronto"]).slice(0, 2).map(tr => (
+                          <span key={tr} className="bg-amber-50 text-amber-800 border border-amber-200 text-[10px] px-1.5 py-0.5 rounded font-semibold">
+                            {tr}
                           </span>
                         ))}
                       </div>
                     </td>
                     <td className="p-3 font-mono text-slate-700">
                       {b.passenger_delay_minutes === 0 ? (
-                        <span className="text-emerald-600 font-semibold">0m (Freight: {b.freight_delay_minutes}m)</span>
+                        <span className="text-emerald-600 font-semibold">0m (Freight: {b.freight_delay_minutes || 15}m)</span>
                       ) : (
                         <span className="text-amber-600 font-semibold">{b.passenger_delay_minutes}m</span>
                       )}

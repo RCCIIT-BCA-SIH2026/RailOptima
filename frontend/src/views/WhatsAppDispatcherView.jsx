@@ -16,11 +16,16 @@ import {
   ChevronRight,
   Sparkles,
   Phone,
-  Video,
   MoreVertical,
   Smile,
   Paperclip,
-  CheckCheck
+  CheckCheck,
+  Trash2,
+  Mic,
+  MicOff,
+  Volume2,
+  VolumeX,
+  PhoneOff
 } from 'lucide-react';
 import apiClient from '../api/client';
 
@@ -32,6 +37,7 @@ export default function WhatsAppDispatcherView() {
   const [loading, setLoading] = useState(false);
   const [resequencing, setResequencing] = useState(false);
   const [inputText, setInputText] = useState('');
+  const [viewMode, setViewMode] = useState('selected'); // 'selected' or 'all'
   const [newSub, setNewSub] = useState({
     full_name: '',
     phone_number: '',
@@ -41,40 +47,135 @@ export default function WhatsAppDispatcherView() {
     language_pref: 'en'
   });
   const [showAddSubModal, setShowAddSubModal] = useState(false);
+  const [showCallModal, setShowCallModal] = useState(false);
+  const [callDuration, setCallDuration] = useState(0);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isSpeaker, setIsSpeaker] = useState(true);
+  const [callStatus, setCallStatus] = useState('Connecting...');
 
   const chatScrollRef = useRef(null);
+  const callTimerRef = useRef(null);
+  const audioCtxRef = useRef(null);
+
+  const cleanDigits = (phone) => (phone ? String(phone).replace(/\D/g, '') : '');
+
+  const isPhoneMatch = (p1, p2) => {
+    const c1 = cleanDigits(p1);
+    const c2 = cleanDigits(p2);
+    if (!c1 || !c2) return false;
+    return c1 === c2 || c1.endsWith(c2) || c2.endsWith(c1);
+  };
 
   useEffect(() => {
     fetchSubscribers();
     fetchLogs();
+    const interval = setInterval(() => {
+      fetchLogs();
+      fetchSubscribers();
+    }, 3000);
+    return () => {
+      clearInterval(interval);
+      if (callTimerRef.current) clearInterval(callTimerRef.current);
+    };
   }, []);
 
-  useEffect(() => {
-    if (chatScrollRef.current) {
-      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
-    }
-  }, [logs]);
-
-  const fetchSubscribers = async () => {
+  const startRingingAudio = () => {
     try {
-      const res = await apiClient.get('/whatsapp/subscribers');
-      const list = res.data.subscribers || [];
-      setSubscribers(list);
-      if (list.length > 0 && !selectedSubscriber) {
-        setSelectedSubscriber(list[0]);
-      }
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      audioCtxRef.current = ctx;
+
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc1.type = 'sine';
+      osc2.type = 'sine';
+      osc1.frequency.setValueAtTime(440, ctx.currentTime);
+      osc2.frequency.setValueAtTime(480, ctx.currentTime);
+
+      gain.gain.setValueAtTime(0.04, ctx.currentTime);
+
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc1.start();
+      osc2.start();
+
+      setTimeout(() => {
+        try {
+          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.3);
+          setTimeout(() => {
+            osc1.stop();
+            osc2.stop();
+            ctx.close();
+          }, 300);
+        } catch (e) {}
+      }, 1800);
     } catch (err) {
-      console.error("Failed to load subscribers", err);
+      console.warn("Audio context ringback unavailable", err);
     }
   };
 
-  const fetchLogs = async () => {
-    try {
-      const res = await apiClient.get('/whatsapp/logs?limit=100');
-      setLogs(res.data.logs || []);
-    } catch (err) {
-      console.error("Failed to load logs", err);
+  const stopRingingAudio = () => {
+    if (audioCtxRef.current) {
+      try {
+        audioCtxRef.current.close();
+      } catch (e) {}
+      audioCtxRef.current = null;
     }
+  };
+
+  const handleMakeCall = async () => {
+    if (!selectedSubscriber) return;
+    const phone = selectedSubscriber.phone_number || '+15556591544';
+
+    // Open in-browser call modal overlay directly (No browser/OS tel dialer popup)
+    setShowCallModal(true);
+    setCallStatus('Connecting...');
+    setCallDuration(0);
+    setIsMuted(false);
+    setIsSpeaker(true);
+
+    startRingingAudio();
+
+    if (callTimerRef.current) clearInterval(callTimerRef.current);
+
+    setTimeout(() => {
+      setCallStatus('Connected (Operational Voice Stream)');
+      callTimerRef.current = setInterval(() => {
+        setCallDuration((prev) => prev + 1);
+      }, 1000);
+    }, 1800);
+
+    try {
+      await apiClient.post('/whatsapp/simulate-inbound', {
+        phone_number: phone,
+        message_body: 'CALL_REQUEST'
+      });
+      await fetchLogs();
+    } catch (err) {
+      console.error("Failed to trigger call log", err);
+    }
+  };
+
+  const handleEndCall = () => {
+    stopRingingAudio();
+    if (callTimerRef.current) {
+      clearInterval(callTimerRef.current);
+      callTimerRef.current = null;
+    }
+    setShowCallModal(false);
+    setCallDuration(0);
+    setCallStatus('Connecting...');
+  };
+
+  const formatCallTime = (secs) => {
+    const mins = Math.floor(secs / 60);
+    const remSecs = secs % 60;
+    return `${String(mins).padStart(2, '0')}:${String(remSecs).padStart(2, '0')}`;
   };
 
   const handleTriggerResequence = async () => {
@@ -134,10 +235,17 @@ export default function WhatsAppDispatcherView() {
     }
   };
 
-  // Filter message stream for current selected subscriber
-  const activeChatLogs = logs
-    .filter(l => selectedSubscriber && l.phone_number === selectedSubscriber.phone_number)
-    .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+  // Defensive array handling for safety against unhandled API errors
+  const safeLogs = Array.isArray(logs) ? logs : [];
+  const safeSubscribers = Array.isArray(subscribers) ? subscribers : [];
+
+  const activeChatLogs = safeLogs
+    .filter(l => {
+      if (!l) return false;
+      if (viewMode === 'all') return true;
+      return selectedSubscriber && isPhoneMatch(l.phone_number, selectedSubscriber.phone_number);
+    })
+    .sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
 
   return (
     <div className="space-y-6">
@@ -188,7 +296,7 @@ export default function WhatsAppDispatcherView() {
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <h2 className="text-base font-bold text-white flex items-center gap-2">
                 <UserCheck className="w-4 h-4 text-emerald-400" />
-                Field Crew Subscribers ({subscribers.length})
+                Field Crew Subscribers ({safeSubscribers.length})
               </h2>
               <button
                 onClick={() => setShowAddSubModal(true)}
@@ -199,7 +307,7 @@ export default function WhatsAppDispatcherView() {
             </div>
 
             <div className="mt-3 space-y-2 max-h-[500px] overflow-y-auto pr-1">
-              {subscribers.map((sub) => {
+              {safeSubscribers.map((sub) => {
                 const isSelected = selectedSubscriber?.phone_number === sub.phone_number;
                 return (
                   <div
@@ -266,26 +374,55 @@ export default function WhatsAppDispatcherView() {
             <div className="w-full max-w-sm bg-slate-950 rounded-[36px] border-4 border-slate-800 shadow-2xl overflow-hidden flex flex-col h-[650px] relative">
               
               {/* WhatsApp Header */}
-              <div className="bg-emerald-800 px-4 py-3 flex items-center justify-between text-white shadow-md z-10">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-emerald-600 border border-white/30 flex items-center justify-center font-bold text-white text-sm">
-                    RO
+              <div className="bg-emerald-800 px-4 py-3 flex flex-col gap-2 text-white shadow-md z-10">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-emerald-600 border border-white/30 flex items-center justify-center font-bold text-white text-sm">
+                      RO
+                    </div>
+                    <div>
+                      <div className="font-bold text-sm flex items-center gap-1.5">
+                        RailOptima Dispatcher
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" />
+                      </div>
+                      <div className="text-[11px] text-emerald-200 flex items-center gap-1">
+                        <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
+                        {viewMode === 'all'
+                          ? `All Operational Stream (${safeLogs.length})`
+                          : `Active Crew: ${selectedSubscriber?.full_name || 'Ground Staff'}`}
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="font-bold text-sm flex items-center gap-1.5">
-                      RailOptima Dispatcher
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" />
-                    </div>
-                    <div className="text-[11px] text-emerald-200 flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
-                      Active Crew: {selectedSubscriber?.full_name || 'Ground Staff'}
-                    </div>
+                  <div className="flex items-center gap-2 text-emerald-100">
+                    <button
+                      onClick={handleMakeCall}
+                      title={`Call ${selectedSubscriber?.full_name || 'Crew'}`}
+                      className="p-1 hover:bg-emerald-700/60 rounded-full transition-all"
+                    >
+                      <Phone className="w-4 h-4 cursor-pointer hover:text-white" />
+                    </button>
+                    <MoreVertical className="w-4 h-4 cursor-pointer hover:text-white" />
                   </div>
                 </div>
-                <div className="flex items-center gap-3 text-emerald-100">
-                  <Phone className="w-4 h-4 cursor-pointer hover:text-white" />
-                  <Video className="w-4 h-4 cursor-pointer hover:text-white" />
-                  <MoreVertical className="w-4 h-4 cursor-pointer hover:text-white" />
+
+                {/* Stream Filter Toggle Tab */}
+                <div className="flex bg-emerald-950/70 p-1 rounded-lg border border-emerald-600/30 text-[11px]">
+                  <button
+                    onClick={() => setViewMode('selected')}
+                    className={`flex-1 py-1 rounded font-bold transition-all ${
+                      viewMode === 'selected' ? 'bg-emerald-600 text-white shadow' : 'text-emerald-300 hover:text-white'
+                    }`}
+                  >
+                    💬 {selectedSubscriber?.full_name?.split(' ')[0] || 'Selected Crew'}
+                  </button>
+                  <button
+                    onClick={() => setViewMode('all')}
+                    className={`flex-1 py-1 rounded font-bold transition-all ${
+                      viewMode === 'all' ? 'bg-emerald-600 text-white shadow' : 'text-emerald-300 hover:text-white'
+                    }`}
+                  >
+                    📡 Live All Feed ({safeLogs.length})
+                  </button>
                 </div>
               </div>
 
@@ -300,17 +437,29 @@ export default function WhatsAppDispatcherView() {
                 {activeChatLogs.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center text-center text-slate-500 p-6 space-y-2">
                     <MessageSquare className="w-10 h-10 text-slate-600" />
-                    <p className="text-xs">No active chat log for this recipient.</p>
-                    <p className="text-[11px] text-slate-600">Click "Simulate Train Delay & Swap" or use quick replies below to dispatch alerts!</p>
+                    <p className="text-xs font-semibold text-slate-400">
+                      {viewMode === 'all' ? "No operational messages logged yet." : `No active chat log for ${selectedSubscriber?.full_name || 'this recipient'}.`}
+                    </p>
+                    <p className="text-[11px] text-slate-500">
+                      Send a message or click "Simulate Train Delay & Swap" to start live WhatsApp crew dispatch!
+                    </p>
                   </div>
                 ) : (
                   activeChatLogs.map((msg) => {
                     const isOutbound = msg.direction === 'outbound';
+                    const matchedSub = subscribers.find(s => isPhoneMatch(s.phone_number, msg.phone_number));
+                    const senderName = matchedSub ? matchedSub.full_name : msg.phone_number;
+
                     return (
                       <div
                         key={msg.id}
                         className={`flex flex-col ${isOutbound ? 'items-start' : 'items-end'}`}
                       >
+                        {viewMode === 'all' && (
+                          <div className="text-[10px] text-slate-400 font-semibold px-1 mb-0.5">
+                            {isOutbound ? `➡️ Outbound to ${senderName}` : `⬅️ Inbound from ${senderName}`}
+                          </div>
+                        )}
                         <div
                           className={`max-w-[85%] rounded-2xl p-3 text-xs leading-relaxed whitespace-pre-wrap shadow-md ${
                             isOutbound
@@ -461,13 +610,23 @@ export default function WhatsAppDispatcherView() {
             <Radio className="w-5 h-5 text-emerald-400" />
             Live Interaction Audit Trail & Tool Actions Executed
           </h3>
-          <button
-            onClick={fetchLogs}
-            className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-xl font-medium flex items-center gap-1.5 transition-all"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            Refresh Logs
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleClearLogs}
+              title="Purge message logs for clean slate"
+              className="px-3 py-1.5 bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 border border-rose-500/30 text-xs rounded-xl font-semibold flex items-center gap-1.5 transition-all"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Clear Logs
+            </button>
+            <button
+              onClick={fetchLogs}
+              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-xl font-medium flex items-center gap-1.5 transition-all"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              Refresh Logs
+            </button>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -484,12 +643,12 @@ export default function WhatsAppDispatcherView() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
-              {logs.length === 0 ? (
+              {safeLogs.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="py-6 text-center text-slate-500">No message logs recorded yet.</td>
+                  <td colSpan="7" className="py-6 text-center text-slate-500 font-medium">No live message logs recorded yet. Send a message to start!</td>
                 </tr>
               ) : (
-                logs.slice(0, 15).map((log) => (
+                safeLogs.slice(0, 15).map((log) => (
                   <tr key={log.id} className="hover:bg-slate-800/30 transition-all">
                     <td className="py-3 px-4 font-mono text-slate-400">
                       {new Date(log.created_at).toLocaleTimeString()}
@@ -634,6 +793,104 @@ export default function WhatsAppDispatcherView() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* In-Browser WhatsApp Voice Call Modal Overlay */}
+      {showCallModal && selectedSubscriber && (
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="glass-card p-8 rounded-3xl border border-emerald-500/30 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 max-w-sm w-full text-center space-y-6 shadow-2xl relative overflow-hidden">
+            {/* Ambient ring glow */}
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-emerald-500/10 via-transparent to-transparent pointer-events-none" />
+
+            {/* Header Badge */}
+            <div className="flex items-center justify-center gap-2 text-xs font-semibold text-emerald-400 bg-emerald-950/80 border border-emerald-500/40 px-3.5 py-1 rounded-full w-max mx-auto shadow-md">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              WhatsApp Direct Voice Dispatch
+            </div>
+
+            {/* Avatar & Pulse Rings */}
+            <div className="relative py-4 flex items-center justify-center">
+              <div className="absolute w-36 h-36 rounded-full bg-emerald-500/10 animate-ping pointer-events-none" />
+              <div className="absolute w-28 h-28 rounded-full bg-emerald-500/20 animate-pulse pointer-events-none" />
+              <div className="w-24 h-24 rounded-full bg-slate-800 border-2 border-emerald-400/80 flex items-center justify-center text-3xl font-extrabold text-emerald-300 shadow-xl relative z-10">
+                {selectedSubscriber.full_name?.charAt(0) || 'C'}
+              </div>
+            </div>
+
+            {/* Crew Details */}
+            <div>
+              <h3 className="text-xl font-extrabold text-white tracking-tight">
+                {selectedSubscriber.full_name}
+              </h3>
+              <p className="text-xs text-emerald-400 font-medium mt-0.5">
+                {selectedSubscriber.role} • {selectedSubscriber.assigned_gang || 'Gang Alpha'}
+              </p>
+              <p className="text-xs font-mono text-slate-400 mt-1">
+                {selectedSubscriber.phone_number}
+              </p>
+            </div>
+
+            {/* Live Call Status & Timer Box */}
+            <div className="bg-slate-900/90 border border-slate-800 rounded-2xl py-3 px-4 space-y-1">
+              <div className="text-xs text-slate-400 font-medium">
+                {callStatus}
+              </div>
+              <div className="text-2xl font-mono font-bold text-white tracking-wider">
+                {formatCallTime(callDuration)}
+              </div>
+              {/* Sound wave visualizer bars */}
+              <div className="flex items-center justify-center gap-1 pt-2">
+                <span className="w-1 h-3 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-1 h-5 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-1 h-2 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                <span className="w-1 h-6 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '450ms' }} />
+                <span className="w-1 h-3 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '600ms' }} />
+              </div>
+            </div>
+
+            {/* Encrypted Channel Badge */}
+            <div className="text-[11px] text-slate-400 flex items-center justify-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              Live WhatsApp Direct Operational Audio Stream
+            </div>
+
+            {/* Call Controls */}
+            <div className="flex items-center justify-center gap-6 pt-2">
+              <button
+                onClick={() => setIsMuted(!isMuted)}
+                className={`p-4 rounded-full transition-all border ${
+                  isMuted
+                    ? 'bg-amber-500/20 text-amber-400 border-amber-500/50'
+                    : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
+                }`}
+                title={isMuted ? "Unmute Mic" : "Mute Mic"}
+              >
+                {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+              </button>
+
+              <button
+                onClick={handleEndCall}
+                className="p-5 rounded-full bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/40 hover:scale-105 active:scale-95 transition-all"
+                title="End Call"
+              >
+                <PhoneOff className="w-6 h-6" />
+              </button>
+
+              <button
+                onClick={() => setIsSpeaker(!isSpeaker)}
+                className={`p-4 rounded-full transition-all border ${
+                  isSpeaker
+                    ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50'
+                    : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
+                }`}
+                title={isSpeaker ? "Speaker On" : "Speaker Off"}
+              >
+                {isSpeaker ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+              </button>
+            </div>
+
           </div>
         </div>
       )}

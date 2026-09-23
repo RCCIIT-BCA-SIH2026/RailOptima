@@ -250,6 +250,15 @@ def list_subscribers(
         # Seed default subscribers if empty
         default_subs = [
             WhatsAppCrewSubscriber(
+                phone_number="+15556591544",
+                full_name="Ankit Karmakar (Test Lead)",
+                crew_id="CREW-TEST-00",
+                role="Junior Engineer",
+                department="Engineering",
+                assigned_gang="Gang Alpha",
+                language_pref="bn"
+            ),
+            WhatsAppCrewSubscriber(
                 phone_number="+919876543210",
                 full_name="Rajesh Kumar (JE)",
                 crew_id="CREW-DEL-01",
@@ -281,6 +290,22 @@ def list_subscribers(
             db.add(s)
         db.commit()
         subs = default_subs
+
+    # Also check if test number exists, if not add it
+    has_test = any("15556591544" in s.phone_number for s in subs)
+    if not has_test:
+        test_sub = WhatsAppCrewSubscriber(
+            phone_number="+15556591544",
+            full_name="Ankit Karmakar (Test Lead)",
+            crew_id="CREW-TEST-00",
+            role="Junior Engineer",
+            department="Engineering",
+            assigned_gang="Gang Alpha",
+            language_pref="bn"
+        )
+        db.add(test_sub)
+        db.commit()
+        subs.insert(0, test_sub)
 
     return {"count": len(subs), "subscribers": subs}
 
@@ -338,3 +363,15 @@ def get_message_logs(
         query = query.filter(WhatsAppMessageLog.phone_number == phone_number)
     logs = query.order_by(WhatsAppMessageLog.created_at.desc()).limit(limit).all()
     return {"count": len(logs), "logs": logs}
+
+
+@router.delete("/logs", summary="Clear WhatsApp Message Logs")
+def clear_message_logs(
+    db: Session = Depends(get_db)
+):
+    """
+    Purges all message logs for a clean live testing slate.
+    """
+    count = db.query(WhatsAppMessageLog).delete()
+    db.commit()
+    return {"status": "cleared", "deleted_count": count}

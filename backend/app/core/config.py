@@ -38,6 +38,7 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str = ""
     VITE_OPENROUTER_API_KEY: str = ""
     VITE_AI_API_KEY: str = ""
+    OPENROUTER_MODEL: str = "deepgram/flux-tts:free"
     
     # ML & Optimization Microservice URL (Port 8001)
     ML_SERVICE_URL: str = "http://127.0.0.1:8001"
@@ -58,6 +59,8 @@ class Settings(BaseSettings):
     # WhatsApp Ground Crew Dispatcher API Settings
     WHATSAPP_API_TOKEN: str = ""
     WHATSAPP_PHONE_NUMBER_ID: str = ""
+    WHATSAPP_BUSINESS_ACCOUNT_ID: str = ""
+    WHATSAPP_TEST_NUMBER: str = ""
     WHATSAPP_VERIFY_TOKEN: str = "railoptima_whatsapp_verify_token_2026"
     
     # CORS Origins

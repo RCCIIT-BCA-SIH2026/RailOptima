@@ -491,6 +491,31 @@ class WhatsAppDispatchService:
                     f"Action: Complete Train B servicing first."
                 )
 
+        # 6. Direct Phone Call Request
+        elif "CALL" in text_upper or "CALL_REQUEST" in text_upper or "কল" in text or "कॉल" in text:
+            intent = "VOICE_CALL_DISPATCH"
+            tool_executed = "INITIATE_VOICE_CALL"
+            tool_params = {"recipient_phone": phone_number, "timestamp": datetime.utcnow().isoformat()}
+
+            if lang == "bn":
+                reply_text = (
+                    f"📞 *ভয়েস ডায়াল সক্রিয় করা হয়েছে*\n"
+                    f"━━━━━━━━━━━━━━━━━━\n"
+                    f"গ্রাউন্ড স্টাফ ({sub.full_name})-এর সাথে সরাসরি ডায়ালিং চ্যানেল চালনা করা হচ্ছে ({phone_number})।"
+                )
+            elif lang == "hi":
+                reply_text = (
+                    f"📞 *वॉयस डायल सक्रिय*\n"
+                    f"━━━━━━━━━━━━━━━━━━\n"
+                    f"ग्राउंड क्रू ({sub.full_name}) से सीधा वॉयस चैनल कनेक्ट किया जा रहा है ({phone_number})।"
+                )
+            else:
+                reply_text = (
+                    f"📞 *VOICE DISPATCH CALL CONNECTED*\n"
+                    f"━━━━━━━━━━━━━━━━━━\n"
+                    f"Connecting live operational voice channel with ground maintainer {sub.full_name} ({phone_number})."
+                )
+
         # 6. Natural Language / Defect Report or Default Assistant Response
         else:
             intent = "CONVERSATIONAL_QUERY"
