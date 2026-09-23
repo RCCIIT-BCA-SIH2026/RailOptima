@@ -52,11 +52,11 @@ def run_automatic_optimization(
         tasks_data.append({
             "id": t.id,
             "title": t.title,
-            "section_id": t.section_id,
-            "department_id": t.department_id,
+            "section_id": t.section_id or 1,
+            "department_id": t.department_id or 1,
             "department_code": t.department.code if t.department else "ENG",
             "defect_id": t.defect_id,
-            "duration_minutes": t.estimated_duration_minutes,
+            "duration_minutes": t.estimated_duration_minutes or 180,
             "priority_score": prio
         })
 
@@ -116,18 +116,21 @@ def run_automatic_optimization(
 
 @router.get("/alternatives")
 def get_latest_alternatives(db: Session = Depends(get_db)):
-    """Returns the cached 3 alternatives, or generates fresh ones if cache is empty."""
+    """Returns the cached 3 alternatives, or generates fresh ones if cache is empty or stale."""
     global _CACHED_ALTERNATIVES
-    if not _CACHED_ALTERNATIVES:
-        tasks = db.query(MaintenanceTask).limit(20).all()
+    if not _CACHED_ALTERNATIVES or _CACHED_ALTERNATIVES[0].get("total_blocks", 0) == 0:
+        tasks = db.query(MaintenanceTask).filter(MaintenanceTask.status == "Pending").limit(30).all()
+        if not tasks:
+            tasks = db.query(MaintenanceTask).limit(25).all()
         t_data = [{
             "id": t.id,
             "title": t.title,
-            "section_id": t.section_id,
-            "department_id": t.department_id,
+            "section_id": t.section_id or 1,
+            "department_id": t.department_id or 1,
             "department_code": t.department.code if t.department else "ENG",
-            "duration_minutes": t.estimated_duration_minutes,
-            "priority_score": 75.0
+            "defect_id": t.defect_id,
+            "duration_minutes": t.estimated_duration_minutes or 180,
+            "priority_score": t.defect.calculated_priority_score if (t.defect and t.defect.calculated_priority_score) else 75.0
         } for t in tasks]
         _CACHED_ALTERNATIVES = alternative_generator.generate_alternatives(t_data, [], [], 24)
 

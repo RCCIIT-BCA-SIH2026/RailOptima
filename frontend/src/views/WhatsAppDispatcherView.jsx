@@ -53,6 +53,29 @@ export default function WhatsAppDispatcherView() {
   const [isSpeaker, setIsSpeaker] = useState(true);
   const [callStatus, setCallStatus] = useState('Connecting...');
 
+  // OTP Verification States
+  const [otpStep, setOtpStep] = useState(1); // 1 = input phone & crew details, 2 = verify 6-digit OTP
+  const [otpCodeInput, setOtpCodeInput] = useState('');
+  const [otpPreviewMsg, setOtpPreviewMsg] = useState(null);
+  const [otpErrorMsg, setOtpErrorMsg] = useState(null);
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpVerifying, setOtpVerifying] = useState(false);
+
+  // Access Granted State
+  const [isAccessGranted, setIsAccessGranted] = useState(() => {
+    return localStorage.getItem('ir_whatsapp_access_granted') === 'true';
+  });
+  const [verifiedPhone, setVerifiedPhone] = useState(() => {
+    return localStorage.getItem('ir_whatsapp_verified_phone') || '';
+  });
+
+  const handleRevokeAccess = () => {
+    localStorage.removeItem('ir_whatsapp_access_granted');
+    localStorage.removeItem('ir_whatsapp_verified_phone');
+    setIsAccessGranted(false);
+    setVerifiedPhone('');
+  };
+
   const chatScrollRef = useRef(null);
   const callTimerRef = useRef(null);
   const audioCtxRef = useRef(null);
@@ -64,6 +87,47 @@ export default function WhatsAppDispatcherView() {
     const c2 = cleanDigits(p2);
     if (!c1 || !c2) return false;
     return c1 === c2 || c1.endsWith(c2) || c2.endsWith(c1);
+  };
+
+  const fetchSubscribers = async () => {
+    try {
+      const res = await apiClient.get('/whatsapp/subscribers');
+      const list = res.data?.subscribers || res.data || [];
+      const safeList = Array.isArray(list) ? list : [];
+      setSubscribers(safeList);
+      
+      const storedVerified = localStorage.getItem('ir_whatsapp_verified_phone') || verifiedPhone;
+      if (safeList.length > 0) {
+        const matched = storedVerified 
+          ? safeList.find(s => isPhoneMatch(s.phone_number, storedVerified))
+          : null;
+        setSelectedSubscriber(matched || safeList[0]);
+      }
+    } catch (err) {
+      console.error("Failed to load WhatsApp subscribers", err);
+      setSubscribers([]);
+    }
+  };
+
+  const fetchLogs = async () => {
+    try {
+      const res = await apiClient.get('/whatsapp/logs');
+      const list = res.data?.logs || res.data || [];
+      const safeList = Array.isArray(list) ? list : [];
+      setLogs(safeList);
+    } catch (err) {
+      console.error("Failed to load WhatsApp message logs", err);
+      setLogs([]);
+    }
+  };
+
+  const handleClearLogs = async () => {
+    try {
+      await apiClient.delete('/whatsapp/logs');
+      setLogs([]);
+    } catch (err) {
+      console.error("Failed to clear WhatsApp message logs", err);
+    }
   };
 
   useEffect(() => {
@@ -130,7 +194,7 @@ export default function WhatsAppDispatcherView() {
 
   const handleMakeCall = async () => {
     if (!selectedSubscriber) return;
-    const phone = selectedSubscriber.phone_number || '+15556591544';
+    const phone = selectedSubscriber.phone_number || verifiedPhone || '';
 
     // Open in-browser call modal overlay directly (No browser/OS tel dialer popup)
     setShowCallModal(true);
@@ -215,11 +279,40 @@ export default function WhatsAppDispatcherView() {
     }
   };
 
-  const handleAddSubscriber = async (e) => {
+  const handleRequestOtp = async (e) => {
     e.preventDefault();
     if (!newSub.full_name || !newSub.phone_number) return;
+    setOtpErrorMsg(null);
+    setOtpSending(true);
     try {
-      await apiClient.post('/whatsapp/subscribers', newSub);
+      await apiClient.post('/whatsapp/request-otp', newSub);
+      setOtpStep(2);
+      await fetchLogs();
+    } catch (err) {
+      console.error("Failed to request WhatsApp OTP", err);
+      setOtpErrorMsg(err.response?.data?.detail || "Failed to dispatch WhatsApp OTP code. Please verify phone number format.");
+    } finally {
+      setOtpSending(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    if (!otpCodeInput.trim()) return;
+    setOtpErrorMsg(null);
+    setOtpVerifying(true);
+    try {
+      const res = await apiClient.post('/whatsapp/verify-otp', {
+        phone_number: newSub.phone_number,
+        otp_code: otpCodeInput.trim()
+      });
+      const verifiedSub = res.data.subscriber;
+      const vPhone = verifiedSub?.phone_number || newSub.phone_number;
+      localStorage.setItem('ir_whatsapp_access_granted', 'true');
+      localStorage.setItem('ir_whatsapp_verified_phone', vPhone);
+      setVerifiedPhone(vPhone);
+      setIsAccessGranted(true);
+
       setNewSub({
         full_name: '',
         phone_number: '',
@@ -228,24 +321,279 @@ export default function WhatsAppDispatcherView() {
         department: 'Engineering',
         language_pref: 'en'
       });
+      setOtpCodeInput('');
+      setOtpStep(1);
       setShowAddSubModal(false);
+      setOtpPreviewMsg(null);
       await fetchSubscribers();
+      await fetchLogs();
+      if (verifiedSub) setSelectedSubscriber(verifiedSub);
     } catch (err) {
-      console.error("Failed to add subscriber", err);
+      console.error("OTP Verification failed", err);
+      setOtpErrorMsg(err.response?.data?.detail || "Invalid 6-digit OTP verification code. Please check WhatsApp message and try again.");
+    } finally {
+      setOtpVerifying(false);
     }
   };
 
   // Defensive array handling for safety against unhandled API errors
   const safeLogs = Array.isArray(logs) ? logs : [];
-  const safeSubscribers = Array.isArray(subscribers) ? subscribers : [];
+  const rawSubscribers = Array.isArray(subscribers) ? subscribers : [];
+  const safeSubscribers = verifiedPhone 
+    ? rawSubscribers.filter(s => isPhoneMatch(s.phone_number, verifiedPhone))
+    : rawSubscribers;
 
   const activeChatLogs = safeLogs
     .filter(l => {
       if (!l) return false;
+      if (verifiedPhone && !isPhoneMatch(l.phone_number, verifiedPhone)) return false;
       if (viewMode === 'all') return true;
       return selectedSubscriber && isPhoneMatch(l.phone_number, selectedSubscriber.phone_number);
     })
     .sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+
+  // Render WhatsApp Access Gateway screen if phone number / OTP is not verified yet
+  if (!isAccessGranted) {
+    return (
+      <div className="space-y-6 max-w-4xl mx-auto py-6">
+        {/* Gateway Card */}
+        <div className="glass-card-premium p-10 rounded-3xl border border-emerald-500/30 bg-gradient-to-b from-slate-900 via-emerald-950/40 to-slate-950 text-white shadow-2xl relative overflow-hidden text-center space-y-6">
+          <div className="w-20 h-20 rounded-3xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center mx-auto text-emerald-400 shadow-xl shadow-emerald-500/10">
+            <MessageSquare className="w-10 h-10" />
+          </div>
+
+          <div className="max-w-xl mx-auto space-y-3">
+            <div className="inline-flex items-center space-x-2 px-3.5 py-1 bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 rounded-full text-xs font-semibold">
+              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              <span>2-Step WhatsApp OTP Authentication Required</span>
+            </div>
+
+            <h2 className="text-3xl font-extrabold text-white tracking-tight">
+              RailOptima WhatsApp Dispatch Gateway
+            </h2>
+
+            <p className="text-xs text-slate-300 leading-relaxed">
+              To access the 2-Way Operational WhatsApp Dispatcher, live train delay re-sequencing stream, and field crew messaging, please add your phone number and verify the 6-digit WhatsApp OTP code.
+            </p>
+          </div>
+
+          <div className="pt-2">
+            <button
+              onClick={() => {
+                setNewSub({
+                  full_name: '',
+                  phone_number: '',
+                  crew_id: '',
+                  role: 'Junior Engineer',
+                  department: 'Engineering',
+                  language_pref: 'bn'
+                });
+                setOtpStep(1);
+                setShowAddSubModal(true);
+              }}
+              className="px-8 py-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-white font-extrabold text-sm rounded-2xl shadow-xl shadow-emerald-600/30 transition transform hover:scale-105 active:scale-95 inline-flex items-center space-x-2.5 cursor-pointer"
+            >
+              <Phone className="w-4 h-4" />
+              <span>📱 ADD PHONE NUMBER & VERIFY OTP</span>
+            </button>
+          </div>
+
+          <div className="pt-6 border-t border-slate-800/80 text-[11px] text-slate-400 flex items-center justify-center space-x-6 font-mono">
+            <span>🔒 End-to-End Encrypted</span>
+            <span>⚡ Meta WhatsApp Cloud API</span>
+            <span>🌐 Multilingual (BN/HI/EN)</span>
+          </div>
+        </div>
+
+        {/* 2-Step OTP Verification Assignment Modal */}
+        {showAddSubModal && (
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="glass-card p-6 rounded-2xl border border-emerald-500/30 bg-slate-900 max-w-md w-full space-y-4 shadow-2xl relative">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div className="flex items-center space-x-2">
+                  <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                  <h3 className="text-base font-bold text-white">
+                    {otpStep === 1 ? 'Assign WhatsApp Phone Number' : 'Enter 6-Digit WhatsApp OTP'}
+                  </h3>
+                </div>
+                <span className="text-[10px] font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-700 px-2 py-0.5 rounded">
+                  STEP {otpStep} OF 2
+                </span>
+              </div>
+
+              {otpErrorMsg && (
+                <div className="p-3 bg-rose-950/80 border border-rose-600/60 text-rose-200 text-xs rounded-xl flex items-center space-x-2 font-medium">
+                  <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                  <span>{otpErrorMsg}</span>
+                </div>
+              )}
+
+              {otpStep === 1 ? (
+                <form onSubmit={handleRequestOtp} className="space-y-3">
+                  <div>
+                    <label className="text-xs font-semibold text-slate-400">Crew Member Full Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={newSub.full_name}
+                      onChange={(e) => setNewSub({...newSub, full_name: e.target.value})}
+                      placeholder="e.g. Rajesh Kumar"
+                      className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-slate-400">WhatsApp Phone Number (with Country Code)</label>
+                    <input
+                      type="text"
+                      required
+                      value={newSub.phone_number}
+                      onChange={(e) => setNewSub({...newSub, phone_number: e.target.value})}
+                      placeholder="e.g. +919876543210"
+                      className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-emerald-500"
+                    />
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">A 6-digit WhatsApp OTP verification code will be sent to this number.</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-semibold text-slate-400">Role</label>
+                      <select
+                        value={newSub.role}
+                        onChange={(e) => setNewSub({...newSub, role: e.target.value})}
+                        className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                      >
+                        <option value="Junior Engineer">Junior Engineer</option>
+                        <option value="Gangmate">Gangmate</option>
+                        <option value="Track Maintainer">Track Maintainer</option>
+                        <option value="OHE Lineman">OHE Lineman</option>
+                        <option value="Pit Line Tech">Pit Line Tech</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-400">Department</label>
+                      <select
+                        value={newSub.department}
+                        onChange={(e) => setNewSub({...newSub, department: e.target.value})}
+                        className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                      >
+                        <option value="Engineering">Engineering</option>
+                        <option value="Electrical/TRD">Electrical/TRD</option>
+                        <option value="S&T">S&T</option>
+                        <option value="Mechanical">Mechanical</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowAddSubModal(false);
+                        setOtpErrorMsg(null);
+                      }}
+                      className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={otpSending}
+                      className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg flex items-center space-x-1.5 cursor-pointer disabled:opacity-50"
+                    >
+                      {otpSending ? (
+                        <>
+                          <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <span>Sending WhatsApp OTP...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-3.5 h-3.5" />
+                          <span>Send WhatsApp OTP Code</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <form onSubmit={handleVerifyOtp} className="space-y-4">
+                  <div className="p-3 bg-emerald-950/80 border border-emerald-600/60 rounded-xl text-xs text-emerald-300 font-semibold space-y-1">
+                    <div className="flex items-center space-x-1.5 text-emerald-400 font-bold">
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>WhatsApp OTP Message Dispatched!</span>
+                    </div>
+                    <div className="text-slate-300 text-[11px] leading-relaxed">
+                      🔐 6-digit WhatsApp OTP code sent to <strong className="text-emerald-300 font-mono">{newSub.phone_number}</strong>. Please check your WhatsApp messages and enter the code below.
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-slate-300 block mb-1">
+                      Enter 6-Digit WhatsApp Verification OTP:
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      maxLength={6}
+                      value={otpCodeInput}
+                      onChange={(e) => setOtpCodeInput(e.target.value)}
+                      placeholder="e.g. 482915"
+                      className="w-full text-center tracking-[0.4em] font-mono text-xl font-bold bg-slate-950 border border-emerald-500/60 rounded-xl px-4 py-3 text-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                    <span className="text-[10px] text-slate-400 mt-1 block text-center">Until this code is verified, access remains restricted.</span>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-800">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOtpStep(1);
+                        setOtpErrorMsg(null);
+                      }}
+                      className="text-xs text-slate-400 hover:text-slate-200 font-medium underline cursor-pointer"
+                    >
+                      &larr; Back to edit details
+                    </button>
+
+                    <div className="flex items-center space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowAddSubModal(false);
+                          setOtpStep(1);
+                          setOtpErrorMsg(null);
+                        }}
+                        className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={otpVerifying || otpCodeInput.length < 6}
+                        className="px-5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold rounded-xl shadow-lg flex items-center space-x-1.5 cursor-pointer disabled:opacity-50"
+                      >
+                        {otpVerifying ? (
+                          <>
+                            <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            <span>Verifying OTP...</span>
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle2 className="w-4 h-4 text-emerald-200" />
+                            <span>Verify OTP & Grant Access</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -258,13 +606,22 @@ export default function WhatsAppDispatcherView() {
           <div>
             <div className="flex items-center gap-3 mb-2">
               <span className="px-3 py-1 bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 rounded-full text-xs font-semibold tracking-wide flex items-center gap-1.5">
-                <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+                <Radio className="w-3.5 h-3.5 text-emerald-400" />
                 Zero-App WhatsApp Field Dispatcher
               </span>
               <span className="px-3 py-1 bg-amber-500/20 border border-amber-400/40 text-amber-300 rounded-full text-xs font-semibold flex items-center gap-1.5">
                 <Languages className="w-3.5 h-3.5" />
                 BN / HI / EN / Hinglish
               </span>
+              {verifiedPhone && (
+                <span className="px-3 py-1 bg-emerald-600/30 border border-emerald-400 text-emerald-200 rounded-full text-xs font-bold flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" />
+                  <span>Verified: {verifiedPhone}</span>
+                  <button onClick={handleRevokeAccess} className="ml-1 text-[10px] text-slate-300 underline hover:text-white cursor-pointer">
+                    (Re-verify)
+                  </button>
+                </span>
+              )}
             </div>
             <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
               RailOptima Field Crew Dispatch & Dynamic Re-Sequencer
@@ -386,7 +743,7 @@ export default function WhatsAppDispatcherView() {
                         <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" />
                       </div>
                       <div className="text-[11px] text-emerald-200 flex items-center gap-1">
-                        <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
+                        <span className="w-2 h-2 rounded-full bg-emerald-300"></span>
                         {viewMode === 'all'
                           ? `All Operational Stream (${safeLogs.length})`
                           : `Active Crew: ${selectedSubscriber?.full_name || 'Ground Staff'}`}
@@ -447,7 +804,7 @@ export default function WhatsAppDispatcherView() {
                 ) : (
                   activeChatLogs.map((msg) => {
                     const isOutbound = msg.direction === 'outbound';
-                    const matchedSub = subscribers.find(s => isPhoneMatch(s.phone_number, msg.phone_number));
+                    const matchedSub = safeSubscribers.find(s => isPhoneMatch(s.phone_number, msg.phone_number));
                     const senderName = matchedSub ? matchedSub.full_name : msg.phone_number;
 
                     return (
@@ -689,110 +1046,189 @@ export default function WhatsAppDispatcherView() {
         </div>
       </div>
 
-      {/* Add Subscriber Modal */}
+      {/* 2-Step WhatsApp OTP Verification Phone Assignment Modal */}
       {showAddSubModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="glass-card p-6 rounded-2xl border border-slate-700 bg-slate-900 max-w-md w-full space-y-4">
-            <h3 className="text-lg font-bold text-white">Register Field Crew Subscriber</h3>
-            
-            <form onSubmit={handleAddSubscriber} className="space-y-3">
-              <div>
-                <label className="text-xs font-semibold text-slate-400">Full Name</label>
-                <input
-                  type="text"
-                  required
-                  value={newSub.full_name}
-                  onChange={(e) => setNewSub({...newSub, full_name: e.target.value})}
-                  placeholder="e.g. Rajesh Kumar"
-                  className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
-                />
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="glass-card p-6 rounded-2xl border border-emerald-500/30 bg-slate-900 max-w-md w-full space-y-4 shadow-2xl relative">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div className="flex items-center space-x-2">
+                <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                <h3 className="text-base font-bold text-white">
+                  {otpStep === 1 ? 'Assign WhatsApp Phone Number' : 'Enter 6-Digit WhatsApp OTP'}
+                </h3>
               </div>
+              <span className="text-[10px] font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-700 px-2 py-0.5 rounded">
+                STEP {otpStep} OF 2
+              </span>
+            </div>
 
-              <div>
-                <label className="text-xs font-semibold text-slate-400">WhatsApp Phone Number</label>
-                <input
-                  type="text"
-                  required
-                  value={newSub.phone_number}
-                  onChange={(e) => setNewSub({...newSub, phone_number: e.target.value})}
-                  placeholder="e.g. +919876543210"
-                  className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
-                />
+            {otpErrorMsg && (
+              <div className="p-3 bg-rose-950/80 border border-rose-600/60 text-rose-200 text-xs rounded-xl flex items-center space-x-2 font-medium">
+                <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                <span>{otpErrorMsg}</span>
               </div>
+            )}
 
-              <div className="grid grid-cols-2 gap-3">
+            {otpStep === 1 ? (
+              <form onSubmit={handleRequestOtp} className="space-y-3">
                 <div>
-                  <label className="text-xs font-semibold text-slate-400">Crew ID</label>
+                  <label className="text-xs font-semibold text-slate-400">Crew Member Full Name</label>
                   <input
                     type="text"
-                    value={newSub.crew_id}
-                    onChange={(e) => setNewSub({...newSub, crew_id: e.target.value})}
-                    placeholder="CREW-DEL-05"
-                    className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                    required
+                    value={newSub.full_name}
+                    onChange={(e) => setNewSub({...newSub, full_name: e.target.value})}
+                    placeholder="e.g. Rajesh Kumar"
+                    className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"
                   />
                 </div>
-                <div>
-                  <label className="text-xs font-semibold text-slate-400">Language Preference</label>
-                  <select
-                    value={newSub.language_pref}
-                    onChange={(e) => setNewSub({...newSub, language_pref: e.target.value})}
-                    className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
-                  >
-                    <option value="en">English (EN)</option>
-                    <option value="bn">Bengali (বাংলা)</option>
-                    <option value="hi">Hindi (हिंदी)</option>
-                    <option value="hinglish">Hinglish</option>
-                  </select>
-                </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-slate-400">Role</label>
-                  <select
-                    value={newSub.role}
-                    onChange={(e) => setNewSub({...newSub, role: e.target.value})}
-                    className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
-                  >
-                    <option value="Junior Engineer">Junior Engineer</option>
-                    <option value="Gangmate">Gangmate</option>
-                    <option value="Track Maintainer">Track Maintainer</option>
-                    <option value="OHE Lineman">OHE Lineman</option>
-                    <option value="Pit Line Tech">Pit Line Tech</option>
-                    <option value="S&T Maintainer">S&T Maintainer</option>
-                  </select>
+                  <label className="text-xs font-semibold text-slate-400">WhatsApp Phone Number (with Country Code)</label>
+                  <input
+                    type="text"
+                    required
+                    value={newSub.phone_number}
+                    onChange={(e) => setNewSub({...newSub, phone_number: e.target.value})}
+                    placeholder="e.g. +919876543210"
+                    className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-emerald-500"
+                  />
+                  <span className="text-[10px] text-slate-500 mt-0.5 block">A 6-digit WhatsApp OTP verification code will be sent to this number.</span>
                 </div>
-                <div>
-                  <label className="text-xs font-semibold text-slate-400">Department</label>
-                  <select
-                    value={newSub.department}
-                    onChange={(e) => setNewSub({...newSub, department: e.target.value})}
-                    className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
-                  >
-                    <option value="Engineering">Engineering</option>
-                    <option value="Electrical/TRD">Electrical/TRD</option>
-                    <option value="S&T">S&T</option>
-                    <option value="Mechanical">Mechanical</option>
-                  </select>
-                </div>
-              </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3">
-                <button
-                  type="button"
-                  onClick={() => setShowAddSubModal(false)}
-                  className="px-4 py-2 bg-slate-800 text-slate-300 text-xs font-semibold rounded-xl"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-md"
-                >
-                  Register Crew Member
-                </button>
-              </div>
-            </form>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold text-slate-400">Role</label>
+                    <select
+                      value={newSub.role}
+                      onChange={(e) => setNewSub({...newSub, role: e.target.value})}
+                      className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                    >
+                      <option value="Junior Engineer">Junior Engineer</option>
+                      <option value="Gangmate">Gangmate</option>
+                      <option value="Track Maintainer">Track Maintainer</option>
+                      <option value="OHE Lineman">OHE Lineman</option>
+                      <option value="Pit Line Tech">Pit Line Tech</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-slate-400">Department</label>
+                    <select
+                      value={newSub.department}
+                      onChange={(e) => setNewSub({...newSub, department: e.target.value})}
+                      className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                    >
+                      <option value="Engineering">Engineering</option>
+                      <option value="Electrical/TRD">Electrical/TRD</option>
+                      <option value="S&T">S&T</option>
+                      <option value="Mechanical">Mechanical</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowAddSubModal(false);
+                      setOtpErrorMsg(null);
+                    }}
+                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={otpSending}
+                    className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg flex items-center space-x-1.5 cursor-pointer disabled:opacity-50"
+                  >
+                    {otpSending ? (
+                      <>
+                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Sending WhatsApp OTP...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-3.5 h-3.5" />
+                        <span>Send WhatsApp OTP Code</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <form onSubmit={handleVerifyOtp} className="space-y-4">
+                <div className="p-3 bg-emerald-950/80 border border-emerald-600/60 rounded-xl text-xs text-emerald-300 font-semibold space-y-1">
+                  <div className="flex items-center space-x-1.5 text-emerald-400 font-bold">
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>WhatsApp OTP Message Dispatched!</span>
+                  </div>
+                  <div className="text-slate-300 text-[11px] leading-relaxed">
+                    🔐 6-digit WhatsApp OTP code sent to <strong className="text-emerald-300 font-mono">{newSub.phone_number}</strong>. Please check your WhatsApp messages and enter the code below.
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-slate-300 block mb-1">
+                    Enter 6-Digit WhatsApp Verification OTP:
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    maxLength={6}
+                    value={otpCodeInput}
+                    onChange={(e) => setOtpCodeInput(e.target.value)}
+                    placeholder="e.g. 482915"
+                    className="w-full text-center tracking-[0.4em] font-mono text-xl font-bold bg-slate-950 border border-emerald-500/60 rounded-xl px-4 py-3 text-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                  <span className="text-[10px] text-slate-400 mt-1 block text-center">Until this code is verified, the phone number remains unassigned.</span>
+                </div>
+
+                <div className="flex items-center justify-between pt-3 border-t border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOtpStep(1);
+                      setOtpErrorMsg(null);
+                    }}
+                    className="text-xs text-slate-400 hover:text-slate-200 font-medium underline cursor-pointer"
+                  >
+                    &larr; Back to edit details
+                  </button>
+
+                  <div className="flex items-center space-x-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowAddSubModal(false);
+                        setOtpStep(1);
+                        setOtpErrorMsg(null);
+                      }}
+                      className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={otpVerifying || otpCodeInput.length < 6}
+                      className="px-5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold rounded-xl shadow-lg flex items-center space-x-1.5 cursor-pointer disabled:opacity-50"
+                    >
+                      {otpVerifying ? (
+                        <>
+                          <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <span>Verifying OTP...</span>
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 className="w-4 h-4 text-emerald-200" />
+                          <span>Verify OTP & Assign Number</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}
@@ -810,10 +1246,10 @@ export default function WhatsAppDispatcherView() {
               WhatsApp Direct Voice Dispatch
             </div>
 
-            {/* Avatar & Pulse Rings */}
+            {/* Avatar & Static Soft Glow Rings */}
             <div className="relative py-4 flex items-center justify-center">
-              <div className="absolute w-36 h-36 rounded-full bg-emerald-500/10 animate-ping pointer-events-none" />
-              <div className="absolute w-28 h-28 rounded-full bg-emerald-500/20 animate-pulse pointer-events-none" />
+              <div className="absolute w-36 h-36 rounded-full bg-emerald-500/10 pointer-events-none" />
+              <div className="absolute w-28 h-28 rounded-full bg-emerald-500/20 pointer-events-none" />
               <div className="w-24 h-24 rounded-full bg-slate-800 border-2 border-emerald-400/80 flex items-center justify-center text-3xl font-extrabold text-emerald-300 shadow-xl relative z-10">
                 {selectedSubscriber.full_name?.charAt(0) || 'C'}
               </div>

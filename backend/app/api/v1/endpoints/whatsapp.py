@@ -1,3 +1,4 @@
+import random
 import logging
 from typing import Dict, Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
@@ -14,7 +15,23 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+# In-memory store for WhatsApp OTP verifications
+_PENDING_OTPS: Dict[str, Dict[str, Any]] = {}
+
 # ── Pydantic Request Schemas ──────────────────────────────────────────────────
+class OTPRequestSchema(BaseModel):
+    phone_number: str = Field(..., example="+919876543210")
+    full_name: str = Field(..., example="Rajesh Kumar")
+    crew_id: Optional[str] = Field("CREW-DEL-01", example="CREW-DEL-01")
+    role: str = Field("Junior Engineer", example="Junior Engineer")
+    department: str = Field("Engineering", example="Engineering")
+    assigned_gang: Optional[str] = "Gang Alpha"
+    language_pref: str = Field("en", example="en")
+
+class OTPVerifySchema(BaseModel):
+    phone_number: str = Field(..., example="+919876543210")
+    otp_code: str = Field(..., example="482915")
+
 class SubscriberCreateSchema(BaseModel):
     phone_number: str = Field(..., example="+919876543210")
     full_name: str = Field(..., example="Rajesh Kumar")
@@ -238,6 +255,15 @@ def list_subscribers(
     """
     Returns registered field crew subscribers.
     """
+    # Clean up legacy dummy subscribers if present
+    dummy_phones = ["+15556591544", "+919876543210", "+919876543211", "+919876543212"]
+    dummy_crew_ids = ["CREW-TEST-00", "CREW-DEL-01", "CREW-DEL-02", "CREW-DEL-03"]
+    db.query(WhatsAppCrewSubscriber).filter(
+        (WhatsAppCrewSubscriber.phone_number.in_(dummy_phones)) |
+        (WhatsAppCrewSubscriber.crew_id.in_(dummy_crew_ids))
+    ).delete(synchronize_session=False)
+    db.commit()
+
     query = db.query(WhatsAppCrewSubscriber)
     if role:
         query = query.filter(WhatsAppCrewSubscriber.role == role)
@@ -246,68 +272,131 @@ def list_subscribers(
 
     subs = query.order_by(WhatsAppCrewSubscriber.id.asc()).all()
 
-    if not subs:
-        # Seed default subscribers if empty
-        default_subs = [
-            WhatsAppCrewSubscriber(
-                phone_number="+15556591544",
-                full_name="Ankit Karmakar (Test Lead)",
-                crew_id="CREW-TEST-00",
-                role="Junior Engineer",
-                department="Engineering",
-                assigned_gang="Gang Alpha",
-                language_pref="bn"
-            ),
-            WhatsAppCrewSubscriber(
-                phone_number="+919876543210",
-                full_name="Rajesh Kumar (JE)",
-                crew_id="CREW-DEL-01",
-                role="Junior Engineer",
-                department="Engineering",
-                assigned_gang="Gang Alpha",
-                language_pref="en"
-            ),
-            WhatsAppCrewSubscriber(
-                phone_number="+919876543211",
-                full_name="Subhashish Das",
-                crew_id="CREW-DEL-02",
-                role="Gangmate",
-                department="Engineering",
-                assigned_gang="Gang Alpha",
-                language_pref="bn"
-            ),
-            WhatsAppCrewSubscriber(
-                phone_number="+919876543212",
-                full_name="Ramesh Sharma",
-                crew_id="CREW-DEL-03",
-                role="Pit Line Technician",
-                department="Mechanical",
-                assigned_gang="Pit Line Crew 3",
-                language_pref="hi"
-            )
-        ]
-        for s in default_subs:
-            db.add(s)
-        db.commit()
-        subs = default_subs
-
-    # Also check if test number exists, if not add it
-    has_test = any("15556591544" in s.phone_number for s in subs)
-    if not has_test:
-        test_sub = WhatsAppCrewSubscriber(
-            phone_number="+15556591544",
-            full_name="Ankit Karmakar (Test Lead)",
-            crew_id="CREW-TEST-00",
-            role="Junior Engineer",
-            department="Engineering",
-            assigned_gang="Gang Alpha",
-            language_pref="bn"
-        )
-        db.add(test_sub)
-        db.commit()
-        subs.insert(0, test_sub)
-
     return {"count": len(subs), "subscribers": subs}
+
+
+@router.post("/request-otp", summary="Request WhatsApp Phone Number Verification OTP")
+def request_whatsapp_otp(
+    payload: OTPRequestSchema,
+    db: Session = Depends(get_db)
+):
+    """
+    Generates a 6-digit verification OTP and dispatches WhatsApp OTP message to crew member.
+    """
+    clean_phone = payload.phone_number.strip()
+    otp_code = f"{random.randint(100000, 999999)}"
+
+    _PENDING_OTPS[clean_phone] = {
+        "otp_code": otp_code,
+        "payload": payload,
+        "created_at": logger.info(f"Generated OTP {otp_code} for {clean_phone}")
+    }
+
+    # Dispatch simulated/real WhatsApp verification message
+    otp_msg = (
+        f"🔐 *RailOptima Verification Code*\n\n"
+        f"Your WhatsApp Field Crew Assignment OTP is: *{otp_code}*\n\n"
+        f"Hi {payload.full_name}, enter this 6-digit code in the RailOptima Dispatcher to verify and activate your phone number ({clean_phone})."
+    )
+
+    dispatch_res = WhatsAppDispatchService.send_whatsapp_message(
+        phone_number=clean_phone,
+        message_text=otp_msg,
+        db=db,
+        msg_type="otp_verification"
+    )
+
+    if not dispatch_res.get("success", False):
+        resp_data = dispatch_res.get("response", {})
+        err_msg = "Failed to send WhatsApp message via Meta Cloud API."
+        if isinstance(resp_data, dict) and "error" in resp_data:
+            err_details = resp_data["error"]
+            err_msg = f"Meta WhatsApp API Error ({err_details.get('code', '400')}): {err_details.get('message', 'Invalid request')}"
+            if err_details.get("code") == 190:
+                err_msg = "Meta WhatsApp Cloud API Access Token in .env has EXPIRED (OAuthException Code 190). Please generate a fresh Temporary/Permanent Access Token from Meta Developer Portal and update WHATSAPP_API_TOKEN in .env."
+        raise HTTPException(status_code=400, detail=err_msg)
+
+    return {
+        "status": "otp_sent",
+        "phone_number": clean_phone,
+        "message": f"6-Digit OTP Verification code dispatched via WhatsApp to {clean_phone}."
+    }
+
+
+@router.post("/verify-otp", summary="Verify WhatsApp OTP & Complete Phone Number Assignment")
+def verify_whatsapp_otp(
+    payload: OTPVerifySchema,
+    db: Session = Depends(get_db)
+):
+    """
+    Validates 6-digit WhatsApp OTP code before assigning phone number to crew subscriber in database.
+    """
+    clean_phone = payload.phone_number.strip()
+    entered_otp = payload.otp_code.strip()
+
+    pending = _PENDING_OTPS.get(clean_phone)
+    if not pending:
+        raise HTTPException(status_code=400, detail="No pending verification found for this phone number. Please request OTP first.")
+
+    if pending["otp_code"] != entered_otp:
+        raise HTTPException(status_code=400, detail="Invalid OTP code entered. Please check your WhatsApp message and try again.")
+
+    # OTP is valid! Create or update subscriber in DB
+    p_data = pending["payload"]
+    existing = db.query(WhatsAppCrewSubscriber).filter(WhatsAppCrewSubscriber.phone_number == clean_phone).first()
+
+    if existing:
+        existing.full_name = p_data.full_name
+        existing.crew_id = p_data.crew_id or existing.crew_id
+        existing.role = p_data.role
+        existing.department = p_data.department
+        existing.assigned_gang = p_data.assigned_gang or existing.assigned_gang
+        existing.language_pref = p_data.language_pref
+        existing.is_active = True
+        sub_obj = existing
+    else:
+        sub_obj = WhatsAppCrewSubscriber(
+            phone_number=clean_phone,
+            full_name=p_data.full_name,
+            crew_id=p_data.crew_id or f"CREW-DEL-{random.randint(10, 99)}",
+            role=p_data.role,
+            department=p_data.department,
+            section_name="New Delhi - Agra Section",
+            assigned_gang=p_data.assigned_gang or "Gang Alpha",
+            language_pref=p_data.language_pref,
+            is_active=True
+        )
+        db.add(sub_obj)
+
+    db.commit()
+    db.refresh(sub_obj)
+
+    # Clean up pending OTP
+    _PENDING_OTPS.pop(clean_phone, None)
+
+    # Send welcome dispatch message
+    welcome_msg = f"✅ *WhatsApp Number Verified & Assigned*\n\nWelcome {sub_obj.full_name}! Your WhatsApp dispatch channel is now active for {sub_obj.department} ({sub_obj.role})."
+    WhatsAppDispatchService.send_whatsapp_message(
+        phone_number=clean_phone,
+        message_text=welcome_msg,
+        db=db,
+        msg_type="system_welcome"
+    )
+
+    return {
+        "status": "verified",
+        "message": f"WhatsApp Phone Number {clean_phone} successfully verified and assigned to {sub_obj.full_name}!",
+        "subscriber": {
+            "id": sub_obj.id,
+            "phone_number": sub_obj.phone_number,
+            "full_name": sub_obj.full_name,
+            "role": sub_obj.role,
+            "department": sub_obj.department,
+            "assigned_gang": sub_obj.assigned_gang,
+            "language_pref": sub_obj.language_pref,
+            "is_active": sub_obj.is_active
+        }
+    }
 
 
 @router.post("/subscribers", summary="Add or Update Field Crew Subscriber")

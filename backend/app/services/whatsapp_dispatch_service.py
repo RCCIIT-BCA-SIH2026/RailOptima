@@ -232,18 +232,31 @@ class WhatsAppDispatchService:
         or logs simulated dispatch. Always writes to WhatsAppMessageLog in DB.
         """
         success = False
-        api_response = None
+        api_token = settings.WHATSAPP_API_TOKEN
+        phone_number_id = settings.WHATSAPP_PHONE_NUMBER_ID
 
-        if settings.WHATSAPP_API_TOKEN and settings.WHATSAPP_PHONE_NUMBER_ID:
-            url = f"https://graph.facebook.com/v18.0/{settings.WHATSAPP_PHONE_NUMBER_ID}/messages"
+        if not api_token or not phone_number_id or len(api_token) < 20:
+            try:
+                import os
+                from dotenv import dotenv_values
+                from backend.app.core.config import _BASE_DIR
+                env_map = dotenv_values(os.path.join(_BASE_DIR, ".env"))
+                api_token = env_map.get("WHATSAPP_API_TOKEN") or api_token
+                phone_number_id = env_map.get("WHATSAPP_PHONE_NUMBER_ID") or phone_number_id
+            except Exception as ex:
+                logger.warning(f"Failed to read dotenv_values: {ex}")
+
+        if api_token and phone_number_id:
+            clean_to = phone_number.replace("+", "").replace(" ", "").replace("-", "").strip()
+            url = f"https://graph.facebook.com/v18.0/{phone_number_id}/messages"
             headers = {
-                "Authorization": f"Bearer {settings.WHATSAPP_API_TOKEN}",
+                "Authorization": f"Bearer {api_token}",
                 "Content-Type": "application/json"
             }
             body = {
                 "messaging_product": "whatsapp",
                 "recipient_type": "individual",
-                "to": phone_number,
+                "to": clean_to,
                 "type": "text",
                 "text": {"preview_url": False, "body": message_text}
             }
@@ -252,6 +265,8 @@ class WhatsAppDispatchService:
                 api_response = res.json()
                 if res.status_code in [200, 201]:
                     success = True
+                else:
+                    logger.error(f"Meta WhatsApp API Error {res.status_code}: {api_response}")
             except Exception as e:
                 logger.error(f"WhatsApp API HTTP Error: {str(e)}")
                 api_response = {"error": str(e)}

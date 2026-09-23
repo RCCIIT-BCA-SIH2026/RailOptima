@@ -2,6 +2,9 @@ import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import List, Optional
 
+_BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+_DEFAULT_DB_PATH = os.path.join(_BASE_DIR, "data", "railway_planner.db")
+
 class Settings(BaseSettings):
     PROJECT_NAME: str = "AI-Powered Automatic Block Planning System for Indian Railways"
     PROJECT_VERSION: str = "1.0.0"
@@ -15,8 +18,8 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
     
-    # Primary Database (Defaults to SQLite for portable instant runnability)
-    DATABASE_URL: str = "sqlite:///./data/railway_planner.db"
+    # Primary Database (Absolute path so DB resolves identically from root or backend/ CWD)
+    DATABASE_URL: str = f"sqlite:///{_DEFAULT_DB_PATH}"
     
     # MongoDB Atlas Cluster (Loaded strictly from .env)
     MONGODB_USER: str = ""
@@ -74,7 +77,7 @@ class Settings(BaseSettings):
     ]
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=os.path.join(_BASE_DIR, ".env"),
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore"

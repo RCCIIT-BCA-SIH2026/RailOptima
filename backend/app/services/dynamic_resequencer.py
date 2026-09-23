@@ -157,41 +157,6 @@ class DynamicResequencer:
 
         # 4. Fetch subscribers and broadcast WhatsApp re-sequencing alerts
         subscribers = db.query(WhatsAppCrewSubscriber).filter(WhatsAppCrewSubscriber.is_active == True).all()
-        if not subscribers:
-            # Seed default ground crew subscribers for demo
-            default_subs = [
-                WhatsAppCrewSubscriber(
-                    phone_number="+919876543210",
-                    full_name="Rajesh Kumar (JE)",
-                    crew_id="CREW-DEL-01",
-                    role="Junior Engineer",
-                    department="Engineering",
-                    assigned_gang="Gang Alpha",
-                    language_pref="en"
-                ),
-                WhatsAppCrewSubscriber(
-                    phone_number="+919876543211",
-                    full_name="Subhashish Das",
-                    crew_id="CREW-DEL-02",
-                    role="Gangmate",
-                    department="Engineering",
-                    assigned_gang="Gang Alpha",
-                    language_pref="bn"
-                ),
-                WhatsAppCrewSubscriber(
-                    phone_number="+919876543212",
-                    full_name="Ramesh Sharma",
-                    crew_id="CREW-DEL-03",
-                    role="Pit Line Technician",
-                    department="Mechanical",
-                    assigned_gang="Pit Line Crew 3",
-                    language_pref="hi"
-                )
-            ]
-            for s in default_subs:
-                db.add(s)
-            db.commit()
-            subscribers = default_subs
 
         dispatches = []
         new_eta_formatted = revised_eta.strftime("%H:%M")
