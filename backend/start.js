@@ -15,14 +15,22 @@ if (fs.existsSync(venvPythonMac)) {
   pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
 }
 
+const host = process.env.HOST || '0.0.0.0';
+const port = process.env.PORT || '8000';
 const env = { ...process.env, PYTHONPATH: rootDir };
 
 console.log(`\n=================================================================`);
-console.log(`🚀 Starting RailOptima FastAPI Backend (http://127.0.0.1:8000)...`);
+console.log(`🚀 Starting RailOptima FastAPI Backend (${host}:${port})...`);
 console.log(`Executable: ${pythonCmd}`);
 console.log(`=================================================================\n`);
 
-const child = spawn(pythonCmd, ['-m', 'uvicorn', 'app.main:app', '--host', '127.0.0.1', '--port', '8000', '--reload'], {
+const uvicornArgs = ['-m', 'uvicorn', 'app.main:app', '--host', host, '--port', String(port)];
+
+if (process.env.NODE_ENV !== 'production' && !process.env.RENDER) {
+  uvicornArgs.push('--reload');
+}
+
+const child = spawn(pythonCmd, uvicornArgs, {
   cwd: __dirname,
   env: env,
   stdio: 'inherit'
