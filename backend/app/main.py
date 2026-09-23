@@ -1,3 +1,15 @@
+import sys
+import os
+
+# Dynamically resolve root and backend directory paths to ensure imports succeed in all deployment environments
+_file_dir = os.path.dirname(os.path.abspath(__file__))
+_backend_dir = os.path.dirname(_file_dir)
+_root_dir = os.path.dirname(_backend_dir)
+
+for _p in [_root_dir, _backend_dir, _file_dir]:
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
