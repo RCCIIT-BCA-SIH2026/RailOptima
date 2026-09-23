@@ -7,6 +7,7 @@ from backend.app.models.train import Train, TrainSchedule, TrainDelay
 from backend.app.models.block import BlockPlan, Block, BlockTask, Conflict, Approval, AIRecommendation
 from backend.app.models.resource import Resource, ResourceAssignment
 from backend.app.models.operations import Alert, WhatIfScenario, IntegrationLog
+from backend.app.models.whatsapp import WhatsAppCrewSubscriber, WhatsAppMessageLog
 
 __all__ = [
     "Base",
@@ -43,5 +44,9 @@ __all__ = [
     "Alert",
     "WhatIfScenario",
     "IntegrationLog",
+    # WhatsApp Dispatcher
+    "WhatsAppCrewSubscriber",
+    "WhatsAppMessageLog",
 ]
+
 

@@ -28,7 +28,8 @@ import {
   Cpu,
   History,
   Network,
-  CalendarDays
+  CalendarDays,
+  MessageSquare
 } from 'lucide-react';
 import apiClient from '../api/client';
 import { USER_ROLES, isRouteAllowed } from '../constants/roles';
@@ -153,6 +154,7 @@ export default function TopNavbar({ activeUser, setActiveUser }) {
       primaryPath: '/dashboard',
       items: [
         { path: "/dashboard", label: "Executive Dashboard", description: "Real-time network KPIs & health", icon: Activity },
+        { path: "/whatsapp-dispatcher", label: "WhatsApp Field Dispatcher", description: "2-Way ground crew dispatch & re-sequencer", icon: MessageSquare, badge: "WhatsApp" },
         { path: "/trains", label: "Train Timetable & Tracking", description: "Live train positions & ETA delay", icon: Train },
         { path: "/maintenance", label: "Maintenance Tasks", description: "Civil, TRD & S&T work orders", icon: Wrench },
         { path: "/defects", label: "Defects & USFD Backlog", description: "Track flaws & speed restrictions", icon: ShieldAlert, badge: "P0/P1" },
@@ -205,6 +207,7 @@ export default function TopNavbar({ activeUser, setActiveUser }) {
   // Quick Direct Pill Links
   const QUICK_PILLS = [
     { path: "/dashboard", label: "Dashboard", icon: Activity },
+    { path: "/whatsapp-dispatcher", label: "WhatsApp Crew", icon: MessageSquare, badge: "WA" },
     { path: "/optimization-studio", label: "Optimizer", icon: Sparkles, isAi: true },
     { path: "/department-coordination", label: "Shadow Blocks", icon: Scale },
     { path: "/corridor-map", label: "GIS Map", icon: MapPin },

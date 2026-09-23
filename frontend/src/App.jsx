@@ -28,6 +28,7 @@ import CorridorMapView from './views/CorridorMapView';
 import IntegrationsHubView from './views/IntegrationsHubView';
 import AuditLogsView from './views/AuditLogsView';
 import WeeklyMonthlyPlannerView from './views/WeeklyMonthlyPlannerView';
+import WhatsAppDispatcherView from './views/WhatsAppDispatcherView';
 
 function OptimizationStudioRouteWrapper() {
   const navigate = useNavigate();
@@ -63,6 +64,7 @@ export default function App() {
           
           {/* Operations & Core Routes */}
           <Route path="/dashboard" element={<RouteGuard path="/dashboard" activeUser={activeUser}><DashboardView /></RouteGuard>} />
+          <Route path="/whatsapp-dispatcher" element={<RouteGuard path="/whatsapp-dispatcher" activeUser={activeUser}><WhatsAppDispatcherView /></RouteGuard>} />
           <Route path="/maintenance" element={<RouteGuard path="/maintenance" activeUser={activeUser}><MaintenanceView /></RouteGuard>} />
           <Route path="/defects" element={<RouteGuard path="/defects" activeUser={activeUser}><DefectsView /></RouteGuard>} />
           <Route path="/assets" element={<RouteGuard path="/assets" activeUser={activeUser}><AssetsView /></RouteGuard>} />

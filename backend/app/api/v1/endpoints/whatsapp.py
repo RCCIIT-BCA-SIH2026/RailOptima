@@ -1,0 +1,340 @@
+import logging
+from typing import Dict, Any, List, Optional
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
+from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
+
+from backend.app.core.config import settings
+from backend.app.core.database import get_db
+from backend.app.models.whatsapp import WhatsAppCrewSubscriber, WhatsAppMessageLog
+from backend.app.services.whatsapp_dispatch_service import WhatsAppDispatchService
+from backend.app.services.dynamic_resequencer import DynamicResequencer
+
+logger = logging.getLogger(__name__)
+
+router = APIRouter()
+
+# ── Pydantic Request Schemas ──────────────────────────────────────────────────
+class SubscriberCreateSchema(BaseModel):
+    phone_number: str = Field(..., example="+919876543210")
+    full_name: str = Field(..., example="Rajesh Kumar")
+    crew_id: str = Field(..., example="CREW-DEL-01")
+    role: str = Field("Junior Engineer", example="Junior Engineer")
+    department: str = Field("Engineering", example="Engineering")
+    section_name: Optional[str] = "New Delhi - Agra Section"
+    assigned_gang: Optional[str] = "Gang Alpha"
+    language_pref: str = Field("en", example="en") # en, hi, bn, hinglish
+
+class InboundSimulateSchema(BaseModel):
+    phone_number: str = Field(..., example="+919876543210")
+    message_body: str = Field(..., example="1")
+
+class ResequenceTriggerSchema(BaseModel):
+    delayed_train_number: str = Field("12002", example="12002")
+    delay_minutes: int = Field(75, example=75)
+    target_pit_line: str = Field("Pit Line 3", example="Pit Line 3")
+    section_name: str = Field("New Delhi Yard", example="New Delhi Yard")
+
+class BroadcastAlertSchema(BaseModel):
+    phone_number: Optional[str] = None # None means broadcast to all active crew
+    alert_type: str = Field("work_order", example="resequence_alert") # resequence_alert, work_order, countdown_warning
+    train_a_name: Optional[str] = "Shatabdi Express (12002)"
+    delay_mins: Optional[int] = 75
+    new_eta: Optional[str] = "15:15"
+    train_b_name: Optional[str] = "Duronto Express (12290)"
+    location: Optional[str] = "Pit Line 3"
+    start_time: Optional[str] = "14:15"
+    end_time: Optional[str] = "15:15"
+    duration_mins: Optional[int] = 60
+    task_scope: Optional[str] = "Track Possession & Rail Fastening Inspection"
+    block_code: Optional[str] = "BLK-NCR-2026-0042"
+    gang_name: Optional[str] = "Gang Alpha"
+
+# ── Endpoints ─────────────────────────────────────────────────────────────────
+
+@router.get("/webhook", summary="Meta WhatsApp Cloud API Webhook Verification")
+def verify_whatsapp_webhook(
+    request: Request
+):
+    """
+    Verification GET endpoint required by Meta WhatsApp Cloud API hub verification.
+    """
+    params = request.query_params
+    mode = params.get("hub.mode")
+    token = params.get("hub.verify_token")
+    challenge = params.get("hub.challenge")
+
+    if mode and token:
+        if mode == "subscribe" and token == settings.WHATSAPP_VERIFY_TOKEN:
+            logger.info("WhatsApp webhook verified successfully!")
+            return Response(content=challenge, media_type="text/plain")
+        else:
+            raise HTTPException(status_code=403, detail="Verification token mismatch")
+    return {"status": "RailOptima WhatsApp Webhook Service Active"}
+
+
+@router.post("/webhook", summary="Meta WhatsApp Cloud API Inbound Webhook Receiver")
+async def receive_whatsapp_webhook(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """
+    POST webhook receiver for incoming messages from WhatsApp Cloud API.
+    """
+    body = await request.json()
+    logger.info(f"Received WhatsApp Webhook Payload: {body}")
+
+    results = []
+    try:
+        entries = body.get("entry", [])
+        for entry in entries:
+            changes = entry.get("changes", [])
+            for change in changes:
+                value = change.get("value", {})
+                messages = value.get("messages", [])
+                for msg in messages:
+                    sender = msg.get("from", "")
+                    if sender and not sender.startswith("+"):
+                        sender = f"+{sender}"
+                    
+                    msg_text = ""
+                    if msg.get("type") == "text":
+                        msg_text = msg.get("text", {}).get("body", "")
+                    elif msg.get("type") == "button":
+                        msg_text = msg.get("button", {}).get("text", "")
+                    elif msg.get("type") == "interactive":
+                        msg_text = msg.get("interactive", {}).get("button_reply", {}).get("title", "")
+
+                    if sender and msg_text:
+                        res = WhatsAppDispatchService.process_inbound_message(
+                            db=db,
+                            phone_number=sender,
+                            message_body=msg_text,
+                            raw_payload=msg
+                        )
+                        results.append(res)
+    except Exception as e:
+        logger.error(f"Error handling WhatsApp webhook payload: {str(e)}")
+
+    return {"status": "ok", "processed_messages": results}
+
+
+@router.post("/simulate-inbound", summary="Simulate Inbound Crew Reply via WhatsApp")
+def simulate_inbound_message(
+    payload: InboundSimulateSchema,
+    db: Session = Depends(get_db)
+):
+    """
+    Test endpoint to simulate ground crew replying via WhatsApp text/voice.
+    Evaluates intention, executes tool action, updates DB, and returns outbound reply.
+    """
+    res = WhatsAppDispatchService.process_inbound_message(
+        db=db,
+        phone_number=payload.phone_number,
+        message_body=payload.message_body
+    )
+    return res
+
+
+@router.post("/trigger-resequence", summary="Trigger Dynamic Train Re-Sequencer Event")
+def trigger_dynamic_resequence(
+    payload: ResequenceTriggerSchema,
+    db: Session = Depends(get_db)
+):
+    """
+    Simulates a live telemetry train delay event (Train A delayed by threshold).
+    Executes CP-SAT schedule swap (Train B promoted to active window, Train A deferred),
+    updates DB, and dispatches multilingual WhatsApp alerts to assigned crew subscribers.
+    """
+    res = DynamicResequencer.process_delay_and_resequence(
+        db=db,
+        delayed_train_number=payload.delayed_train_number,
+        delay_minutes=payload.delay_minutes,
+        target_pit_line=payload.target_pit_line,
+        section_name=payload.section_name
+    )
+    return res
+
+
+@router.post("/broadcast-alert", summary="Broadcast WhatsApp Work Order / Alert")
+def broadcast_whatsapp_alert(
+    payload: BroadcastAlertSchema,
+    db: Session = Depends(get_db)
+):
+    """
+    Broadcasts custom work order or countdown warning to specific crew member or all active crew.
+    """
+    if payload.phone_number:
+        subscribers = db.query(WhatsAppCrewSubscriber).filter(WhatsAppCrewSubscriber.phone_number == payload.phone_number).all()
+    else:
+        subscribers = db.query(WhatsAppCrewSubscriber).filter(WhatsAppCrewSubscriber.is_active == True).all()
+
+    if not subscribers:
+        raise HTTPException(status_code=404, detail="No active WhatsApp subscribers found")
+
+    results = []
+    for sub in subscribers:
+        lang = sub.language_pref or "en"
+        if payload.alert_type == "resequence_alert":
+            msg_text = WhatsAppDispatchService.render_resequence_alert(
+                train_a_name=payload.train_a_name or "Shatabdi Express (12002)",
+                delay_mins=payload.delay_mins or 75,
+                new_eta=payload.new_eta or "15:15",
+                train_b_name=payload.train_b_name or "Duronto Express (12290)",
+                location=payload.location or "Pit Line 3",
+                start_time=payload.start_time or "14:15",
+                end_time=payload.end_time or "15:15",
+                duration_mins=payload.duration_mins or 60,
+                task_scope=payload.task_scope or "Pit Line Servicing & Safety Fit Check",
+                lang=lang
+            )
+        elif payload.alert_type == "countdown_warning":
+            msg_text = WhatsAppDispatchService.render_countdown_warning(
+                location=payload.location or "KM 824/12",
+                next_train=payload.train_a_name or "12002 Shatabdi",
+                next_train_eta=payload.new_eta or "15:15",
+                close_time=payload.end_time or "15:00",
+                lang=lang
+            )
+        else: # Normal Work Order
+            msg_text = WhatsAppDispatchService.render_work_order(
+                block_code=payload.block_code or "BLK-NCR-2026-0042",
+                line_train=payload.train_b_name or "Up Main Line KM 824",
+                location=payload.location or "Agra Section",
+                start_time=payload.start_time or "14:15",
+                end_time=payload.end_time or "15:15",
+                duration_mins=payload.duration_mins or 60,
+                task_details=payload.task_scope or "USFD Ultrasonic Flaw Detection & Weld Grind",
+                gang_name=payload.gang_name or sub.assigned_gang or "Gang Alpha",
+                lang=lang
+            )
+
+        dispatch_res = WhatsAppDispatchService.send_whatsapp_message(
+            phone_number=sub.phone_number,
+            message_text=msg_text,
+            db=db,
+            msg_type=payload.alert_type
+        )
+        results.append({
+            "phone_number": sub.phone_number,
+            "crew_name": sub.full_name,
+            "role": sub.role,
+            "dispatch_res": dispatch_res
+        })
+
+    return {
+        "status": "broadcast_complete",
+        "recipients_count": len(results),
+        "dispatches": results
+    }
+
+
+@router.get("/subscribers", summary="List WhatsApp Field Crew Subscribers")
+def list_subscribers(
+    role: Optional[str] = None,
+    lang: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    """
+    Returns registered field crew subscribers.
+    """
+    query = db.query(WhatsAppCrewSubscriber)
+    if role:
+        query = query.filter(WhatsAppCrewSubscriber.role == role)
+    if lang:
+        query = query.filter(WhatsAppCrewSubscriber.language_pref == lang)
+
+    subs = query.order_by(WhatsAppCrewSubscriber.id.asc()).all()
+
+    if not subs:
+        # Seed default subscribers if empty
+        default_subs = [
+            WhatsAppCrewSubscriber(
+                phone_number="+919876543210",
+                full_name="Rajesh Kumar (JE)",
+                crew_id="CREW-DEL-01",
+                role="Junior Engineer",
+                department="Engineering",
+                assigned_gang="Gang Alpha",
+                language_pref="en"
+            ),
+            WhatsAppCrewSubscriber(
+                phone_number="+919876543211",
+                full_name="Subhashish Das",
+                crew_id="CREW-DEL-02",
+                role="Gangmate",
+                department="Engineering",
+                assigned_gang="Gang Alpha",
+                language_pref="bn"
+            ),
+            WhatsAppCrewSubscriber(
+                phone_number="+919876543212",
+                full_name="Ramesh Sharma",
+                crew_id="CREW-DEL-03",
+                role="Pit Line Technician",
+                department="Mechanical",
+                assigned_gang="Pit Line Crew 3",
+                language_pref="hi"
+            )
+        ]
+        for s in default_subs:
+            db.add(s)
+        db.commit()
+        subs = default_subs
+
+    return {"count": len(subs), "subscribers": subs}
+
+
+@router.post("/subscribers", summary="Add or Update Field Crew Subscriber")
+def add_subscriber(
+    payload: SubscriberCreateSchema,
+    db: Session = Depends(get_db)
+):
+    """
+    Registers a new field maintenance worker for WhatsApp dispatching.
+    """
+    existing = db.query(WhatsAppCrewSubscriber).filter(WhatsAppCrewSubscriber.phone_number == payload.phone_number).first()
+    if existing:
+        existing.full_name = payload.full_name
+        existing.crew_id = payload.crew_id
+        existing.role = payload.role
+        existing.department = payload.department
+        existing.section_name = payload.section_name or existing.section_name
+        existing.assigned_gang = payload.assigned_gang or existing.assigned_gang
+        existing.language_pref = payload.language_pref
+        existing.is_active = True
+        db.commit()
+        db.refresh(existing)
+        return {"status": "updated", "subscriber": existing}
+
+    new_sub = WhatsAppCrewSubscriber(
+        phone_number=payload.phone_number,
+        full_name=payload.full_name,
+        crew_id=payload.crew_id,
+        role=payload.role,
+        department=payload.department,
+        section_name=payload.section_name or "New Delhi - Agra Section",
+        assigned_gang=payload.assigned_gang or "Gang Alpha",
+        language_pref=payload.language_pref,
+        is_active=True
+    )
+    db.add(new_sub)
+    db.commit()
+    db.refresh(new_sub)
+    return {"status": "created", "subscriber": new_sub}
+
+
+@router.get("/logs", summary="Fetch WhatsApp Dispatch & Interaction Logs")
+def get_message_logs(
+    phone_number: Optional[str] = None,
+    limit: int = 50,
+    db: Session = Depends(get_db)
+):
+    """
+    Returns history of inbound & outbound WhatsApp messages.
+    """
+    query = db.query(WhatsAppMessageLog)
+    if phone_number:
+        query = query.filter(WhatsAppMessageLog.phone_number == phone_number)
+    logs = query.order_by(WhatsAppMessageLog.created_at.desc()).limit(limit).all()
+    return {"count": len(logs), "logs": logs}

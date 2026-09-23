@@ -55,6 +55,11 @@ class Settings(BaseSettings):
     GEMINI_API_KEYS: List[str] = []
     PINECONE_API_KEYS: List[str] = []
     
+    # WhatsApp Ground Crew Dispatcher API Settings
+    WHATSAPP_API_TOKEN: str = ""
+    WHATSAPP_PHONE_NUMBER_ID: str = ""
+    WHATSAPP_VERIFY_TOKEN: str = "railoptima_whatsapp_verify_token_2026"
+    
     # CORS Origins
     BACKEND_CORS_ORIGINS: List[str] = [
         "http://localhost:3000",

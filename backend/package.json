@@ -1,0 +1,17 @@
+{
+  "name": "railoptima-backend",
+  "version": "1.0.0",
+  "description": "RailOptima FastAPI Backend Service",
+  "main": "start.js",
+  "scripts": {
+    "start": "uvicorn backend.app.main:app --host 0.0.0.0 --port ${PORT:-8000}",
+    "dev": "node start.js"
+  },
+  "keywords": [
+    "railoptima",
+    "backend",
+    "fastapi"
+  ],
+  "author": "",
+  "license": "ISC"
+}

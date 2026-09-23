@@ -5,7 +5,7 @@ from backend.app.core.config import settings
 from backend.app.core.database import Base, engine
 from backend.app.api.v1.api import api_router
 from backend.app.api.v1.endpoints import auth, integrations, ai_priority, conflicts, blocks
-from backend.app.api.v1.endpoints import asset_prognostics, sla
+from backend.app.api.v1.endpoints import asset_prognostics, sla, whatsapp
 
 # Ensure tables exist
 Base.metadata.create_all(bind=engine)
@@ -35,6 +35,8 @@ app.include_router(ai_priority.router, prefix="/api/ai", tags=["AI Maintenance P
 app.include_router(conflicts.router, prefix="/api/conflicts", tags=["Conflict Detection & Resolution"])
 app.include_router(conflicts.coordination_router, prefix="/api/coordination", tags=["Multi-Department Coordination"])
 app.include_router(blocks.router, prefix="/api/blocks", tags=["Block Plans & Schedules"])
+app.include_router(whatsapp.router, prefix="/api/whatsapp", tags=["WhatsApp Field Crew Dispatcher & Dynamic Re-Sequencer"])
+
 
 # ── New: Asset Prognostics DNN (BlockFlow-inspired) ─────────────────────────
 app.include_router(
