@@ -1,7 +1,7 @@
 import random
 import logging
 from typing import Dict, Any, List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, BackgroundTasks
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
@@ -93,6 +93,7 @@ def verify_whatsapp_webhook(
 @router.post("/webhook", summary="Meta WhatsApp Cloud API Inbound Webhook Receiver")
 async def receive_whatsapp_webhook(
     request: Request,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ):
     """
@@ -101,7 +102,6 @@ async def receive_whatsapp_webhook(
     body = await request.json()
     logger.info(f"Received WhatsApp Webhook Payload: {body}")
 
-    results = []
     try:
         entries = body.get("entry", [])
         for entry in entries:
@@ -123,17 +123,19 @@ async def receive_whatsapp_webhook(
                         msg_text = msg.get("interactive", {}).get("button_reply", {}).get("title", "")
 
                     if sender and msg_text:
-                        res = WhatsAppDispatchService.process_inbound_message(
+                        # Process inbound message in background to avoid Meta 3-second timeout!
+                        background_tasks.add_task(
+                            WhatsAppDispatchService.process_inbound_message,
                             db=db,
                             phone_number=sender,
                             message_body=msg_text,
                             raw_payload=msg
                         )
-                        results.append(res)
     except Exception as e:
         logger.error(f"Error handling WhatsApp webhook payload: {str(e)}")
 
-    return {"status": "ok", "processed_messages": results}
+    # ALWAYS return 200 OK immediately so Meta gives double tick and opens 24h window
+    return {"status": "ok"}
 
 
 @router.post("/simulate-inbound", summary="Simulate Inbound Crew Reply via WhatsApp")
