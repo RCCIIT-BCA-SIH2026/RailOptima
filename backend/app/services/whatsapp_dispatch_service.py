@@ -11,8 +11,26 @@ from backend.app.models.block import Block, BlockTask
 from backend.app.models.train import Train, TrainSchedule, TrainDelay
 from backend.app.models.defect import Defect
 from backend.app.models.user import User
+from backend.app.core.ml_client import ml_client
 
 logger = logging.getLogger(__name__)
+
+
+def _run_rag_sync(message: str) -> str:
+    """
+    Calls rag_agent_service.chat() synchronously and returns the plain response string.
+    Falls back to an empty string if the service is unavailable.
+    """
+    try:
+        # Lazy import to avoid circular deps at module load time
+        from backend.app.services.rag_agent_service import rag_agent_service  # noqa
+        result = rag_agent_service.chat(user_message=message)
+        if isinstance(result, dict):
+            return result.get("response", result.get("answer", ""))
+        return str(result)
+    except Exception as exc:
+        logger.warning(f"RAG agent call failed in WhatsApp dispatcher: {exc}")
+        return ""
 
 class WhatsAppDispatchService:
     """
@@ -299,6 +317,73 @@ class WhatsAppDispatchService:
             "message_text": message_text
         }
 
+    # ── Real Voice Call Dispatch (Twilio / Cellular Telephony Integration) ─────
+    @classmethod
+    def trigger_real_voice_call(
+        cls,
+        phone_number: str,
+        db: Optional[Session] = None
+    ) -> Dict[str, Any]:
+        """
+        Triggers an outbound voice call to the user's mobile phone via Twilio Voice API
+        or logs real phone call dispatch.
+        """
+        import os
+        clean_to = phone_number.strip().replace(" ", "").replace("-", "")
+        if clean_to.isdigit() and len(clean_to) == 10:
+            clean_to = f"+91{clean_to}"
+        elif not clean_to.startswith("+") and len(clean_to) >= 10:
+            clean_to = f"+{clean_to}"
+
+        twilio_sid = os.getenv("TWILIO_ACCOUNT_SID")
+        twilio_auth = os.getenv("TWILIO_AUTH_TOKEN")
+        twilio_from = os.getenv("TWILIO_PHONE_NUMBER")
+
+        call_status = "dispatched"
+        call_id = f"CALL-{int(datetime.utcnow().timestamp())}"
+        api_res = {}
+
+        if twilio_sid and twilio_auth and twilio_from:
+            try:
+                tw_url = f"https://api.twilio.com/2010-04-01/Accounts/{twilio_sid}/Calls.json"
+                tw_data = {
+                    "To": clean_to,
+                    "From": twilio_from,
+                    "Twiml": f"<Response><Say voice='alice'>RailOptima Field Dispatcher: Operational voice call for {clean_to}. Track possession is active.</Say></Response>"
+                }
+                res = httpx.post(tw_url, auth=(twilio_sid, twilio_auth), data=tw_data, timeout=8.0)
+                api_res = res.json()
+                if res.status_code in [200, 201]:
+                    call_id = api_res.get("sid", call_id)
+                    call_status = "ringing"
+                else:
+                    logger.error(f"Twilio Voice Call Error: {api_res}")
+            except Exception as ex:
+                logger.error(f"Twilio Voice Exception: {str(ex)}")
+
+        if db:
+            try:
+                log_entry = WhatsAppMessageLog(
+                    message_id=call_id,
+                    phone_number=clean_to,
+                    direction="outbound",
+                    message_type="voice_call",
+                    content=f"📞 *INCOMING VOICE DISPATCH CALL*\nTriggered real phone call dispatch to {clean_to}.",
+                    delivery_status=call_status,
+                    payload={"call_id": call_id, "recipient": clean_to, "twilio": api_res}
+                )
+                db.add(log_entry)
+                db.commit()
+            except Exception as ex:
+                logger.error(f"Failed to record call log: {str(ex)}")
+
+        return {
+            "status": "call_triggered",
+            "phone_number": clean_to,
+            "call_id": call_id,
+            "message": f"Real voice call dispatch triggered to {clean_to}!"
+        }
+
     # ── Inbound Message Handling & Structured Tool Execution ──────────────────
     @classmethod
     def process_inbound_message(
@@ -531,63 +616,87 @@ class WhatsAppDispatchService:
                     f"Connecting live operational voice channel with ground maintainer {sub.full_name} ({phone_number})."
                 )
 
-        # 6. Natural Language / Defect Report or Default Assistant Response
+        # 6. Natural Language / Defect Report — routed through Live RAG + ML Engine
         else:
             intent = "CONVERSATIONAL_QUERY"
-            if "DEFECT" in text_upper or "USFD" in text_upper or "CRACK" in text_upper or "FRACTURE" in text_upper or "ফাটল" in text or "दरार" in text:
-                tool_executed = "REPORT_EXTRA_DEFECT"
-                tool_params = {"location": "KM 824/12", "defect_type": "Rail Fracture", "severity": "P1"}
-                
-                # Log a defect in DB
+            defect_keywords = (
+                "DEFECT" in text_upper or "USFD" in text_upper or "CRACK" in text_upper
+                or "FRACTURE" in text_upper or "FRACTURE" in text_upper
+                or "ফাটল" in text or "दरार" in text or "RAIL FLAW" in text_upper
+                or "BREAK" in text_upper or "FAULT" in text_upper
+            )
+
+            if defect_keywords:
+                tool_executed = "REPORT_DEFECT_VIA_RAG"
+                # Parse location from message if present, else use last active block section
+                location_km = "KM 824/12"
+                if active_block and active_block.block_code:
+                    location_km = active_block.block_code
+
+                # Log the defect into DB from field report
                 new_defect = Defect(
-                    defect_code=f"DEF-WA-{int(datetime.utcnow().timestamp()) % 10000}",
+                    defect_code=f"DEF-WA-{int(datetime.utcnow().timestamp()) % 100000}",
                     asset_id=1,
-                    location_km="KM 824/12",
-                    defect_type="Rail Flaw / Crack",
+                    location_km=location_km,
+                    defect_type="Rail Flaw / Crack (WhatsApp Field Report)",
                     severity="P1",
                     status="Open",
-                    description=f"Reported via WhatsApp by {sub.full_name}: {text}"
+                    description=f"Reported via WhatsApp by {sub.full_name} ({phone_number}): {text}"
                 )
                 db.add(new_defect)
                 db.commit()
+                tool_params = {"defect_code": new_defect.defect_code, "location": location_km, "severity": "P1"}
 
-                if lang == "bn":
-                    reply_text = f"🚨 *ক্রুটি সফলভাবে নথিবদ্ধ করা হয়েছে!*\nকোড: {new_defect.defect_code}\nজরুরী পি-১ অগ্রাধিকার হিসেবে ইঞ্জিনিয়ারিং সেকশনকে পাঠানো হয়েছে।"
-                elif lang == "hi":
-                    reply_text = f"🚨 *खामी/डिफेक्ट दर्ज कर लिया गया है!*\nकोड: {new_defect.defect_code}\nP1 प्राथमिकता के रूप में पीडब्लूआई को सूचित किया गया।"
+                # Build a structured RAG query about the reported defect
+                rag_query = (
+                    f"A field crew member has reported a possible rail defect via WhatsApp. "
+                    f"Message: '{text}'. Defect logged as {new_defect.defect_code} at {location_km} with P1 severity. "
+                    f"What immediate safety actions, speed restrictions, and block procedures should be followed per Indian Railways SOP?"
+                )
+                rag_reply = _run_rag_sync(rag_query)
+
+                if rag_reply:
+                    reply_text = (
+                        f"🚨 DEFECT LOGGED: {new_defect.defect_code}\n"
+                        f"━━━━━━━━━━━━━━━━━━\n"
+                        f"{rag_reply.strip()}\n"
+                        f"━━━━━━━━━━━━━━━━━━\n"
+                        f"Reply DONE when area is secured."
+                    )
                 else:
-                    reply_text = f"🚨 *DEFECT LOGGED IN RAILOPTIMA*\nCode: {new_defect.defect_code}\nPriority P1 dispatch sent to Senior Section Engineer."
+                    # Graceful fallback if RAG service is unavailable
+                    reply_text = (
+                        f"🚨 DEFECT LOGGED: {new_defect.defect_code}\n"
+                        f"━━━━━━━━━━━━━━━━━━\n"
+                        f"P1 Priority dispatch sent to Senior Section Engineer.\n"
+                        f"Impose 30 km/h TSR immediately. Do not allow train movement until USFD/visual inspection is cleared."
+                    )
             else:
-                tool_executed = "ASSISTANT_REPLY"
-                if lang == "bn":
+                # General conversational query — route through RAG agent with full tool access
+                tool_executed = "RAG_AGENT_QUERY"
+                tool_params = {"query": text, "session": f"wa-{phone_number}"}
+
+                rag_reply = _run_rag_sync(text)
+
+                if rag_reply and len(rag_reply.strip()) > 20:
                     reply_text = (
-                        f"🤖 *রেলঅপ্টিমা ফিল্ড ডিসপ্যাচার*\n"
-                        f"আপনার বার্তা: \"{text}\"\n"
-                        f"কমান্ড মেনু:\n"
-                        f"• *1* বা *ACK* - নির্দেশ স্বীকাৰ করতে\n"
-                        f"• *START* - পজেশন নিতে\n"
-                        f"• *DONE* - কাজ সম্পন্ন করতে\n"
-                        f"• *STATUS* - ট্রেন ইটিএ দেখতে"
-                    )
-                elif lang == "hi":
-                    reply_text = (
-                        f"🤖 *रेलऑप्टिमा फील्ड डिस्पैचर*\n"
-                        f"आपका संदेश: \"{text}\"\n"
-                        f"कमांड:\n"
-                        f"• *1* - स्वीकारें\n"
-                        f"• *START* - पज़ेशन लें\n"
-                        f"• *DONE* - कार्य समाप्त\n"
-                        f"• *STATUS* - लाइव स्थिति"
+                        f"🤖 RailOptima Field AI\n"
+                        f"━━━━━━━━━━━━━━━━━━\n"
+                        f"{rag_reply.strip()}"
                     )
                 else:
+                    # Fallback command menu if RAG returns empty / too short
                     reply_text = (
-                        f"🤖 *RailOptima Field Dispatcher*\n"
-                        f"Received: \"{text}\"\n"
-                        f"Quick Replies:\n"
-                        f"• *1* or *ACK* to accept work order\n"
-                        f"• *START* when track possessed\n"
-                        f"• *DONE* when line certified fit\n"
-                        f"• *STATUS* for ETA updates"
+                        f"🤖 RailOptima Field Dispatcher\n"
+                        f"━━━━━━━━━━━━━━━━━━\n"
+                        f"Quick Commands:\n"
+                        f"  1 / ACK  — Accept work order\n"
+                        f"  START    — Take track possession\n"
+                        f"  DONE     — Certify line fit\n"
+                        f"  STATUS   — Live train ETA\n"
+                        f"  DELAY    — Request +15 min extension\n"
+                        f"  DEFECT   — Report rail defect\n"
+                        f"Or ask any Indian Railways operations question."
                     )
 
         # Save inbound log

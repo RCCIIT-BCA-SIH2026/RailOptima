@@ -48,10 +48,28 @@ export default function WhatsAppDispatcherView() {
   });
   const [showAddSubModal, setShowAddSubModal] = useState(false);
   const [showCallModal, setShowCallModal] = useState(false);
+  const [callState, setCallState] = useState('ringing'); // 'ringing' or 'connected'
   const [callDuration, setCallDuration] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [isSpeaker, setIsSpeaker] = useState(true);
   const [callStatus, setCallStatus] = useState('Connecting...');
+
+  const formatMsgTime = (dateStr) => {
+    if (!dateStr) return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+    try {
+      let str = String(dateStr);
+      if (!str.endsWith('Z') && !str.includes('+')) {
+        str = str.replace(' ', 'T') + 'Z';
+      }
+      const d = new Date(str);
+      if (isNaN(d.getTime())) {
+        return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+      }
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+    } catch (e) {
+      return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+    }
+  };
 
   // OTP Verification States
   const [otpStep, setOtpStep] = useState(1); // 1 = input phone & crew details, 2 = verify 6-digit OTP
@@ -130,6 +148,15 @@ export default function WhatsAppDispatcherView() {
     }
   };
 
+  const handleDeleteSingleLog = async (logId) => {
+    try {
+      await apiClient.delete(`/whatsapp/logs/${logId}`);
+      setLogs((prev) => prev.filter((l) => l.id !== logId));
+    } catch (err) {
+      console.error("Failed to delete message log", err);
+    }
+  };
+
   useEffect(() => {
     fetchSubscribers();
     fetchLogs();
@@ -195,10 +222,21 @@ export default function WhatsAppDispatcherView() {
   const handleMakeCall = async () => {
     if (!selectedSubscriber) return;
     const phone = selectedSubscriber.phone_number || verifiedPhone || '';
+    const cleanPhoneDigits = cleanDigits(phone);
 
-    // Open in-browser call modal overlay directly (No browser/OS tel dialer popup)
+    // 1. Immediately trigger native device phone dialer (opens Call App on iOS/Android/macOS)
+    if (cleanPhoneDigits) {
+      try {
+        window.open(`tel:+${cleanPhoneDigits}`, '_self');
+      } catch (e) {
+        console.warn("Direct phone dialer trigger error", e);
+      }
+    }
+
+    // 2. Open in-browser call modal overlay directly in Ringing mode
     setShowCallModal(true);
-    setCallStatus('Connecting...');
+    setCallState('ringing');
+    setCallStatus('Ringing... (Waiting for answer)');
     setCallDuration(0);
     setIsMuted(false);
     setIsSpeaker(true);
@@ -207,15 +245,8 @@ export default function WhatsAppDispatcherView() {
 
     if (callTimerRef.current) clearInterval(callTimerRef.current);
 
-    setTimeout(() => {
-      setCallStatus('Connected (Operational Voice Stream)');
-      callTimerRef.current = setInterval(() => {
-        setCallDuration((prev) => prev + 1);
-      }, 1000);
-    }, 1800);
-
     try {
-      await apiClient.post('/whatsapp/simulate-inbound', {
+      await apiClient.post('/whatsapp/make-voice-call', {
         phone_number: phone,
         message_body: 'CALL_REQUEST'
       });
@@ -225,6 +256,16 @@ export default function WhatsAppDispatcherView() {
     }
   };
 
+  const handleAcceptCall = () => {
+    stopRingingAudio();
+    setCallState('connected');
+    setCallStatus('Connected (Operational Voice Stream)');
+    if (callTimerRef.current) clearInterval(callTimerRef.current);
+    callTimerRef.current = setInterval(() => {
+      setCallDuration((prev) => prev + 1);
+    }, 1000);
+  };
+
   const handleEndCall = () => {
     stopRingingAudio();
     if (callTimerRef.current) {
@@ -232,8 +273,9 @@ export default function WhatsAppDispatcherView() {
       callTimerRef.current = null;
     }
     setShowCallModal(false);
+    setCallState('ringing');
     setCallDuration(0);
-    setCallStatus('Connecting...');
+    setCallStatus('Ringing...');
   };
 
   const formatCallTime = (secs) => {
@@ -284,8 +326,19 @@ export default function WhatsAppDispatcherView() {
     if (!newSub.full_name || !newSub.phone_number) return;
     setOtpErrorMsg(null);
     setOtpSending(true);
+
+    let formattedPhone = newSub.phone_number.trim().replace(/\s+/g, '').replace(/-/g, '');
+    if (/^\d{10}$/.test(formattedPhone)) {
+      formattedPhone = `+91${formattedPhone}`;
+    } else if (!formattedPhone.startsWith('+') && formattedPhone.length >= 10) {
+      formattedPhone = `+${formattedPhone}`;
+    }
+
+    const payloadToSubmit = { ...newSub, phone_number: formattedPhone };
+    setNewSub(payloadToSubmit);
+
     try {
-      await apiClient.post('/whatsapp/request-otp', newSub);
+      await apiClient.post('/whatsapp/request-otp', payloadToSubmit);
       setOtpStep(2);
       await fetchLogs();
     } catch (err) {
@@ -649,7 +702,7 @@ export default function WhatsAppDispatcherView() {
         
         {/* Left Column: Crew Subscriber Directory (4 Cols) */}
         <div className="lg:col-span-4 space-y-4">
-          <div className="glass-card p-4 rounded-2xl border border-slate-800 bg-slate-900/80">
+          <div className="glass-card-dark p-4 rounded-2xl border border-slate-800 bg-slate-900/95 shadow-xl">
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <h2 className="text-base font-bold text-white flex items-center gap-2">
                 <UserCheck className="w-4 h-4 text-emerald-400" />
@@ -826,9 +879,21 @@ export default function WhatsAppDispatcherView() {
                         >
                           {msg.content}
 
-                          <div className={`mt-1.5 flex items-center justify-end gap-1 text-[10px] ${isOutbound ? 'text-slate-400' : 'text-emerald-200'}`}>
-                            <span>{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                            <CheckCheck className="w-3.5 h-3.5 text-emerald-400" />
+                          <div className={`mt-1.5 flex items-center justify-between gap-2 text-[10px] ${isOutbound ? 'text-slate-400' : 'text-emerald-200'}`}>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteSingleLog(msg.id);
+                              }}
+                              title="Delete this message"
+                              className="opacity-70 hover:opacity-100 hover:text-rose-400 transition-all p-0.5 cursor-pointer"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                            <div className="flex items-center gap-1">
+                              <span>{formatMsgTime(msg.created_at)}</span>
+                              <CheckCheck className="w-3.5 h-3.5 text-emerald-400" />
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -862,7 +927,7 @@ export default function WhatsAppDispatcherView() {
 
           {/* Action Quick-Reply Pad & Multilingual Test Bench (5 Cols) */}
           <div className="md:col-span-5 space-y-4">
-            <div className="glass-card p-4 rounded-2xl border border-slate-800 bg-slate-900/80 space-y-3">
+            <div className="glass-card-dark p-4 rounded-2xl border border-slate-800 bg-slate-900/95 space-y-3 shadow-xl">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-amber-400" />
                 Quick-Reply Keypad (1-Key Execution)
@@ -961,9 +1026,9 @@ export default function WhatsAppDispatcherView() {
       </div>
 
       {/* Bottom Section: Audit Trail & Tool Execution Log Table */}
-      <div className="glass-card p-6 rounded-2xl border border-slate-800 bg-slate-900/80 space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-base font-bold text-white flex items-center gap-2">
+      <div className="glass-card-dark p-6 rounded-2xl border border-slate-800 bg-slate-950 space-y-4 shadow-2xl">
+        <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+          <h3 className="text-base font-extrabold text-white flex items-center gap-2">
             <Radio className="w-5 h-5 text-emerald-400" />
             Live Interaction Audit Trail & Tool Actions Executed
           </h3>
@@ -971,14 +1036,14 @@ export default function WhatsAppDispatcherView() {
             <button
               onClick={handleClearLogs}
               title="Purge message logs for clean slate"
-              className="px-3 py-1.5 bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 border border-rose-500/30 text-xs rounded-xl font-semibold flex items-center gap-1.5 transition-all"
+              className="px-3.5 py-1.5 bg-rose-950/80 hover:bg-rose-900 text-rose-200 border border-rose-600/50 text-xs rounded-xl font-bold flex items-center gap-1.5 transition-all cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5" />
               Clear Logs
             </button>
             <button
               onClick={fetchLogs}
-              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-xl font-medium flex items-center gap-1.5 transition-all"
+              className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs rounded-xl font-bold flex items-center gap-1.5 transition-all cursor-pointer"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               Refresh Logs
@@ -986,56 +1051,62 @@ export default function WhatsAppDispatcherView() {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-slate-950 text-slate-400 uppercase font-semibold border-b border-slate-800">
+        <div className="overflow-x-auto rounded-xl border border-slate-800">
+          <table className="w-full text-left text-xs text-slate-100">
+            <thead className="bg-slate-950 text-slate-300 uppercase font-extrabold text-[11px] border-b border-slate-800">
               <tr>
-                <th className="py-3 px-4">Time</th>
-                <th className="py-3 px-4">Phone / Crew</th>
-                <th className="py-3 px-4">Direction</th>
-                <th className="py-3 px-4">Message Body</th>
-                <th className="py-3 px-4">Intent</th>
-                <th className="py-3 px-4">Tool Action</th>
-                <th className="py-3 px-4">Status</th>
+                <th className="py-3.5 px-4">Time</th>
+                <th className="py-3.5 px-4">Phone / Crew</th>
+                <th className="py-3.5 px-4">Direction</th>
+                <th className="py-3.5 px-4">Message Body</th>
+                <th className="py-3.5 px-4">Intent</th>
+                <th className="py-3.5 px-4">Tool Action</th>
+                <th className="py-3.5 px-4">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-slate-800/80 bg-slate-900/90">
               {safeLogs.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="py-6 text-center text-slate-500 font-medium">No live message logs recorded yet. Send a message to start!</td>
+                  <td colSpan="7" className="py-8 text-center text-slate-400 font-semibold text-sm">
+                    No live message logs recorded yet. Send a message to start!
+                  </td>
                 </tr>
               ) : (
                 safeLogs.slice(0, 15).map((log) => (
-                  <tr key={log.id} className="hover:bg-slate-800/30 transition-all">
-                    <td className="py-3 px-4 font-mono text-slate-400">
-                      {new Date(log.created_at).toLocaleTimeString()}
+                  <tr key={log.id} className="hover:bg-slate-800/80 transition-all">
+                    <td className="py-3.5 px-4 font-mono font-bold text-slate-300 whitespace-nowrap">
+                      {formatMsgTime(log.created_at)}
                     </td>
-                    <td className="py-3 px-4 font-semibold text-white">
+                    <td className="py-3.5 px-4 font-extrabold text-white font-mono whitespace-nowrap">
                       {log.phone_number}
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
                       {log.direction === 'inbound' ? (
-                        <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded text-[10px] font-bold">INBOUND</span>
+                        <span className="px-2.5 py-1 bg-emerald-500/25 text-emerald-300 border border-emerald-400/50 rounded text-[10px] font-extrabold tracking-wider">
+                          INBOUND
+                        </span>
                       ) : (
-                        <span className="px-2 py-0.5 bg-sky-500/20 text-sky-300 border border-sky-500/30 rounded text-[10px] font-bold">OUTBOUND</span>
+                        <span className="px-2.5 py-1 bg-sky-500/25 text-sky-300 border border-sky-400/50 rounded text-[10px] font-extrabold tracking-wider">
+                          OUTBOUND
+                        </span>
                       )}
                     </td>
-                    <td className="py-3 px-4 max-w-xs truncate font-mono text-slate-200">
+                    <td className="py-3.5 px-4 max-w-sm font-mono text-slate-100 font-medium text-xs leading-normal break-words">
                       {log.content}
                     </td>
-                    <td className="py-3 px-4 font-bold text-amber-300">
+                    <td className="py-3.5 px-4 font-extrabold text-amber-300 font-mono text-xs whitespace-nowrap">
                       {log.intent_detected || '-'}
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
                       {log.tool_executed ? (
-                        <span className="px-2 py-0.5 bg-purple-500/20 text-purple-300 border border-purple-500/30 rounded font-mono text-[10px] font-bold">
+                        <span className="px-2.5 py-1 bg-purple-900/60 text-purple-200 border border-purple-400/50 rounded font-mono text-[10px] font-extrabold">
                           {log.tool_executed}
                         </span>
                       ) : (
-                        <span className="text-slate-600">-</span>
+                        <span className="text-slate-500 font-mono">-</span>
                       )}
                     </td>
-                    <td className="py-3 px-4 text-emerald-400 font-semibold">
+                    <td className="py-3.5 px-4 text-emerald-400 font-extrabold uppercase font-mono text-xs whitespace-nowrap">
                       {log.delivery_status}
                     </td>
                   </tr>
@@ -1235,21 +1306,25 @@ export default function WhatsAppDispatcherView() {
 
       {/* In-Browser WhatsApp Voice Call Modal Overlay */}
       {showCallModal && selectedSubscriber && (
-        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4">
           <div className="glass-card p-8 rounded-3xl border border-emerald-500/30 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 max-w-sm w-full text-center space-y-6 shadow-2xl relative overflow-hidden">
             {/* Ambient ring glow */}
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-emerald-500/10 via-transparent to-transparent pointer-events-none" />
 
             {/* Header Badge */}
             <div className="flex items-center justify-center gap-2 text-xs font-semibold text-emerald-400 bg-emerald-950/80 border border-emerald-500/40 px-3.5 py-1 rounded-full w-max mx-auto shadow-md">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              WhatsApp Direct Voice Dispatch
+              <span className={`w-2 h-2 rounded-full ${callState === 'ringing' ? 'bg-amber-400 animate-ping' : 'bg-emerald-400 animate-pulse'}`} />
+              <span>{callState === 'ringing' ? 'WhatsApp Voice Call Dispatched' : 'Live Operational Voice Stream'}</span>
             </div>
 
-            {/* Avatar & Static Soft Glow Rings */}
+            {/* Avatar & Animated Rings */}
             <div className="relative py-4 flex items-center justify-center">
-              <div className="absolute w-36 h-36 rounded-full bg-emerald-500/10 pointer-events-none" />
-              <div className="absolute w-28 h-28 rounded-full bg-emerald-500/20 pointer-events-none" />
+              {callState === 'ringing' && (
+                <>
+                  <div className="absolute w-36 h-36 rounded-full bg-emerald-500/20 animate-ping pointer-events-none" />
+                  <div className="absolute w-28 h-28 rounded-full bg-emerald-500/30 animate-pulse pointer-events-none" />
+                </>
+              )}
               <div className="w-24 h-24 rounded-full bg-slate-800 border-2 border-emerald-400/80 flex items-center justify-center text-3xl font-extrabold text-emerald-300 shadow-xl relative z-10">
                 {selectedSubscriber.full_name?.charAt(0) || 'C'}
               </div>
@@ -1270,12 +1345,14 @@ export default function WhatsAppDispatcherView() {
 
             {/* Live Call Status & Timer Box */}
             <div className="bg-slate-900/90 border border-slate-800 rounded-2xl py-3 px-4 space-y-1">
-              <div className="text-xs text-slate-400 font-medium">
+              <div className="text-xs text-slate-300 font-semibold">
                 {callStatus}
               </div>
-              <div className="text-2xl font-mono font-bold text-white tracking-wider">
-                {formatCallTime(callDuration)}
-              </div>
+              {callState === 'connected' && (
+                <div className="text-2xl font-mono font-bold text-white tracking-wider">
+                  {formatCallTime(callDuration)}
+                </div>
+              )}
               {/* Sound wave visualizer bars */}
               <div className="flex items-center justify-center gap-1 pt-2">
                 <span className="w-1 h-3 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -1286,45 +1363,80 @@ export default function WhatsAppDispatcherView() {
               </div>
             </div>
 
-            {/* Encrypted Channel Badge */}
-            <div className="text-[11px] text-slate-400 flex items-center justify-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              Live WhatsApp Direct Operational Audio Stream
+            {/* Direct Calling Links */}
+            <div className="grid grid-cols-2 gap-2">
+              <a
+                href={`https://wa.me/${cleanDigits(selectedSubscriber.phone_number || verifiedPhone)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="py-2 px-2 bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-500/50 text-emerald-200 text-[11px] font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+              >
+                <MessageSquare className="w-3.5 h-3.5 text-emerald-300" />
+                <span>WhatsApp App</span>
+              </a>
+              <a
+                href={`tel:+${cleanDigits(selectedSubscriber.phone_number || verifiedPhone)}`}
+                className="py-2 px-2 bg-teal-600/30 hover:bg-teal-600/50 border border-teal-500/50 text-teal-200 text-[11px] font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+              >
+                <Phone className="w-3.5 h-3.5 text-teal-300" />
+                <span>Cellular Call</span>
+              </a>
             </div>
 
             {/* Call Controls */}
             <div className="flex items-center justify-center gap-6 pt-2">
-              <button
-                onClick={() => setIsMuted(!isMuted)}
-                className={`p-4 rounded-full transition-all border ${
-                  isMuted
-                    ? 'bg-amber-500/20 text-amber-400 border-amber-500/50'
-                    : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
-                }`}
-                title={isMuted ? "Unmute Mic" : "Mute Mic"}
-              >
-                {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
-              </button>
+              {callState === 'ringing' ? (
+                <>
+                  <button
+                    onClick={handleAcceptCall}
+                    className="p-5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/40 hover:scale-110 active:scale-95 transition-all cursor-pointer flex items-center justify-center"
+                    title="Accept & Connect Call"
+                  >
+                    <Phone className="w-6 h-6" />
+                  </button>
+                  <button
+                    onClick={handleEndCall}
+                    className="p-5 rounded-full bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/40 hover:scale-110 active:scale-95 transition-all cursor-pointer flex items-center justify-center"
+                    title="Decline / End Call"
+                  >
+                    <PhoneOff className="w-6 h-6" />
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setIsMuted(!isMuted)}
+                    className={`p-4 rounded-full transition-all border ${
+                      isMuted
+                        ? 'bg-amber-500/20 text-amber-400 border-amber-500/50'
+                        : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
+                    }`}
+                    title={isMuted ? "Unmute Mic" : "Mute Mic"}
+                  >
+                    {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                  </button>
 
-              <button
-                onClick={handleEndCall}
-                className="p-5 rounded-full bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/40 hover:scale-105 active:scale-95 transition-all"
-                title="End Call"
-              >
-                <PhoneOff className="w-6 h-6" />
-              </button>
+                  <button
+                    onClick={handleEndCall}
+                    className="p-5 rounded-full bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/40 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                    title="End Call"
+                  >
+                    <PhoneOff className="w-6 h-6" />
+                  </button>
 
-              <button
-                onClick={() => setIsSpeaker(!isSpeaker)}
-                className={`p-4 rounded-full transition-all border ${
-                  isSpeaker
-                    ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50'
-                    : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
-                }`}
-                title={isSpeaker ? "Speaker On" : "Speaker Off"}
-              >
-                {isSpeaker ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
-              </button>
+                  <button
+                    onClick={() => setIsSpeaker(!isSpeaker)}
+                    className={`p-4 rounded-full transition-all border ${
+                      isSpeaker
+                        ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50'
+                        : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
+                    }`}
+                    title={isSpeaker ? "Speaker On" : "Speaker Off"}
+                  >
+                    {isSpeaker ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+                  </button>
+                </>
+              )}
             </div>
 
           </div>

@@ -153,6 +153,21 @@ def simulate_inbound_message(
     return res
 
 
+@router.post("/make-voice-call", summary="Trigger Direct Real Voice Call to Mobile Phone")
+def make_voice_call(
+    payload: InboundSimulateSchema,
+    db: Session = Depends(get_db)
+):
+    """
+    Triggers an immediate real voice call to the user's mobile phone number.
+    """
+    res = WhatsAppDispatchService.trigger_real_voice_call(
+        phone_number=payload.phone_number,
+        db=db
+    )
+    return res
+
+
 @router.post("/trigger-resequence", summary="Trigger Dynamic Train Re-Sequencer Event")
 def trigger_dynamic_resequence(
     payload: ResequenceTriggerSchema,
@@ -283,14 +298,24 @@ def request_whatsapp_otp(
     """
     Generates a 6-digit verification OTP and dispatches WhatsApp OTP message to crew member.
     """
-    clean_phone = payload.phone_number.strip()
+    raw_phone = payload.phone_number.strip().replace(" ", "").replace("-", "")
+    if raw_phone.isdigit() and len(raw_phone) == 10:
+        clean_phone = f"+91{raw_phone}"
+    elif not raw_phone.startswith("+") and len(raw_phone) >= 10:
+        clean_phone = f"+{raw_phone}"
+    else:
+        clean_phone = raw_phone
+
     otp_code = f"{random.randint(100000, 999999)}"
 
-    _PENDING_OTPS[clean_phone] = {
+    pending_entry = {
         "otp_code": otp_code,
         "payload": payload,
-        "created_at": logger.info(f"Generated OTP {otp_code} for {clean_phone}")
+        "created_at": logger.info(f"Generated OTP {otp_code} for {clean_phone} (raw: {raw_phone})")
     }
+
+    _PENDING_OTPS[clean_phone] = pending_entry
+    _PENDING_OTPS[raw_phone] = pending_entry
 
     # Dispatch simulated/real WhatsApp verification message
     otp_msg = (
@@ -311,9 +336,12 @@ def request_whatsapp_otp(
         err_msg = "Failed to send WhatsApp message via Meta Cloud API."
         if isinstance(resp_data, dict) and "error" in resp_data:
             err_details = resp_data["error"]
-            err_msg = f"Meta WhatsApp API Error ({err_details.get('code', '400')}): {err_details.get('message', 'Invalid request')}"
-            if err_details.get("code") == 190:
+            err_code = err_details.get("code")
+            err_msg = f"Meta WhatsApp API Error ({err_code}): {err_details.get('message', 'Invalid request')}"
+            if err_code == 190:
                 err_msg = "Meta WhatsApp Cloud API Access Token in .env has EXPIRED (OAuthException Code 190). Please generate a fresh Temporary/Permanent Access Token from Meta Developer Portal and update WHATSAPP_API_TOKEN in .env."
+            elif err_code == 131030:
+                err_msg = f"Meta WhatsApp API Error (131030): Phone number {clean_phone} is not in Meta's allowed recipient list. Please add +917439033504 in Meta Developer Portal -> WhatsApp -> API Setup -> 'To' dropdown."
         raise HTTPException(status_code=400, detail=err_msg)
 
     return {
@@ -464,3 +492,19 @@ def clear_message_logs(
     count = db.query(WhatsAppMessageLog).delete()
     db.commit()
     return {"status": "cleared", "deleted_count": count}
+
+
+@router.delete("/logs/{log_id}", summary="Delete Single WhatsApp Message Log")
+def delete_single_message_log(
+    log_id: int,
+    db: Session = Depends(get_db)
+):
+    """
+    Deletes a specific message log entry by ID.
+    """
+    log_entry = db.query(WhatsAppMessageLog).filter(WhatsAppMessageLog.id == log_id).first()
+    if not log_entry:
+        raise HTTPException(status_code=404, detail="Message log not found")
+    db.delete(log_entry)
+    db.commit()
+    return {"status": "deleted", "id": log_id}
