@@ -93,8 +93,7 @@ def verify_whatsapp_webhook(
 @router.post("/webhook", summary="Meta WhatsApp Cloud API Inbound Webhook Receiver")
 async def receive_whatsapp_webhook(
     request: Request,
-    background_tasks: BackgroundTasks,
-    db: Session = Depends(get_db)
+    background_tasks: BackgroundTasks
 ):
     """
     POST webhook receiver for incoming messages from WhatsApp Cloud API.
@@ -123,13 +122,29 @@ async def receive_whatsapp_webhook(
                         msg_text = msg.get("interactive", {}).get("button_reply", {}).get("title", "")
 
                     if sender and msg_text:
-                        # Process inbound message in background to avoid Meta 3-second timeout!
+                        # Process inbound message in background with a NEW db session
+                        # to avoid using closed FastAPI Depends sessions
+                        from backend.app.core.database import SessionLocal
+                        
+                        def process_in_background(sender_phone, text, payload):
+                            db_session = SessionLocal()
+                            try:
+                                WhatsAppDispatchService.process_inbound_message(
+                                    db=db_session,
+                                    phone_number=sender_phone,
+                                    message_body=text,
+                                    raw_payload=payload
+                                )
+                            except Exception as ex:
+                                logger.error(f"Background task failed: {str(ex)}")
+                            finally:
+                                db_session.close()
+
                         background_tasks.add_task(
-                            WhatsAppDispatchService.process_inbound_message,
-                            db=db,
-                            phone_number=sender,
-                            message_body=msg_text,
-                            raw_payload=msg
+                            process_in_background,
+                            sender_phone=sender,
+                            text=msg_text,
+                            payload=msg
                         )
     except Exception as e:
         logger.error(f"Error handling WhatsApp webhook payload: {str(e)}")
