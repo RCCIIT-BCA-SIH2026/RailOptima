@@ -150,6 +150,8 @@ export default function TopNavbar({ activeUser, setActiveUser }) {
     {
       id: 'operations',
       label: 'Operations & Assets',
+      titleTop: 'Operations',
+      titleBottom: '& Assets',
       icon: Activity,
       primaryPath: '/dashboard',
       items: [
@@ -165,6 +167,8 @@ export default function TopNavbar({ activeUser, setActiveUser }) {
     {
       id: 'ai_studio',
       label: 'AI Planning & Studio',
+      titleTop: 'AI Planning',
+      titleBottom: '& Studio',
       icon: Sparkles,
       primaryPath: '/optimization-studio',
       isAi: true,
@@ -180,6 +184,8 @@ export default function TopNavbar({ activeUser, setActiveUser }) {
     {
       id: 'coordination',
       label: 'Coordination & GIS',
+      titleTop: 'Coordination',
+      titleBottom: '& GIS',
       icon: Layers,
       primaryPath: '/department-coordination',
       items: [
@@ -191,6 +197,8 @@ export default function TopNavbar({ activeUser, setActiveUser }) {
     {
       id: 'governance',
       label: 'Governance & Analytics',
+      titleTop: 'Governance',
+      titleBottom: '& Analytics',
       icon: ShieldAlert,
       primaryPath: '/approvals',
       items: [
@@ -218,20 +226,33 @@ export default function TopNavbar({ activeUser, setActiveUser }) {
   return (
     <header className="sticky top-0 z-50 glass-header-nav select-none shadow-xs">
       {/* Tier 1: Utility Bar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-full 2xl:max-w-[1720px] mx-auto px-2 sm:px-4 lg:px-6">
         <div className="flex items-center justify-between h-16 gap-4">
           
           {/* Brand Identity */}
-          <div className="flex items-center space-x-3 cursor-pointer shrink-0" onClick={() => navigate('/dashboard')}>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-600 via-teal-600 to-sky-600 flex items-center justify-center text-white shadow-md shadow-emerald-600/25">
-              <Train className="w-5 h-5" />
+          <div 
+            className="flex items-center space-x-3 cursor-pointer shrink-0 group select-none" 
+            onClick={() => navigate('/dashboard')}
+            title="RailOptima • Indian Railways AI Block Planning & Optimization"
+          >
+            <div className="relative w-11 h-11 rounded-full p-0.5 bg-gradient-to-tr from-emerald-500 via-teal-400 to-sky-400 shadow-md shadow-emerald-600/25 group-hover:shadow-lg group-hover:shadow-emerald-500/40 transition-all duration-300 transform group-hover:scale-105">
+              <div className="w-full h-full rounded-full bg-slate-900/90 overflow-hidden flex items-center justify-center p-0.5 border border-emerald-300/60">
+                <img 
+                  src="/railoptima-logo.png" 
+                  alt="RailOptima Logo" 
+                  className="w-full h-full object-contain filter drop-shadow group-hover:rotate-2 transition-transform duration-300"
+                />
+              </div>
+              <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full flex items-center justify-center shadow-xs" title="Live AI System Active">
+                <span className="w-1.5 h-1.5 bg-white rounded-full animate-ping opacity-75"></span>
+              </span>
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="text-base font-black tracking-tight text-slate-900">
+                <span className="text-base sm:text-lg font-black tracking-tight text-slate-900 group-hover:text-emerald-700 transition-colors">
                   RailOptima
                 </span>
-                <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs">
+                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-gradient-to-r from-emerald-500/15 via-teal-500/15 to-sky-500/15 text-emerald-950 border border-emerald-400/60 shadow-2xs">
                   IR-ABPS AI
                 </span>
               </div>
@@ -427,9 +448,9 @@ export default function TopNavbar({ activeUser, setActiveUser }) {
       </div>
 
       {/* Tier 2: Category & Navigation Pill Bar */}
-      <div className="bg-white/90 border-t border-slate-200/80 shadow-xs backdrop-blur-md relative z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-1.5 gap-2 relative" ref={navDropdownsRef}>
+      <div className="bg-white/95 border-t border-slate-200/80 shadow-xs backdrop-blur-md relative z-40">
+        <div className="w-full max-w-full 2xl:max-w-[1720px] mx-auto px-2 sm:px-4 lg:px-6">
+          <div className="flex items-center justify-between py-1 gap-1.5 relative" ref={navDropdownsRef}>
             
             {/* Direct Quick Pills (Left Scrollable Strip) */}
             <div className="flex items-center space-x-1 shrink-0 overflow-x-auto no-scrollbar py-0.5">
@@ -441,15 +462,15 @@ export default function TopNavbar({ activeUser, setActiveUser }) {
                   <NavLink
                     key={pill.path}
                     to={pill.path}
-                    className={({ isActive }) => `flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    className={({ isActive }) => `flex items-center space-x-1 px-2 sm:px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                       isActive 
                         ? 'nav-pill-active' 
                         : pill.isAi
                           ? 'text-purple-700 hover:bg-purple-50 hover:text-purple-900'
-                          : 'text-slate-600 hover:bg-emerald-50/60 hover:text-slate-900'
+                          : 'text-slate-600 hover:bg-emerald-50/70 hover:text-slate-900'
                     }`}
                   >
-                    <Icon className="w-3.5 h-3.5" />
+                    <Icon className="w-3.5 h-3.5 shrink-0" />
                     <span>{pill.label}</span>
                     {pill.badge && (
                       <span className={`text-[9px] font-black px-1.5 py-0.2 rounded-full ${
@@ -464,7 +485,7 @@ export default function TopNavbar({ activeUser, setActiveUser }) {
             </div>
 
             {/* Mega Dropdown Group Trigger Buttons (Right Section) */}
-            <div className="hidden lg:flex items-center space-x-1 shrink-0 border-l border-slate-200 pl-2">
+            <div className="hidden lg:flex items-center space-x-1 shrink-0 border-l border-slate-200/80 pl-1.5 ml-1">
               {NAV_GROUPS.map((group) => {
                 const GroupIcon = group.icon;
                 const isGroupActive = group.items.some(item => item.path === location.pathname);
@@ -472,30 +493,31 @@ export default function TopNavbar({ activeUser, setActiveUser }) {
 
                 return (
                   <div key={group.id} className="relative">
-                    {/* Category Group Button */}
-                    <div className="flex items-center">
-                      <button
-                        onClick={() => {
-                          if (isDropdownOpen) {
-                            setOpenDropdownId(null);
-                          } else {
-                            setOpenDropdownId(group.id);
-                          }
-                        }}
-                        className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer select-none ${
-                          isGroupActive
-                            ? 'bg-emerald-100 text-emerald-900 border border-emerald-300 shadow-2xs'
-                            : isDropdownOpen
-                              ? 'bg-slate-900 text-white shadow-md'
-                              : 'text-slate-700 hover:bg-emerald-50 hover:text-emerald-900 border border-transparent hover:border-emerald-200'
-                        }`}
-                        title={`Explore ${group.label} modules`}
-                      >
-                        <GroupIcon className={`w-3.5 h-3.5 ${isGroupActive ? 'text-emerald-700' : isDropdownOpen ? 'text-cyan-300' : 'text-slate-500'}`} />
-                        <span>{group.label}</span>
-                        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180 text-cyan-300' : 'text-slate-400'}`} />
-                      </button>
-                    </div>
+                    {/* Category Group Button with stacked 2-line layout */}
+                    <button
+                      onClick={() => {
+                        if (isDropdownOpen) {
+                          setOpenDropdownId(null);
+                        } else {
+                          setOpenDropdownId(group.id);
+                        }
+                      }}
+                      className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-xl transition-all cursor-pointer select-none text-left ${
+                        isGroupActive
+                          ? 'bg-emerald-100 text-emerald-950 border border-emerald-300/90 shadow-2xs'
+                          : isDropdownOpen
+                            ? 'bg-slate-900 text-white shadow-md'
+                            : 'text-slate-700 hover:bg-emerald-50 hover:text-emerald-900 border border-transparent hover:border-emerald-200/80'
+                      }`}
+                      title={`Explore ${group.label} modules`}
+                    >
+                      <GroupIcon className={`w-3.5 h-3.5 shrink-0 ${isGroupActive ? 'text-emerald-700' : isDropdownOpen ? 'text-cyan-300' : 'text-emerald-600'}`} />
+                      <div className="flex flex-col leading-[1.05] min-w-0">
+                        <span className="text-[11px] font-bold tracking-tight whitespace-nowrap">{group.titleTop}</span>
+                        <span className={`text-[9px] font-semibold whitespace-nowrap ${isGroupActive ? 'text-emerald-800' : isDropdownOpen ? 'text-cyan-200' : 'text-slate-500'}`}>{group.titleBottom}</span>
+                      </div>
+                      <ChevronDown className={`w-3 h-3 shrink-0 ml-0.5 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180 text-cyan-300' : 'text-slate-400'}`} />
+                    </button>
 
                     {/* Popover Dropdown Menu */}
                     {isDropdownOpen && (
