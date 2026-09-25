@@ -895,21 +895,21 @@ You assist Divisional Railway Managers (DRM), Branch Officers (Sr. DEN, Sr. DEE,
         else:
             summary = self.execute_tool("get_live_system_summary", {}, db)
             reply = f"""
-👋 **Hello! I am RailOptima Assistant** — your divisional railway operations assistant.
+👋 *Hello! I am RailOptima Assistant* — your divisional railway operations assistant.
 
-**Current Network Overview:**
-• **Active Defects:** `{summary.get('total_defects')}` (`{summary.get('p0_critical_emergencies')}` Critical)
-• **Speed Restrictions:** `{summary.get('active_speed_restrictions')}` track locations
-• **Scheduled Trains:** `{summary.get('scheduled_trains')}` services monitored
-• **Pending Approvals:** `{summary.get('pending_approvals')}` blocks in queue
-• **Division Punctuality:** `{summary.get('system_punctuality_rate')}`
+*Current Network Overview:*
+• *Active Defects:* `{summary.get('total_defects')}` (`{summary.get('p0_critical_emergencies')}` Critical)
+• *Speed Restrictions:* `{summary.get('active_speed_restrictions')}` track locations
+• *Scheduled Trains:* `{summary.get('scheduled_trains')}` services monitored
+• *Pending Approvals:* `{summary.get('pending_approvals')}` blocks in queue
+• *Division Punctuality:* `{summary.get('system_punctuality_rate')}`
 
-**How can I help you?**
-1. 🚨 **"Show critical safety defects"**
-2. 📅 **"Plan maintenance schedule for tomorrow"**
-3. 🚆 **"Check train delays and punctuality"**
-4. 🛠️ **"Assess track health and maintenance needs"**
-5. 📋 **"Show pending block approvals"**
+*How can I help you?*
+1. 🚨 *"Show critical safety defects"*
+2. 📅 *"Plan maintenance schedule for tomorrow"*
+3. 🚆 *"Check train delays and punctuality"*
+4. 🛠️ *"Assess track health and maintenance needs"*
+5. 📋 *"Show pending block approvals"*
 """
             return {"reply": reply.strip(), "live_data_attached": summary}
 

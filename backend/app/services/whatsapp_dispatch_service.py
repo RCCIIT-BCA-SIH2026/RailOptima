@@ -26,7 +26,7 @@ def _run_rag_sync(message: str) -> str:
         from backend.app.services.rag_agent_service import rag_agent_service  # noqa
         result = rag_agent_service.chat(user_message=message)
         if isinstance(result, dict):
-            return result.get("response", result.get("answer", ""))
+            return result.get("reply", result.get("response", result.get("answer", "")))
         return str(result)
     except Exception as exc:
         logger.warning(f"RAG agent call failed in WhatsApp dispatcher: {exc}")
