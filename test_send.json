@@ -1,0 +1,8 @@
+{
+  "messaging_product": "whatsapp",
+  "to": "917439033504",
+  "type": "text",
+  "text": {
+    "body": "🤖 RailOptima Field Dispatcher\n━━━━━━━━━━━━━━━━━━\nQuick Commands:\n  1 / ACK  — Accept work order\n  START    — Take track possession\n  DONE     — Certify line fit\n  STATUS   — Live train ETA\n  DELAY    — Request +15 min extension\n  DEFECT   — Report rail defect\nOr ask any Indian Railways operations question."
+  }
+}
