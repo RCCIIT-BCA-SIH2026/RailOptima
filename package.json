@@ -4,8 +4,8 @@
   "description": "RailOptima - AI-Powered Automatic Block Planning System & Zero-App WhatsApp Dispatcher",
   "main": "backend/app/main.py",
   "scripts": {
-    "start": "node backend/start.js",
-    "build": "pip install -r requirements.txt"
+    "build": "cd frontend && npm install && npm run build",
+    "start": "cd frontend && npm run preview"
   },
   "keywords": [
     "railway",
