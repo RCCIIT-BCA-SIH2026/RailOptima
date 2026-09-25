@@ -263,6 +263,11 @@ class WhatsAppDispatchService:
                 phone_number_id = env_map.get("WHATSAPP_PHONE_NUMBER_ID") or phone_number_id
             except Exception as ex:
                 logger.warning(f"Failed to read dotenv_values: {ex}")
+        
+        # DEMO OVERRIDE: Force new credentials if still missing or invalid
+        if not api_token or not api_token.startswith("EAA") or api_token.startswith("EAAew"):
+            api_token = "EAAUDxzJROOwBSv1sox9E5L4iJybLqMm1q9EMUrr9nL6S5oEZCS2LoRoadmBKvPZB8OjREIUfZCvLwZAqPcV3Hc90hodMIMkByNO3DAhTFel7Dqsgdl2y1nST6pPrE5JcieJXSWkMpKTN7PdiUp3gedOrx0QnrfJjhSJm2CflA5jKwh2WHo0GS1PopJfjVqON5JZBfZBVE1RfZA7eCqVJUTD5kgBAzStskjWxnrQoTMozbAhCD6CW5Jabwgk2jzeaeZCKKE5YdHvZCxq4pLn2EH8OQ7wZDZD"
+            phone_number_id = "1271448056060123"
 
         if api_token and phone_number_id:
             clean_to = phone_number.replace("+", "").replace(" ", "").replace("-", "").strip()
