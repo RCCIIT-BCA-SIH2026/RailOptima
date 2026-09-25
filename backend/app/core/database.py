@@ -5,9 +5,11 @@ from backend.app.core.config import settings
 
 # Ensure data directory exists if sqlite
 if settings.DATABASE_URL.startswith("sqlite"):
-    os.makedirs("./data", exist_ok=True)
+    from backend.app.core.config import _DEFAULT_DB_PATH
+    absolute_db_url = f"sqlite:///{_DEFAULT_DB_PATH}"
+    os.makedirs(os.path.dirname(_DEFAULT_DB_PATH), exist_ok=True)
     engine = create_engine(
-        settings.DATABASE_URL,
+        absolute_db_url,
         connect_args={"check_same_thread": False}
     )
 

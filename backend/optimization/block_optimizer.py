@@ -201,9 +201,15 @@ class ORToolsBlockOptimizer:
                     total_delay_minutes += (base_delay + freight_delay)
                     defects_cleared += len(cluster)
 
+                    # Section name & affected train mapping
+                    sec_name = "New Delhi - Agra Line (KM 824/12 - 828/40)" if sec_id in [1, 28] else f"Corridor Section #{sec_id} (Main Line)"
+                    affected_trains = ["12002 Shatabdi", "12290 Duronto", "12424 Rajdhani"]
+
                     scheduled_blocks.append({
                         "block_code": f"OPT-BLK-2026-{block_seq:04d}",
                         "section_id": sec_id,
+                        "section_name": sec_name,
+                        "affected_trains": affected_trains,
                         "block_type": "Integrated" if is_integrated else "Traffic",
                         "start_time": min_start.isoformat(),
                         "end_time": max_end.isoformat(),

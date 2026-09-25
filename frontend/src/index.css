@@ -63,6 +63,15 @@ body {
   box-shadow: 0 8px 32px 0 rgba(2, 132, 199, 0.07), 0 2px 8px 0 rgba(16, 185, 129, 0.05);
 }
 
+.glass-card-dark {
+  background: rgba(15, 23, 42, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(51, 65, 85, 0.8);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35);
+  color: #f8fafc;
+}
+
 .glass-card-interactive {
   transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }

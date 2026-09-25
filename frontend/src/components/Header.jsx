@@ -97,23 +97,29 @@ export default function Header({ activeUser, setActiveUser }) {
   return (
     <header className="h-16 bg-white border-b border-slate-200 px-4 md:px-6 flex items-center justify-between z-30 sticky top-0 shadow-2xs">
       {/* Brand Title Area */}
-      <div className="flex items-center space-x-3.5">
-        <div className="w-10 h-10 rounded-xl bg-blue-700 flex items-center justify-center text-white shadow-md shadow-blue-700/20">
-          <Train className="w-5 h-5" />
+      <div className="flex items-center space-x-3.5 cursor-pointer" onClick={() => navigate('/dashboard')}>
+        <div className="relative w-11 h-11 rounded-full p-0.5 bg-gradient-to-tr from-emerald-500 via-teal-400 to-sky-400 shadow-md shadow-emerald-500/25">
+          <div className="w-full h-full rounded-full bg-slate-900/90 overflow-hidden flex items-center justify-center p-0.5 border border-emerald-300/60">
+            <img 
+              src="/railoptima-logo.png" 
+              alt="RailOptima" 
+              className="w-full h-full object-contain filter drop-shadow"
+            />
+          </div>
         </div>
         <div>
           <div className="flex items-center space-x-2">
             <h1 className="font-extrabold text-slate-900 text-sm md:text-base tracking-tight leading-none">
-              Indian Railways
+              RailOptima
             </h1>
-            <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full border border-blue-200">
-              IR-ABPS
+            <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-300">
+              IR-ABPS AI
             </span>
           </div>
           <p className="text-[11px] font-medium text-slate-500 mt-0.5 flex items-center space-x-1.5">
-            <span>AI-Powered Maintenance Block Planning System</span>
-            <span className="inline-block w-1 h-1 rounded-full bg-slate-300"></span>
-            <span className="text-amber-600 font-semibold">SIMULATED DEMO DATA</span>
+            <span>Indian Railways Block Planning</span>
+            <span className="inline-block w-1 h-1 rounded-full bg-emerald-500"></span>
+            <span className="text-emerald-700 font-semibold">Live AI Active</span>
           </p>
         </div>
       </div>

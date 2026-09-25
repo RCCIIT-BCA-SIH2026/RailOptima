@@ -24,6 +24,7 @@ from backend.app.api.v1.endpoints import (
     mongodb_endpoint,
     asset_prognostics,
     sla,
+    whatsapp,
 )
 
 api_router = APIRouter()
@@ -54,6 +55,8 @@ api_router.include_router(asset_prognostics.router, prefix="/ai/prognostics", ta
 api_router.include_router(asset_prognostics.router, prefix="/asset-prognostics", tags=["Asset Prognostics DNN Engine"])
 api_router.include_router(sla.router, prefix="/ai/sla", tags=["SLA Compliance Policy Engine"])
 api_router.include_router(sla.router, prefix="/sla", tags=["SLA Compliance Policy Engine"])
+api_router.include_router(whatsapp.router, prefix="/whatsapp", tags=["WhatsApp Field Crew Dispatcher & Dynamic Re-Sequencer"])
+
 
 
 

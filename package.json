@@ -1,0 +1,18 @@
+{
+  "name": "railoptima",
+  "version": "1.0.0",
+  "description": "RailOptima - AI-Powered Automatic Block Planning System & Zero-App WhatsApp Dispatcher",
+  "main": "backend/app/main.py",
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build",
+    "start": "cd frontend && npm run preview"
+  },
+  "keywords": [
+    "railway",
+    "railoptima",
+    "fastapi",
+    "whatsapp"
+  ],
+  "author": "",
+  "license": "ISC"
+}

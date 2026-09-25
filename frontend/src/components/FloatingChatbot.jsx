@@ -30,9 +30,8 @@ export default function FloatingChatbot({ activeUser }) {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: `👋 **Namaste! I am RailOptima Assistant** — your divisional railway operations and block planning assistant.\n\nPowered by Google Gemini AI & OpenRouter reasoning models with MongoDB Atlas cloud persistence.\n\nI can help you inspect track defects, check train delays, schedule maintenance possessions, and review pending approvals.\n\nHow can I help you today?`,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      provider: 'RailOptima Engine'
+      content: `👋 **Namaste! I am RailOptima Assistant** — your divisional railway operations and block planning assistant.\n\nI can help you inspect track defects, check train delays, schedule maintenance possessions, and review pending approvals.\n\nHow can I help you today?`,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
   const [inputMessage, setInputMessage] = useState('');
@@ -233,26 +232,40 @@ export default function FloatingChatbot({ activeUser }) {
   const renderMarkdownFormatted = (content) => {
     if (!content) return null;
 
-    // Simple markdown line renderer
+    // Inline parser for bold and code backticks to avoid raw asterisks in chat UI
+    const parseInline = (text) => {
+      if (!text) return '';
+      const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
+      return parts.map((part, pIdx) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          return <strong key={pIdx} className="font-bold text-cyan-200">{part.slice(2, -2)}</strong>;
+        }
+        if (part.startsWith('`') && part.endsWith('`')) {
+          return <span key={pIdx} className="font-mono bg-slate-900 text-amber-300 px-1 py-0.5 rounded text-[11px]">{part.slice(1, -1)}</span>;
+        }
+        return part;
+      });
+    };
+
     const lines = content.split('\n');
     return lines.map((line, idx) => {
       if (line.startsWith('### ')) {
-        return <h4 key={idx} className="font-bold text-cyan-300 text-xs mt-2 mb-1">{line.replace('### ', '')}</h4>;
+        return <h4 key={idx} className="font-bold text-cyan-300 text-xs mt-2 mb-1">{parseInline(line.replace('### ', ''))}</h4>;
       }
       if (line.startsWith('## ')) {
-        return <h3 key={idx} className="font-bold text-amber-300 text-sm mt-2 mb-1">{line.replace('## ', '')}</h3>;
+        return <h3 key={idx} className="font-bold text-amber-300 text-sm mt-2 mb-1">{parseInline(line.replace('## ', ''))}</h3>;
       }
       if (line.startsWith('- ') || line.startsWith('• ')) {
         return (
           <li key={idx} className="ml-3 list-disc text-xs text-slate-200 leading-relaxed">
-            {line.substring(2)}
+            {parseInline(line.replace(/^[-•]\s*/, ''))}
           </li>
         );
       }
       if (line.trim() === '') {
         return <div key={idx} className="h-1.5" />;
       }
-      return <p key={idx} className="text-xs text-slate-100 leading-relaxed">{line}</p>;
+      return <p key={idx} className="text-xs text-slate-100 leading-relaxed">{parseInline(line)}</p>;
     });
   };
 
@@ -338,11 +351,11 @@ export default function FloatingChatbot({ activeUser }) {
                     value={selectedProvider}
                     onChange={(e) => setSelectedProvider(e.target.value)}
                     className="bg-slate-900 border border-cyan-500/30 text-[10px] text-cyan-200 rounded px-1.5 py-0.5 focus:outline-none"
-                    title="Select AI Engine Provider"
+                    title="Select AI Operations Mode"
                   >
-                    <option value="auto">⚡ Auto Router (Gemini + OpenRouter)</option>
-                    <option value="gemini">✨ Google Gemini 2.5 Flash</option>
-                    <option value="openrouter">🦙 OpenRouter Llama 3.3 70B</option>
+                    <option value="auto">⚡ Operational Auto Router</option>
+                    <option value="gemini">✨ High-Speed Dispatch Mode</option>
+                    <option value="openrouter">🧠 Deep Operational Reasoning</option>
                   </select>
                 </div>
               </div>
@@ -465,21 +478,9 @@ export default function FloatingChatbot({ activeUser }) {
                       </div>
                     )}
 
-                    {/* Footer Meta with Provider & MongoDB Sync info */}
-                    <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-700/30">
-                      <div className="flex items-center space-x-2">
-                        <span>{msg.timestamp}</span>
-                        {msg.provider && (
-                          <span className="text-[9px] px-1.5 py-0.2 bg-slate-900 border border-slate-700 text-cyan-300 rounded">
-                            {msg.provider}
-                          </span>
-                        )}
-                      </div>
-                      {msg.mongodb_synced && (
-                        <span className="text-[9px] text-emerald-400 flex items-center space-x-1">
-                          <span>🍃 Atlas Synced</span>
-                        </span>
-                      )}
+                    {/* Footer Meta with Clean Timestamp */}
+                    <div className="flex items-center justify-end text-[10px] text-slate-400 pt-1 border-t border-slate-700/30">
+                      <span>{msg.timestamp}</span>
                     </div>
                   </div>
                 </div>

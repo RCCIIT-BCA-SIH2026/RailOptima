@@ -53,15 +53,21 @@ export default function Navbar({ currentRole, setCurrentRole, activeUser, setAct
       {/* Main Bar */}
       <div className="px-6 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-            <Train className="w-6 h-6 text-white" />
+          <div className="relative w-11 h-11 rounded-full p-0.5 bg-gradient-to-tr from-amber-500 via-orange-500 to-emerald-500 shadow-md shadow-amber-500/20">
+            <div className="w-full h-full rounded-full bg-slate-950 overflow-hidden flex items-center justify-center p-0.5 border border-amber-400/40">
+              <img 
+                src="/railoptima-logo.png" 
+                alt="RailOptima" 
+                className="w-full h-full object-contain filter drop-shadow"
+              />
+            </div>
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <h1 className="font-bold text-lg text-white tracking-wide">RAILWAY-AI BLOCK PLANNER</h1>
-              <span className="bg-blue-900/60 text-blue-400 border border-blue-700/50 text-[10px] font-mono px-2 py-0.5 rounded">SIH26027</span>
+              <h1 className="font-bold text-lg text-white tracking-wide">RailOptima</h1>
+              <span className="bg-amber-900/60 text-amber-300 border border-amber-700/50 text-[10px] font-mono px-2 py-0.5 rounded font-extrabold">IR-ABPS AI</span>
             </div>
-            <p className="text-xs text-slate-400">Automatic Maintenance Optimization for Indian Railways</p>
+            <p className="text-xs text-slate-300">Indian Railways Automatic Block Planning & Optimization</p>
           </div>
         </div>
 

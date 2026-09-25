@@ -1,0 +1,17 @@
+{
+  "name": "railoptima-backend",
+  "version": "1.0.0",
+  "description": "RailOptima FastAPI Backend Service",
+  "main": "start.js",
+  "scripts": {
+    "start": "node start.js",
+    "dev": "node start.js"
+  },
+  "keywords": [
+    "railoptima",
+    "backend",
+    "fastapi"
+  ],
+  "author": "",
+  "license": "ISC"
+}

@@ -65,9 +65,18 @@ export default function LoginView({ setActiveUser }) {
 
       <div className="relative z-10 w-full max-w-xl flex flex-col items-center">
         {/* Header Emblem */}
-        <div className="text-center mb-6 max-w-lg">
-          <div className="w-16 h-16 mx-auto bg-gradient-to-br from-emerald-500 to-teal-700 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-emerald-600/30 mb-3 border border-white/40 ring-4 ring-emerald-400/20">
-            <Train className="w-9 h-9" />
+        <div className="text-center mb-6 max-w-lg flex flex-col items-center">
+          <div className="relative w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-emerald-500 via-teal-400 to-sky-400 shadow-2xl shadow-emerald-500/30 mb-3.5 ring-4 ring-emerald-400/25">
+            <div className="w-full h-full rounded-full bg-slate-900/95 overflow-hidden flex items-center justify-center p-1 border border-emerald-300/50">
+              <img 
+                src="/railoptima-logo.png" 
+                alt="RailOptima" 
+                className="w-full h-full object-contain filter drop-shadow-lg"
+              />
+            </div>
+            <span className="absolute bottom-0 right-0 w-5 h-5 bg-emerald-500 border-2 border-slate-900 rounded-full flex items-center justify-center shadow-md">
+              <span className="w-2 h-2 bg-white rounded-full"></span>
+            </span>
           </div>
           <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight drop-shadow-md">
             RailOptima &bull; Indian Railways

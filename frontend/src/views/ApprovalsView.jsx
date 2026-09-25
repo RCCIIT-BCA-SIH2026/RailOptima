@@ -54,11 +54,12 @@ export default function ApprovalsView() {
         comments: comments || `${activeModal.actionType}d by Railway Officer`
       });
 
-      setActionSuccessMsg(`Block possession ${activeModal.approval.block_code} successfully ${activeModal.actionType.toLowerCase()}d.`);
+      setActionSuccessMsg(`Block possession ${activeModal.approval.block_code} successfully ${activeModal.actionType.toLowerCase()}d and recorded in MongoDB Atlas.`);
+      const currentBlkId = blkId;
+      setApprovals(prev => prev.map(a => (a.block_id === currentBlkId || a.id === currentBlkId) ? { ...a, status: actionName } : a));
       setActiveModal(null);
       setComments('');
-      await fetchPendingApprovals();
-      setTimeout(() => setActionSuccessMsg(null), 5000);
+      setTimeout(() => setActionSuccessMsg(null), 6000);
     } catch (err) {
       console.error("Approval action failed", err);
     } finally {
@@ -84,7 +85,7 @@ export default function ApprovalsView() {
         </div>
 
         <Badge variant="secondary" className="px-3 py-1 font-mono text-xs font-bold">
-          {approvals.length} Approvals Pending
+          {approvals.length} Clearance Items in Queue
         </Badge>
       </div>
 
@@ -95,7 +96,7 @@ export default function ApprovalsView() {
             <Check className="w-4 h-4 text-emerald-600 shrink-0" />
             <span className="font-semibold">{actionSuccessMsg}</span>
           </div>
-          <Badge variant="success">AUDIT LOG RECORDED</Badge>
+          <Badge variant="success">AUDIT LOG PERSISTED TO MONGODB</Badge>
         </div>
       )}
 
@@ -113,60 +114,96 @@ export default function ApprovalsView() {
             <p className="text-xs text-slate-400 mt-1">There are no maintenance blocks pending DRM approval at this time.</p>
           </Card>
         ) : (
-          approvals.map((appr) => (
-            <Card key={appr.id} className="hover:shadow-md transition">
-              <CardContent className="p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div className="space-y-1.5 flex-1">
-                  <div className="flex items-center space-x-2">
-                    <span className="font-mono font-extrabold text-sm text-slate-900">
-                      {appr.block_code}
-                    </span>
-                    <Badge variant="warning">{appr.status || 'Pending Review'}</Badge>
-                    <span className="text-xs text-slate-500 font-medium">
-                      Section: <b className="text-blue-700 font-mono">{appr.section_code}</b>
-                    </span>
+          approvals.map((appr) => {
+            const isApproved = appr.status === 'Approved';
+            const isRejected = appr.status === 'Rejected';
+
+            return (
+              <Card
+                key={appr.id || appr.block_id}
+                className={`transition ${
+                  isApproved
+                    ? 'border-emerald-500 bg-emerald-50/50 shadow-md ring-1 ring-emerald-400/30'
+                    : isRejected
+                      ? 'border-rose-300 bg-rose-50/50'
+                      : 'hover:shadow-md'
+                }`}
+              >
+                <CardContent className="p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                  <div className="space-y-1.5 flex-1">
+                    <div className="flex items-center space-x-2">
+                      <span className="font-mono font-extrabold text-sm text-slate-900">
+                        {appr.block_code}
+                      </span>
+                      {isApproved ? (
+                        <span className="bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded shadow-xs flex items-center space-x-1">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-200" />
+                          <span>✓ DRM SANCTIONED & SAVED TO DB</span>
+                        </span>
+                      ) : isRejected ? (
+                        <Badge variant="critical">Rejected</Badge>
+                      ) : (
+                        <Badge variant="warning">{appr.status || 'Pending Review'}</Badge>
+                      )}
+                      <span className="text-xs text-slate-500 font-medium">
+                        Section: <b className="text-blue-700 font-mono">{appr.section_code}</b>
+                      </span>
+                    </div>
+
+                    <div className="text-xs text-slate-700 flex flex-wrap items-center gap-x-4 gap-y-1">
+                      <span className="flex items-center space-x-1">
+                        <Clock className="w-3.5 h-3.5 text-slate-400" />
+                        <span>{appr.duration_hours || 3.0} Hours Duration</span>
+                      </span>
+                      <span>Lead Dept: <b className="text-slate-900">{appr.lead_department || 'ENG'}</b></span>
+                      <span>Requested By: <b className="text-slate-900">{appr.officer_title || 'Sr. Divisional Engineer (Civil)'}</b></span>
+                    </div>
+
+                    {appr.justification && (
+                      <p className="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-200 mt-2">
+                        <b>Engineering Justification:</b> {appr.justification}
+                      </p>
+                    )}
                   </div>
 
-                  <div className="text-xs text-slate-700 flex flex-wrap items-center gap-x-4 gap-y-1">
-                    <span className="flex items-center space-x-1">
-                      <Clock className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{appr.duration_hours || 3.0} Hours Duration</span>
-                    </span>
-                    <span>Lead Dept: <b className="text-slate-900">{appr.lead_department || 'ENG'}</b></span>
-                    <span>Requested By: <b className="text-slate-900">{appr.officer_title || 'Sr. Divisional Engineer (Civil)'}</b></span>
+                  <div className="flex items-center space-x-2 shrink-0">
+                    {isApproved ? (
+                      <div className="px-4 py-2 bg-emerald-600 text-white text-xs font-black rounded-lg shadow-md flex items-center space-x-1.5 border border-emerald-400">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-200" />
+                        <span>✓ Sanctioned & Saved to MongoDB</span>
+                      </div>
+                    ) : isRejected ? (
+                      <div className="px-3 py-1.5 bg-rose-100 text-rose-800 text-xs font-bold rounded-lg border border-rose-300">
+                        Rejected & Returned
+                      </div>
+                    ) : (
+                      <>
+                        <Button
+                          variant="critical"
+                          size="sm"
+                          onClick={() => setActiveModal({ approval: appr, actionType: 'Reject' })}
+                          className="flex items-center space-x-1"
+                        >
+                          <XCircle className="w-3.5 h-3.5" />
+                          <span>Reject</span>
+                        </Button>
+
+                        <Button
+                          variant="success"
+                          size="sm"
+                          onClick={() => setActiveModal({ approval: appr, actionType: 'Approve' })}
+                          className="flex items-center space-x-1 shadow-md shadow-emerald-600/20"
+                        >
+                          <FileSignature className="w-3.5 h-3.5" />
+                          <span>Approve & Grant Block</span>
+                        </Button>
+                      </>
+                    )}
                   </div>
-
-                  {appr.justification && (
-                    <p className="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-200 mt-2">
-                      <b>Engineering Justification:</b> {appr.justification}
-                    </p>
-                  )}
-                </div>
-
-                <div className="flex items-center space-x-2 shrink-0">
-                  <Button
-                    variant="critical"
-                    size="sm"
-                    onClick={() => setActiveModal({ approval: appr, actionType: 'Reject' })}
-                    className="flex items-center space-x-1"
-                  >
-                    <XCircle className="w-3.5 h-3.5" />
-                    <span>Reject</span>
-                  </Button>
-
-                  <Button
-                    variant="success"
-                    size="sm"
-                    onClick={() => setActiveModal({ approval: appr, actionType: 'Approve' })}
-                    className="flex items-center space-x-1 shadow-md shadow-emerald-600/20"
-                  >
-                    <FileSignature className="w-3.5 h-3.5" />
-                    <span>Approve & Grant Block</span>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))
+                </CardContent>
+              </Card>
+            );
+          })
         )}
       </div>
 

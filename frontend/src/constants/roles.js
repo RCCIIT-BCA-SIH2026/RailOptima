@@ -148,6 +148,7 @@ export function isRouteAllowed(path, role) {
 
   switch (path) {
     case '/dashboard':
+    case '/whatsapp-dispatcher':
     case '/alerts':
     case '/reports':
     case '/blocks':
